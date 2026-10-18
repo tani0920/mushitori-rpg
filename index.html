@@ -169,6 +169,15 @@ header small{color:var(--mute);font-size:12px}
 #endScr .win{width:100%;text-align:left}
 #endScr .ttl{font-size:22px;color:var(--sun);text-align:center}
 #endScr img{width:72px;height:72px;image-rendering:pixelated}
+#endScr .story{font-size:18px;line-height:1.9;min-height:7.5em;text-align:left}
+#endScr .dexs{display:grid;grid-template-columns:repeat(auto-fill,minmax(36px,1fr));gap:4px;margin:10px 0;background:#f3ead2;border-radius:4px;padding:6px}
+#endScr .dexs img{width:100%;height:auto;aspect-ratio:1}
+#endScr .score{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;margin-top:6px}
+#endScr .score th{text-align:left;font-weight:400;color:var(--mute);padding:3px 0}
+#endScr .score td{text-align:right;padding:3px 0}
+#endScr .score .sum th,#endScr .score .sum td{color:var(--sun);border-top:1px dashed #f7f1df55;padding-top:6px}
+#endScr .bestbug{display:flex;align-items:center;gap:10px;margin-top:10px}
+#endScr .bestbug img{width:56px;height:56px}
 
 /* コントローラー */
 #pad{display:none;justify-content:space-between;align-items:center;gap:10px;padding-top:4px}
@@ -815,7 +824,7 @@ async function fieldMenu(){
     if(c===3) await openCam();
     if(c===5) await ruleMenu();
     if(c===6){ save(); await say('セーブしました。'); }
-    if(c===4) await say(`Lv${S.lv}　けいけんち ${S.exp}/${need(S.lv)}\nたいりょく ${S.hp}/${maxHp()}　こうげき ${Math.round(patk())}\nあみ：${NETS[S.net].name}／くつ：${SHOES[S.shoes].name}\nかご：${CAGES[S.cage].name}（つかまえる力${Math.round(CAGES[S.cage].pow*100)}・${cap()}ひきまで）`);
+    if(c===4) await say(`自由研究（昆虫図鑑）：${research().total}点・いまなら「${endingOf(research()).award}」\nLv${S.lv}　けいけんち ${S.exp}/${need(S.lv)}\nたいりょく ${S.hp}/${maxHp()}　こうげき ${Math.round(patk())}\nあみ：${NETS[S.net].name}／くつ：${SHOES[S.shoes].name}\nかご：${CAGES[S.cage].name}（つかまえる力${Math.round(CAGES[S.cage].pow*100)}・${cap()}ひきまで）`);
   }
 }
 async function boxMenu(){
@@ -1021,7 +1030,7 @@ async function battle(id){
 function openDex(){
   return new Promise(res=>{
     const ids = Object.keys(BUGS), grid = $('dexGrid'), det = $('dexDetail'); let i = 0;
-    $('dexCnt').textContent = `${dexCount()} / ${ids.length} しゅるい`;
+    { const r = research(); $('dexCnt').textContent = `${dexCount()} / ${ids.length} しゅるい　自由研究 ${r.total}点（いまなら${endingOf(r).award}）`; }
     const where = id=> Object.values(AREAS).filter(a=>a.bugs.includes(id)).map(a=>a.name).join('・');
     const render = ()=>{
       grid.innerHTML = ids.map((id,j)=>{ const got = S.dex[id], seen = S.seen[id];
@@ -1167,31 +1176,106 @@ async function intro(){
     '7月21日に夏休みがはじまってから、がんばって宿題をほとんど終わらせた。\nのこりの夏休みは、虫とりに全力だ！',
     'お母さん「宿題がんばったわね。でも夜9時までには帰ってくるのよ。\nはい、おこづかい300円。」',
     `${dateStr(DAYS+1)}からは二学期がはじまる。\n${dateStr(DAYS)}までの${DAYS}日間で、宗像じゅうの虫をつかまえて昆虫図鑑を完成させよう！`,
+    '自由研究は「昆虫図鑑づくり」！\nたくさんの虫、めずらしい虫をのせるほど、二学期の発表で注目されるぞ。',
     'つかまえた虫は、家のとなりの「虫具店」で売れる。\nお金をためて、いいあみ・虫かご・くつを買おう！',
     '本物の虫を見つけたら、メニューの「本物の虫を撮る」で写真を見せてね。\nおこづかいや、お店では買えないアイテムがもらえるよ！',
     touch ? '【そうさ】十字キー：いどう　A：けってい　B/メニュー：メニュー\n草むらを歩くと虫が出てくるよ。下の出口から町の外へ！'
           : '【そうさ】やじるしキー：いどう　Z：けってい　X：メニュー\n草むらを歩くと虫が出てくるよ。下の出口から町の外へ！'
   );
 }
-function titleFor(n, total){
-  if(n >= total) return '伝説の虫とり王';
-  if(n >= 26) return '宗像の虫とり名人';
-  if(n >= 18) return '虫とりハカセ';
-  if(n >= 10) return '虫とりキッズ';
-  return '虫とりビギナー';
+/* ---------- 自由研究「ぼくの昆虫図鑑」 ----------
+   点数 = レア度ポイント（図鑑にのった虫の★）＋ 本物の虫の写真 ＋ がんばり（つかまえた数） */
+const RANK_PT = [0, 1, 2, 4, 7, 12];   // ★1〜★5 の点数
+function research(){
+  const ids = Object.keys(S.dex).filter(id=>BUGS[id]);
+  const rare = ids.reduce((s,id)=>s + RANK_PT[BUGS[id].rank], 0);
+  const photo = Object.keys(photos.cats).length * 2;
+  const effort = Math.floor(Math.min(S.caughtTotal, 60) / 3);
+  const best = ids.slice().sort((a,b)=>BUGS[b].rank - BUGS[a].rank || BUGS[b].price - BUGS[a].price)[0];
+  return {ids, species:ids.length, rare, photo, effort, total:rare + photo + effort, best,
+    complete: ids.length >= Object.keys(BUGS).length, kin: !!S.dex.kinkabuto};
+}
+const ENDINGS = [
+  {key:'legend', min:Infinity, award:'宗像市長賞',      title:'伝説の虫とり王'},
+  {key:'hero',   min:110,      award:'金賞（学校代表）', title:'学校のヒーロー'},
+  {key:'star',   min:70,       award:'銀賞',            title:'クラスの虫とり名人'},
+  {key:'good',   min:35,       award:'銅賞',            title:'虫とりキッズ'},
+  {key:'normal', min:12,       award:'努力賞',          title:'虫とりビギナー'},
+  {key:'poor',   min:0,        award:'がんばったで賞',   title:'虫とり見習い'},
+];
+function endingOf(r){ if(r.complete || (r.kin && r.total >= 90)) return ENDINGS[0]; return ENDINGS.find(e=>r.total >= e.min); }
+function endingStory(e, r){
+  const best = r.best ? BUGS[r.best].name : '虫';
+  const open = [`${dateStr(DAYS+1)}。二学期のはじまりだ。`, `自由研究の「ぼくの昆虫図鑑」をかかえて、学校へ向かった。\n（図鑑：${r.species}しゅるい）`];
+  const body = {
+    legend:[
+      '教室に入ったとたん、クラス中が図鑑のまわりに集まって大さわぎになった！',
+      r.kin ? '「これ…キンイロカブト！？ 本当にいたの！？」\nみんなの目がまんまるになった。' : `「${Object.keys(BUGS).length}しゅるい、ぜんぶ！？」\nみんなの目がまんまるになった。`,
+      '先生があわてて校長先生をよんできて、全校集会で発表することになった。',
+      '数日後、新聞記者さんが取材に来た。\n「宗像の小学生、夏休みの大発見！」',
+      'ぼくの昆虫図鑑は、「海の道むなかた館」にかざられることになった。\nこの夏のことは、ずっとわすれない。',
+    ],
+    hero:[
+      '教室に入ったとたん、「見せて見せて！」とクラス中が集まってきた。',
+      `「${best}をつかまえたの！？ すげー！」\nとなりのクラスや、上級生まで見に来た。`,
+      '先生「こんなにりっぱな図鑑ははじめて見たよ。学校の代表として、市のコンクールに出そう！」',
+      'その日から、ぼくは「虫ハカセ」とよばれるようになった。\nいちやく学校のヒーローだ！',
+    ],
+    star:[
+      '休み時間になると、図鑑のまわりに人だかりができた。',
+      `「この${best}、どこでとったの？」「今度いっしょに連れてって！」`,
+      '先生「よく調べたね。とてもいい自由研究だ！」\n銀賞をもらった！',
+      'クラスでちょっとした人気者になった。\n来年はもっとすごい図鑑をつくるぞ！',
+    ],
+    good:[
+      '何人かの友だちが、図鑑を見に来てくれた。',
+      '「アブラゼミとクマゼミって、こんなにちがうんだ」\n友だちが感心している。',
+      '先生「ていねいに調べたね。」\n銅賞をもらった。',
+      'なかなかいい夏休みだった。\nでも、もっとめずらしい虫も見てみたかったな…。',
+    ],
+    normal:[
+      '図鑑を出したけど、ページはちょっとスカスカだった。',
+      'となりの席の子は、カブトムシとクワガタで図鑑をうめつくしていた…。',
+      '先生「来年はもっとたくさん見つけられるといいね。」\n努力賞をもらった。',
+      '来年こそ、宗像じゅうの虫をつかまえるぞ！',
+    ],
+    poor:[
+      '図鑑には、虫が少ししかのっていなかった…。',
+      '先生「…ええと、表紙の絵がとっても上手だね！」',
+      'クラスのみんなは、ほかの子の自由研究に夢中だ。',
+      'ぼくの夏休みって、いったい…。\n来年こそリベンジだ！',
+    ],
+  }[e.key];
+  return [...open, ...body];
 }
 async function ending(){
   scene = 'end';
-  const ids = Object.keys(BUGS), n = dexCount();
-  const best = ids.filter(id=>S.dex[id]).sort((a,b)=>BUGS[b].rank - BUGS[a].rank || BUGS[b].price - BUGS[a].price)[0];
-  $('endIn').innerHTML = `<h2>夏休み、おしまい！</h2>
-    <div class="win"><div>${dateStr(1)}から${dateStr(DAYS)}までの ${DAYS}日間、おつかれさま！<br>明日から二学期。自由研究の発表がたのしみだ！</div><br>
-    <div>昆虫図鑑：${n} / ${ids.length} しゅるい</div><div>つかまえた数：のべ ${S.caughtTotal} ひき</div><div>レベル：${S.lv}</div><div>のこったお金：${S.money}円</div>
-    ${best ? `<br><div>いちばんすごい虫：</div><div style="display:flex;align-items:center;gap:10px"><img alt="" src="${spriteURL(best)}"><span>${esc(BUGS[best].name)}　${stars(BUGS[best].rank)}</span></div>` : ''}
-    <br><div>あなたの称号は…</div><div class="ttl">「${titleFor(n, ids.length)}」</div></div>
+  const r = research(), e = endingOf(r), lines = endingStory(e, r);
+  const el = $('endIn'); $('endScr').hidden = false;
+  const next = ()=> new Promise(res=>{ uiHandler = k=>{ if(k==='A'){ uiHandler = null; res(); } }; const b = $('endBtn'); if(b) b.onclick = ()=>{ uiHandler = null; res(); }; });
+  // おはなし
+  for(const l of lines){
+    el.innerHTML = `<h2>二学期のはじまり</h2><div class="win story">${fmt(l)}</div><button class="btn" id="endBtn">つぎへ ▼</button>`;
+    await next();
+  }
+  // 結果
+  const total = Object.keys(BUGS).length;
+  el.innerHTML = `<h2>自由研究「ぼくの昆虫図鑑」</h2>
+    <div class="win">
+      <div class="ttl">${esc(e.award)}</div>
+      <div class="dexs">${Object.keys(BUGS).map(id=>`<img alt="" title="${esc(BUGS[id].name)}" src="${spriteURL(id, !S.dex[id])}">`).join('')}</div>
+      <table class="score">
+        <tr><th>図鑑にのった虫</th><td>${r.species} / ${total} しゅるい</td></tr>
+        <tr><th>レア度ポイント</th><td>${r.rare} 点</td></tr>
+        <tr><th>本物の虫の写真</th><td>${r.photo} 点</td></tr>
+        <tr><th>がんばり（のべ ${S.caughtTotal}ひき）</th><td>${r.effort} 点</td></tr>
+        <tr class="sum"><th>自由研究の点数</th><td>${r.total} 点</td></tr>
+      </table>
+      ${r.best ? `<div class="bestbug"><img alt="" src="${spriteURL(r.best)}"><span>いちばんすごい虫<br>${esc(BUGS[r.best].name)}　${stars(BUGS[r.best].rank)}</span></div>` : ''}
+      <div style="text-align:center;margin-top:10px">あなたの称号は…</div><div class="ttl">「${esc(e.title)}」</div>
+    </div>
     <button class="btn" id="endBtn">タイトルへもどる</button>`;
-  $('endScr').hidden = false;
-  await new Promise(res=>{ uiHandler = k=>{ if(k==='A'){ uiHandler = null; res(); } }; $('endBtn').onclick = ()=>{ uiHandler = null; res(); }; });
+  await next();
   $('endScr').hidden = true; clearSave(); S = newState();
   await titleScreen();
 }
@@ -1209,6 +1293,8 @@ function start(data){
     else if(demo==='menu') run(fieldMenu);
     else if(demo==='items'){ Object.assign(S.items, {jueki:2, note:1}); S.goldwing = true; run(itemMenu); }
     else if(demo==='shop') run(()=>buyGear('cage'));
+    else if(demo==='end'){ const n = +(QS.get('n')||10); Object.keys(BUGS).slice(0, n).forEach(id=>S.dex[id] = {n:1, best:BUGS[id].lv}); if(QS.has('kin')) S.dex.kinkabuto = {n:1, best:25};
+      S.caughtTotal = n*2; run(ending); const skip = +(QS.get('skip')||0); for(let k=0;k<skip;k++) setTimeout(()=>press('A'), 300 + k*120); }
     else run(()=>say(`${dateStr()}。いよいよ虫とりの日がやってきた！`));
     return; }
   run(titleScreen);
