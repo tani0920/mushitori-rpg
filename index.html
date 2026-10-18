@@ -1221,7 +1221,12 @@ async function sumoMenu(){
         disabled: locked || done};
     });
     opts.push({label:'やめる'});
-    const c = await choose(opts, {title:'虫ずもう'});
+    // カーソルは「まだ勝っていない相手」→「今日たたかえる相手」の順で、えらべるところに合わせる
+    const can = opts.map((o,j)=>!o.disabled && j<RIVALS.length);
+    let start = RIVALS.findIndex((r,j)=>can[j] && !S.sumo[r.key]);
+    if(start<0) start = can.indexOf(true);
+    if(start<0) start = RIVALS.length;
+    const c = await choose(opts, {title:'虫ずもう', start});
     if(c<0 || c===RIVALS.length) return;
     if(!S.box.length){ await say('虫かごに虫がいないと、虫ずもうに出られない…。'); return; }
     const m = await choose(S.box.map(it=>({label:`${BUGS[it.id].name} Lv${it.lv}`, desc:fstat(fighter(it.id, it.lv, true))})), {title:'どの虫で勝負する？'});
@@ -1277,6 +1282,9 @@ async function sumoBattle(r, it){
     }
     S.sumo[r.key] = (S.sumo[r.key]||0) + 1;
     hud(); await say(msg);
+    const nx = RIVALS[RIVALS.indexOf(r) + 1];
+    if(first && nx) await say(`つぎの相手「${nx.name}」と勝負できるようになった！`);
+    if(first && !nx) await say('虫ずもうの相手は、ぜんぶたおした！');
   } else {
     await say(`${r.short}「${r.lose}」`);
   }
