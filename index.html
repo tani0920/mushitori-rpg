@@ -93,7 +93,7 @@ header small{color:var(--mute);font-size:12px}
 #battle.bg-oshima{background:linear-gradient(#8fd6f8 0 42%,#2f78c0 42% 56%,#e8d6a0 56% 64%,#5a9a48 64%)}
 #battle.night::after{content:"";position:absolute;inset:0;background:#0a1440;opacity:.5;pointer-events:none}
 #battle.dusk::after{content:"";position:absolute;inset:0;background:#d8641e;opacity:.22;pointer-events:none}
-#bWrap{position:absolute;left:50%;top:12%;width:34%;transform:translateX(-50%);z-index:2}
+#bWrap{position:absolute;left:50%;top:12%;width:42%;transform:translateX(-50%);z-index:2}
 #bSprite{width:100%;display:block;image-rendering:pixelated;image-rendering:crisp-edges;animation:bob 1.2s ease-in-out infinite}
 #bShadow{width:70%;height:8%;margin:-4% auto 0;border-radius:50%;background:#0003}
 @keyframes bob{50%{transform:translateY(-5%)}}
@@ -118,7 +118,9 @@ header small{color:var(--mute);font-size:12px}
   padding:max(12px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
 #dex{background:var(--paper);color:var(--paper-ink)}
 #dex .in{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
-#dex .top{display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:3px double var(--paper-ink);padding-bottom:6px}
+#dex .top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:4px 10px;border-bottom:3px double var(--paper-ink);padding-bottom:6px}
+#dex .top h2,#dex .top .btn{white-space:nowrap}
+#dex .top .cnt{order:3;flex-basis:100%;font-size:13px}
 #dex h2{margin:0;font-weight:400;font-size:20px;letter-spacing:.1em}
 #dex .cnt{font-variant-numeric:tabular-nums}
 .btn{font:inherit;background:var(--win);color:var(--ink);border:2px solid var(--edge);border-radius:6px;padding:.35em 1em;cursor:pointer}
@@ -169,6 +171,7 @@ header small{color:var(--mute);font-size:12px}
 #endScr .win{width:100%;text-align:left}
 #endScr .ttl{font-size:22px;color:var(--sun);text-align:center}
 #endScr img{width:72px;height:72px;image-rendering:pixelated}
+img[src^="img/"]{image-rendering:auto!important}   /* ChatGPTで作った細かい絵はなめらかに縮小 */
 #endScr .story{font-size:18px;line-height:1.9;min-height:7.5em;text-align:left}
 #endScr .dexs{display:grid;grid-template-columns:repeat(auto-fill,minmax(36px,1fr));gap:4px;margin:10px 0;background:#f3ead2;border-radius:4px;padding:6px}
 #endScr .dexs img{width:100%;height:auto;aspect-ratio:1}
@@ -226,7 +229,7 @@ body.touch #menu li{padding-top:.3em;padding-bottom:.3em}
 body.touch .binfo{font-size:.8em}
 body.touch #bInfo{top:calc(var(--hudH) + 4px);left:calc(var(--sideL) + 8px);min-width:0;width:calc(50% - var(--sideL) - 12px);max-width:16em}
 body.touch #pInfo{top:calc(var(--hudH) + 4px);right:calc(var(--sideR) + 8px);min-width:0;width:calc(50% - var(--sideR) - 12px);max-width:12em}
-body.touch #bWrap{top:calc(var(--hudH) + 6.5em);width:min(46%,32vh)}
+body.touch #bWrap{top:calc(var(--hudH) + 5.5em);width:min(64%,38vh)}
 body.touch #titleScr{padding-top:calc(env(safe-area-inset-top,0px) + 14%)}
 body.touch #titleScr .t2{font-size:clamp(34px,11vmin,64px)}
 body.touch #titleScr .t1{font-size:clamp(16px,4.6vmin,26px)}
@@ -302,7 +305,8 @@ const STEP_MIN = 2;              // 1歩で進む時間（分）
 const BATTLE_MIN = 10;           // 1回のバトルで進む時間（分）
 const FAINT_LOSE = 0.5;          // 熱中症で倒れたとき、虫かごからにげる割合
 const FAINT_ALL = 0.2;           // 熱中症で倒れたとき、虫が全部にげてしまう確率
-const USE_IMAGE_FILES = false;   // true にすると img/bugs/<id>.png があればそれを使う（ChatGPTのドット絵差し替え用）
+const USE_IMAGE_FILES = true;    // img/sprites/bugs/<id>.png があればそれを使う（tools/process_bugs.py で作る）
+const BUG_IMG_DIR = 'img/sprites/bugs/';
 const SAVE_KEY = 'munakata-mushitori-v1';
 
 /* 時間帯 */
@@ -446,7 +450,13 @@ const SHAPES = {
 const spriteCache = {};
 const imgOK = {};
 function spriteURL(id, sil){
-  if(USE_IMAGE_FILES && imgOK[id] && !sil) return 'img/bugs/'+id+'.png';
+  if(USE_IMAGE_FILES && imgOK[id]){
+    if(!sil) return BUG_IMG_DIR + id + '.png';
+    const k = id + '_fs';   // まだつかまえていない虫のシルエット
+    if(!spriteCache[k]){ const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d');
+      g.drawImage(imgOK[id], 0, 0, 128, 128); g.globalCompositeOperation = 'source-in'; g.fillStyle = '#2a2418'; g.fillRect(0, 0, 128, 128); spriteCache[k] = c.toDataURL(); }
+    return spriteCache[k];
+  }
   const key = id+(sil?'_s':''); if(spriteCache[key]) return spriteCache[key];
   const b = BUGS[id], rows = SHAPES[b.shape];
   const c = document.createElement('canvas'); c.width = c.height = 16; const x = c.getContext('2d');
@@ -454,7 +464,8 @@ function spriteURL(id, sil){
   rows.forEach((r,y)=>[...r].forEach((ch,i)=>{ if(ch==='.'||ch===' ') return; x.fillStyle = sil ? '#2a2418' : (pal[ch]||'#f0f'); x.fillRect(i,y,1,1); }));
   return spriteCache[key] = c.toDataURL();
 }
-if(USE_IMAGE_FILES) Object.keys(BUGS).forEach(id=>{ const im = new Image(); im.onload = ()=>imgOK[id]=true; im.src = 'img/bugs/'+id+'.png'; });
+const imgReady = {};   // 読みこみ待ち（読みこめたら resolve）
+if(USE_IMAGE_FILES) Object.keys(BUGS).forEach(id=>{ imgReady[id] = new Promise(res=>{ const im = new Image(); im.onload = ()=>{ imgOK[id] = im; res(); }; im.src = BUG_IMG_DIR + id + '.png'; }); });
 
 /* 主人公（麦わらぼうしの小学生） 12x16 */
 const PC = {h:'#e8cf6a', b:'#c8402e', s:'#f1c08e', k:'#2a1e14', t:'#fbf8ef', u:'#3d6fd6', p:'#33447e', g:'#2f7fd0', m:'#c0504a'};
@@ -984,6 +995,7 @@ async function battle(id){
   const slot = slotOf(S.min);
   battleEl.className = 'ov bg-' + AREAS[S.area].style + (slot==='yoru' ? ' night' : slot==='yu' ? ' dusk' : '');
   bSprite.src = spriteURL(id); scene = 'battle';
+  if(!imgOK[id] && imgReady[id]) imgReady[id].then(()=>{ if(scene==='battle') bSprite.src = spriteURL(id); });
   await fade(()=>{ battleEl.hidden = false; updateB(e); });
   await say(`あっ！ ${b.name}（Lv${lv}）があらわれた！` + (id==='kinkabuto' ? '\nまぶしい金色の光…！ これが大島の伝説の…！' : b.rank>=4 ? '\nめずらしい虫だ…！' : ''));
   let result = null;
@@ -1291,7 +1303,8 @@ function start(data){
   if(data && data.save && data.scene==='field'){ try{ S = loadState(data.save); scene = 'field'; $('titleScr').hidden = true; hud(); return; }catch(e){} }
   const demo = QS.get('demo');
   if(demo){ S = newState(); scene = 'field'; $('titleScr').hidden = true; S.area = 'taisha'; S.x = 9; S.y = 9; hud(); layout();
-    if(demo==='battle') run(()=>battle('kabuto'));
+    if(demo==='battle') run(()=>battle(QS.get('id') || 'kabuto'));
+    else if(demo==='dex'){ Object.keys(BUGS).slice(0, +(QS.get('n')||12)).forEach(id=>S.dex[id] = {n:1, best:BUGS[id].lv}); S.seen.kokuwa = true; setTimeout(()=>run(openDex), 600); }
     else if(demo==='menu') run(fieldMenu);
     else if(demo==='items'){ Object.assign(S.items, {jueki:2, note:1}); S.goldwing = true; run(itemMenu); }
     else if(demo==='shop') run(()=>buyGear('cage'));
