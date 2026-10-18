@@ -184,6 +184,9 @@ body.touch.land #msg .face{width:3.6em;height:3.6em}
 #dexDetail .stars .rl{color:#7a6a4a;font-size:12px;margin-right:2px}
 #dexDetail p{margin:.6em 0 0;line-height:1.7}
 #dexDetail dl{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;margin:.8em 0 0;font-size:13px}
+#dexDetail h4{margin:1em 0 0;font-weight:400;font-size:14px;color:#7a4a1a;border-bottom:1px solid var(--paper-line);padding-bottom:2px}
+#dexDetail h4+dl{margin-top:.4em}
+#dexDetail dl.real dd{line-height:1.55}
 #dexDetail dt{color:#7a6a4a}
 #dexDetail dd{margin:0}
 #dexDetail .note{font-size:12px;color:#7a6a4a;margin-top:.8em}
@@ -603,6 +606,71 @@ const BUGS = {
                desc:'クワガタの王様。とても用心深く、なかなか姿を見せない。'},
   kinkabuto:  {name:'ミアレカブト',     shape:'beetle',    c:['#e8c040','#c89820','#fff0a0'],            rank:5, lv:25, hp:110, atk:20, spd:2, catch:0.35, price:5000, time:['asa','yoru'],          w:0.4,
                desc:'大島につたわる伝説の虫。みあれ祭の船団にみちびかれて現れるという、金色にかがやくカブトムシ。見た人には幸せがおとずれるらしい…。\n※ミアレカブトは、このゲームのための架空の昆虫です。'},
+};
+/* 本物の虫のデータ（図鑑用）：目・科／体長／日本の生息地／見られる時期（成虫）／飼いかた。数字はおおよその目安 */
+const INFO = {
+  monshiro:   {ord:'チョウ目 シロチョウ科', size:'はねを広げて約5cm', range:'日本全国', season:'3〜11月',
+               care:'幼虫（アオムシ）をキャベツの葉で育てると、さなぎ→チョウになるのを観察できる。チョウになったら外にはなそう。'},
+  shoryo:     {ord:'バッタ目 バッタ科', size:'オス約5cm・メス約8cm', range:'本州〜九州・沖縄', season:'7〜11月',
+               care:'エノコログサやススキなどイネ科の草を入れ、きりふきで少ししめらせる。'},
+  tonosama:   {ord:'バッタ目 バッタ科', size:'オス約4.5cm・メス約6.5cm', range:'日本全国', season:'7〜11月',
+               care:'大きめのケースにイネ科の草を入れる。しめった土を入れておくと、メスが卵をうむことも。'},
+  natsuakane: {ord:'トンボ目 トンボ科', size:'約3.5cm', range:'北海道〜九州', season:'6〜11月（秋にまっ赤になる）',
+               care:'トンボの成虫を飼うのはむずかしい。観察したら、はねをいためないように外にはなそう。'},
+  kamakiri:   {ord:'カマキリ目 カマキリ科', size:'約7〜9.5cm', range:'本州〜九州', season:'8〜11月',
+               care:'生きたバッタやコオロギをエサに。共食いするので1ぴきずつ、背の高いケースで飼う。'},
+  amenbo:     {ord:'カメムシ目 アメンボ科', size:'約1.1〜1.6cm', range:'日本全国', season:'4〜10月',
+               care:'水をはった入れものに、水に落ちた小さな虫をエサに入れる。飛ぶのでふたをわすれずに。'},
+  shiokara:   {ord:'トンボ目 トンボ科', size:'約5〜5.5cm', range:'日本全国', season:'4〜10月',
+               care:'成虫を飼うのはむずかしい。ヤゴ（幼虫）なら、水草を入れた水そうで育てて羽化を観察できる。'},
+  haguro:     {ord:'トンボ目 カワトンボ科', size:'約6cm', range:'本州〜九州', season:'5〜10月',
+               care:'成虫を飼うのはむずかしい。きれいな川べりで、ひらひら飛ぶすがたを観察しよう。'},
+  ginyanma:   {ord:'トンボ目 ヤンマ科', size:'約7cm', range:'日本全国', season:'4〜10月',
+               care:'成虫を飼うのはむずかしい。ヤゴは池や田んぼにいて、水そうで育てられる（小さな虫やメダカを食べる）。'},
+  genji:      {ord:'コウチュウ目 ホタル科', size:'約1.5〜2cm（メスのほうが大きい）', range:'本州〜九州', season:'5〜7月（宗像ではおもに5〜6月）',
+               care:'成虫は水しかのまず、1〜2週間ほどしか生きない。とることが禁止されている場所も多いので、観察して楽しもう。'},
+  abura:      {ord:'カメムシ目 セミ科', size:'はねの先まで約5.5〜6cm', range:'北海道〜九州', season:'7〜9月',
+               care:'成虫は木のしるをすうので、飼うのはむずかしい。ぬけがらを集めて、オス・メスを調べるのもおもしろい。'},
+  minmin:     {ord:'カメムシ目 セミ科', size:'はねの先まで約6cm', range:'北海道〜九州（西日本では山に多い）', season:'7〜9月',
+               care:'成虫を飼うのはむずかしい。鳴き声と、はねのすきとおった緑のもようを観察しよう。'},
+  ageha:      {ord:'チョウ目 アゲハチョウ科', size:'はねを広げて約8〜9cm', range:'日本全国', season:'3〜10月',
+               care:'幼虫をミカンやサンショウの葉で育てると、チョウになるまで観察できる。'},
+  kokuwa:     {ord:'コウチュウ目 クワガタムシ科', size:'オス約2〜5cm・メス約2〜3cm', range:'日本全国', season:'6〜9月',
+               care:'昆虫マットと昆虫ゼリー、とまり木を入れて1ぴきずつ。冬をこして2〜3年生きることもある。'},
+  nokogiri:   {ord:'コウチュウ目 クワガタムシ科', size:'オス約3〜7.5cm・メス約2.5〜4cm', range:'日本全国', season:'7〜8月',
+               care:'昆虫マットと昆虫ゼリー、とまり木を入れる。けんかするのでオスは1ぴきずつ。'},
+  kabuto:     {ord:'コウチュウ目 コガネムシ科', size:'オス約3〜8cm（ツノをふくむ）・メス約3〜5cm', range:'本州〜九州（北海道では外から入ったもの）', season:'7〜8月',
+               care:'昆虫マットを深めにしき、昆虫ゼリーととまり木を。オスとメスを飼うと、土の中に卵をうんで幼虫が育つ。'},
+  tamamushi:  {ord:'コウチュウ目 タマムシ科', size:'約3〜4cm', range:'本州〜九州', season:'7〜8月',
+               care:'エノキやケヤキの葉を食べる。飼うのはむずかしいので、木の高いところを飛ぶすがたを観察しよう。'},
+  kuma:       {ord:'カメムシ目 セミ科', size:'はねの先まで約6〜7cm', range:'本州（関東より西）〜九州・沖縄', season:'7〜9月（午前中によく鳴く）',
+               care:'成虫を飼うのはむずかしい。西日本でとくに多いセミで、宗像でもよく聞こえる。'},
+  tsukutsuku: {ord:'カメムシ目 セミ科', size:'はねの先まで約4.5cm', range:'北海道〜九州', season:'7〜10月（8月の終わりに多い）',
+               care:'成虫を飼うのはむずかしい。鳴きはじめると、夏休みの終わりが近いサイン。'},
+  usuba:      {ord:'トンボ目 トンボ科', size:'約5cm', range:'日本全国（毎年、南の国から飛んでくる）', season:'6〜10月',
+               care:'成虫を飼うのはむずかしい。お盆のころに群れで飛ぶので「精霊トンボ」ともよばれる。'},
+  hanmyo:     {ord:'コウチュウ目 ハンミョウ科（オサムシ科とすることも）', size:'約2cm', range:'本州〜九州', season:'4〜10月',
+               care:'小さな虫を食べる肉食。かわいた砂を入れたケースで、生きたエサをあたえる。'},
+  oniyanma:   {ord:'トンボ目 オニヤンマ科', size:'約9〜11cm（日本でいちばん大きいトンボ）', range:'日本全国', season:'6〜10月',
+               care:'成虫を飼うのはむずかしい。ヤゴはきれいな小川の砂の中で、何年もかけて育つ。'},
+  higurashi:  {ord:'カメムシ目 セミ科', size:'はねの先まで約4〜5cm', range:'北海道南部〜九州', season:'6〜9月（朝と夕方に鳴く）',
+               care:'成虫を飼うのはむずかしい。うす暗い林の中で、カナカナという声をさがそう。'},
+  miyama:     {ord:'コウチュウ目 クワガタムシ科', size:'オス約3〜8cm・メス約2.5〜4.5cm', range:'北海道〜九州（九州では山に多い）', season:'7〜8月',
+               care:'暑さに弱いので、25℃より低いすずしい場所で飼う。昆虫マットとゼリー、とまり木を。'},
+  hirata:     {ord:'コウチュウ目 クワガタムシ科', size:'オス約2〜7.5cm・メス約2〜4cm', range:'本州〜九州・沖縄', season:'6〜9月',
+               care:'気があらく、はさむ力が強いので1ぴきずつ。じょうぶで、数年生きることもある。'},
+  oomurasaki: {ord:'チョウ目 タテハチョウ科', size:'はねを広げてオス約10cm・メス約12cm', range:'北海道〜九州', season:'6〜8月',
+               care:'日本の国チョウ。幼虫はエノキの葉を食べる。数がへっている場所もあるので、観察して楽しもう。'},
+  suzumebachi:{ord:'ハチ目 スズメバチ科', size:'はたらきバチ約3〜4cm・女王約4〜5.5cm', range:'北海道〜九州', season:'4〜11月（8〜10月はとくに危険）',
+               care:'ぜったいに飼わない・近づかない！ 見つけたら、さわがず、手でふりはらわずに、しずかにはなれよう。'},
+  karasu:     {ord:'チョウ目 アゲハチョウ科', size:'はねを広げて約8〜12cm', range:'日本全国', season:'4〜9月',
+               care:'幼虫はカラスザンショウやミカンのなかまの葉を食べる。はねの青緑の光を観察しよう。'},
+  ruriboshi:  {ord:'コウチュウ目 カミキリムシ科', size:'約1.8〜3cm', range:'北海道〜九州', season:'6〜9月',
+               care:'かれたブナやクルミなどの木にあつまる。成虫は長くは生きないので、写真で記録しよう。'},
+  ookuwa:     {ord:'コウチュウ目 クワガタムシ科', size:'オス約3〜7.7cm・メス約3〜4.5cm', range:'北海道〜九州（すんでいる場所はかぎられる）', season:'6〜8月（夜に活動）',
+               care:'じょうぶで数年生きる。昆虫マットとゼリーで1ぴきずつ。野生のものは数がへっていて、国のレッドリストにのっているので大切に。'},
+  kinkabuto:  {ord:'コウチュウ目 コガネムシ科（という言いつたえ）', size:'約9cm（伝説）', range:'宗像市 大島（伝説）', season:'夏の夜と朝（伝説）',
+               care:'言いつたえでは、見つけたら大島の海と森にかえすと、幸せがおとずれるという…。（このゲームのための架空の虫です）'},
 };
 const ATTACK = {beetle:'ツノでつきあげてきた！', stag:'大あごではさんできた！', cicada:'おしっこをひっかけてきた！', butterfly:'りんぷんをまきちらした！',
   dragonfly:'顔のまわりをビュンビュン飛びまわった！', grass:'とびげりしてきた！', mantis:'カマでひっかいてきた！', bee:'おしりの針でさしてきた！',
@@ -1591,7 +1659,7 @@ function openDex(){
         return `<div class="c ${j===i?'sel':''}" data-j="${j}"><img alt="" src="${spriteURL(id, !got)}"><span class="no">No.${String(j+1).padStart(2,'0')}</span><br>${got||seen ? esc(BUGS[id].name) : '？？？'}</div>`; }).join('');
       const id = ids[i], b = BUGS[id], got = S.dex[id], seen = S.seen[id];
       det.innerHTML = `<div class="hd"><img alt="" src="${spriteURL(id, !got)}"><div><div>No.${String(i+1).padStart(2,'0')}</div><h3>${got||seen ? esc(b.name) : '？？？'}</h3><div class="stars">${got ? `<span class="rl">レア度</span> ${stars(b.rank)}` : ''}</div></div></div>`+
-        (got ? `<p>${fmt(b.desc)}</p><dl><dt>ゲームで出る場所</dt><dd>${esc(where(id))}</dd><dt>時間</dt><dd>${b.time.map(t=>SLOT_NAMES[t]).join('・')}</dd>${got.watched ? '<dt>きろく</dt><dd>遠くから観察した（危ないのでつかまえない）</dd>' : `<dt>つかまえた数</dt><dd>${got.n}ひき</dd><dt>さいこうLv</dt><dd>${got.best}</dd><dt>売り値のめやす</dt><dd>${b.price}円</dd>`}</dl><p class="note">※出る場所はゲーム用です。実際にその場所にいるとはかぎりません。</p>`
+        (got ? `<p>${fmt(b.desc)}</p>${INFO[id] ? `<h4>本物の虫のデータ</h4><dl class="real"><dt>なかま</dt><dd>${esc(INFO[id].ord)}</dd><dt>大きさ</dt><dd>${esc(INFO[id].size)}</dd><dt>日本でいる場所</dt><dd>${esc(INFO[id].range)}</dd><dt>見られる時期</dt><dd>${esc(INFO[id].season)}</dd><dt>飼いかた</dt><dd>${esc(INFO[id].care)}</dd></dl>` : ''}<h4>ゲームのきろく</h4><dl><dt>ゲームで出る場所</dt><dd>${esc(where(id))}</dd><dt>時間</dt><dd>${b.time.map(t=>SLOT_NAMES[t]).join('・')}</dd>${got.watched ? '<dt>きろく</dt><dd>遠くから観察した（危ないのでつかまえない）</dd>' : `<dt>つかまえた数</dt><dd>${got.n}ひき</dd><dt>さいこうLv</dt><dd>${got.best}</dd><dt>売り値のめやす</dt><dd>${b.price}円</dd>`}</dl><p class="note">※ゲームで出る場所と時間はゲーム用です。実際にその場所にいるとはかぎりません。本物の虫のデータ（大きさ・時期など）はおおよその目安です。</p>`
              : seen ? `<p>見かけたけど、まだつかまえていない。</p>` : `<p>まだ見たことがない虫。</p>`) +
         (()=>{ const r = realPhotoFor(b.shape); return r && r[1].img ? `<div class="real"><div>本物の${esc(PHOTO_CATS[r[0]].name)}の写真</div><img alt="" src="${r[1].img}"></div>` : ''; })();
       grid.querySelector('.sel')?.scrollIntoView({block:'nearest'});
@@ -2031,7 +2099,7 @@ function start(data){
   const demo = QS.get('demo');
   if(demo){ S = newState(); scene = 'field'; $('titleScr').hidden = true; S.area = 'taisha'; S.x = 9; S.y = 9; if(QS.get('min')) S.min = +QS.get('min'); if(QS.get('area')) S.area = QS.get('area'); if(QS.get('dir')) S.dir = QS.get('dir'); hud(); layout();
     if(demo==='battle'){ run(()=>battle(QS.get('id') || 'kabuto')); for(let k=0;k<+(QS.get('skip')||0);k++) setTimeout(()=>press('A'), 1000 + k*250); }
-    else if(demo==='dex'){ Object.keys(BUGS).slice(0, +(QS.get('n')||12)).forEach(id=>S.dex[id] = {n:1, best:BUGS[id].lv}); S.seen.kokuwa = true; if(QS.has('hachi')) S.dex.suzumebachi = {n:0, best:0, watched:true}; setTimeout(()=>{ run(openDex); if(QS.has('hachi')) setTimeout(()=>{ for(let k=0;k<26;k++) press('R'); }, 300); }, 600); }
+    else if(demo==='dex'){ Object.keys(BUGS).slice(0, +(QS.get('n')||12)).forEach(id=>S.dex[id] = {n:1, best:BUGS[id].lv}); S.seen.kokuwa = true; if(QS.has('hachi')) S.dex.suzumebachi = {n:0, best:0, watched:true}; setTimeout(()=>{ run(openDex); if(QS.has('hachi')) setTimeout(()=>{ for(let k=0;k<26;k++) press('R'); }, 300); if(QS.get('pick')) setTimeout(()=>{ for(let k=0;k<+QS.get('pick');k++) press('R'); }, 300); }, 600); }
     else if(demo==='menu') run(fieldMenu);
     else if(demo==='sumo'){ S.area = 'town'; S.x = 13; S.y = 10; S.dir = 'U'; S.box = [{id:QS.get('id')||'kokuwa', lv:12}]; hud();
       if(QS.has('fight')) run(()=>sumoBattle(RIVALS[+QS.get('fight')||0], S.box[0])); else run(()=>say('7月…')); }
