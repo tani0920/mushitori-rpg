@@ -1248,15 +1248,53 @@ const RIVALS = [
   {key:'daichi',name:'だいち（6年生・ガキ大将）',       short:'だいち', bug:'miyama',   lv:20, money:1200, item:'jueki', hi:'おれのミヤマは、城山でいちばん強いぜ！',  win:'…おまえ、ただものじゃないな。',     lose:'ガッハッハ！ 出直してこい！'},
   {key:'ren',   name:'れん（中学1年生・チャンピオン）',  short:'れん',   bug:'hirata',   lv:22, money:2000, item:'champ', hi:'チャンピオンの座は、ゆずらないよ。',      win:'参った。今日からきみがチャンピオンだ。', lose:'まだまだ。また挑戦しにおいで。'},
 ];
-const SPECIAL = {beetle:'ツノでなげとばし', stag:'大あごではさみなげ', mantis:'カマのれんぞくぎり', bee:'どくばりアタック', cicada:'ミンミン大音量',
-  butterfly:'りんぷんふぶき', dragonfly:'きゅうこうかアタック', grass:'ジャンプキック', firefly:'ピカピカフラッシュ', strider:'水しぶきスプラッシュ', longhorn:'かみつきロック', jewel:'にじいろビーム'};
+/* 虫のタイプ（虫ずもう用）：ちから・まもり（受けるダメージの倍率）・かいふく（ふんばるで回復する割合） */
+const TYPES = {
+  kouchu: {name:'甲虫',           atk:1.05, def:0.86, hp:1.08, heal:0.08},
+  chou:   {name:'チョウ',          atk:0.92, def:1.00, hp:0.98, heal:0.22},
+  tonbo:  {name:'トンボ',          atk:1.06, def:1.02, hp:0.94, heal:0.08},
+  batta:  {name:'バッタ・カマキリ', atk:1.08, def:0.96, hp:1.00, heal:0.11},
+  semi:   {name:'セミ',            atk:0.95, def:0.95, hp:1.02, heal:0.15},
+  hachi:  {name:'ハチ',            atk:1.15, def:1.05, hp:0.95, heal:0.06},
+  mizube: {name:'ホタル・アメンボ', atk:0.98, def:0.96, hp:1.04, heal:0.20},
+};
+const SHAPE_TYPE = {beetle:'kouchu', stag:'kouchu', jewel:'kouchu', longhorn:'kouchu', butterfly:'chou', dragonfly:'tonbo',
+  grass:'batta', mantis:'batta', cicada:'semi', bee:'hachi', firefly:'mizube', strider:'mizube'};
+const typeOf = b=> TYPES[SHAPE_TYPE[b.shape]];
+/* ひっさつわざ：mult いりょく／acc ねらい／open 使ったあとのスキ（受けるダメージ倍率）／pierce ふんばるをつきやぶる
+   blind 相手の攻撃が当たりにくくなる回数／weaken 相手のちから／poison どくのターン数／hits 回数 */
+const SP_MOVES = {
+  beetle:   {name:'ツノでなげとばし',   mult:2.0, acc:.70, open:1.5, info:'いりょくがとても大きい'},
+  stag:     {name:'大あごではさみなげ', mult:1.8, acc:.75, open:1.5, pierce:true, info:'ふんばっている相手にもきく'},
+  jewel:    {name:'にじいろビーム',     mult:1.6, acc:.85, open:1.4, info:'当たりやすい大わざ'},
+  longhorn: {name:'かみつきロック',     mult:1.5, acc:.85, open:1.4, pierce:true, info:'ふんばっている相手にもきく'},
+  butterfly:{name:'りんぷんふぶき',     mult:1.0, acc:.95, open:1.2, blind:2, info:'相手のこうげきが2回当たりにくくなる'},
+  dragonfly:{name:'きゅうこうかアタック', mult:1.7, acc:.90, open:1.25, info:'当たりやすく、スキが小さい'},
+  grass:    {name:'ジャンプキック',     mult:1.9, acc:.70, open:1.5, info:'いりょくが大きい'},
+  mantis:   {name:'カマのれんぞくぎり', mult:1.05, acc:.9, open:1.4, hits:2, info:'2回こうげきする'},
+  cicada:   {name:'ミンミン大音量',     mult:1.1, acc:.90, open:1.3, weaken:.8, info:'相手のちからを下げる'},
+  bee:      {name:'どくばりアタック',   mult:1.4, acc:.80, open:1.4, poison:3, info:'3ターンのあいだ、どくでダメージ'},
+  firefly:  {name:'ピカピカフラッシュ', mult:1.1, acc:1.0, open:1.2, blind:2, info:'相手のこうげきが2回当たりにくくなる'},
+  strider:  {name:'水しぶきスプラッシュ', mult:1.1, acc:.95, open:1.2, blind:2, info:'相手のこうげきが2回当たりにくくなる'},
+};
 const sumoNext = ()=> S.area==='town' && RIVALS.find((r,i)=>!(S.sumo||{})[r.key] && (i===0 || (S.sumo||{})[RIVALS[i-1].key]));
 function fighter(id, lv, mine){
-  const b = BUGS[id], k = 1 + 0.08*(lv - b.lv), cheer = mine ? 1 + (S.lv-1)*0.02 : 1;   // ぼくのレベルが高いほど、おうえんで少し強くなる
-  const maxhp = Math.round(b.hp*k*1.4);
-  return {id, b, lv, maxhp, hp:maxhp, atk:Math.max(1, b.atk*k*cheer), spd:b.spd, guard:false};
+  // 虫ずもうの強さは「レベル×タイプ」で決まる（めずらしい虫ほどレベルが高いので強い）。ぼくのレベルが高いほど、おうえんで少し強くなる
+  const b = BUGS[id], t = typeOf(b), cheer = mine ? 1 + (S.lv-1)*0.02 : 1;
+  const maxhp = Math.round((28 + lv*4.2) * t.hp);
+  return {id, b, t, sp:SP_MOVES[b.shape], lv, maxhp, hp:maxhp, atk:(5 + lv*0.8) * t.atk * cheer, spd:b.spd,
+    guard:false, open:1, blind:0, weak:1, poison:0, lastGuard:false};
 }
-const fstat = f=> `たいりょく${f.maxhp}・ちから${Math.round(f.atk)}・すばやさ${f.spd}`;
+const mark = (v, hi, lo)=> v >= hi ? '◎' : v <= lo ? '△' : '○';
+const fstat = f=> `${f.t.name}タイプ　たいりょく${f.maxhp}　ちから${Math.round(f.atk)}\nまもり${mark(1/f.t.def, 1.12, 0.96)}　すばやさ${mark(f.spd, 4, 1)}　かいふく${mark(f.t.heal, 0.16, 0.08)}\nひっさつ：${f.sp.name}（${f.sp.info}）`;
+async function sumoRules(){
+  await talk('【虫ずもうのルール】\nつっこむ：ふつうのこうげき。\nひっさつわざ：つよいけど、つぎに動くまでスキができて、受けるダメージが1.5倍になる。',
+    'ふんばる：受けるダメージを大きくへらして、たいりょくを回復する。回復する量は虫のタイプでちがう。2回つづけると回復は半分。',
+    '【虫のタイプ】\n甲虫：ちから・まもりが強いけど、おそい。\nチョウ：よわいけど、ふんばるでたくさん回復。りんぷんで相手の攻撃をはずさせる。',
+    'トンボ：とても速くて、ひっさつわざが当たりやすい。\nバッタ・カマキリ：バランス型。カマキリは2回こうげき。',
+    'セミ：大音量で相手のちからを下げる。\nハチ：ちからが強く、どくでダメージをあたえる。\nホタル・アメンボ：目くらましと回復がとくい。',
+    'すばやさが高い虫が先に動く。相手のタイプを見て、作戦を立てよう！');
+}
 async function sumoMenu(){
   S.sumo = S.sumo || {}; S.sumoDay = S.sumoDay || {};
   await say('広場の切りかぶの上で、近所の子どもたちが虫ずもうをしている！');
@@ -1265,17 +1303,19 @@ async function sumoMenu(){
       const won = S.sumo[r.key], locked = i>0 && !S.sumo[RIVALS[i-1].key], done = S.sumoDay[r.key]===S.day;
       return {label: locked ? '？？？' : r.name,
         note: locked ? '' : done ? '今日はおわり' : won ? `再戦 ${Math.round(r.money/4)}円` : `賞金 ${r.money}円`,
-        desc: locked ? '前の相手に勝つと、挑戦できるようになる' : `あいての虫：${BUGS[r.bug].name} Lv${r.lv}` + (won ? '（勝ったことがある。再戦は1日1回）' : ''),
+        desc: locked ? '前の相手に勝つと、挑戦できるようになる' : `あいての虫：${BUGS[r.bug].name} Lv${r.lv}（${typeOf(BUGS[r.bug]).name}タイプ）` + (won ? '\n勝ったことがある。再戦は1日1回' : ''),
         disabled: locked || done};
     });
+    opts.push({label:'虫ずもうのルール', desc:'わざとタイプの説明'});
     opts.push({label:'やめる'});
     // カーソルは「まだ勝っていない相手」→「今日たたかえる相手」の順で、えらべるところに合わせる
     const can = opts.map((o,j)=>!o.disabled && j<RIVALS.length);
     let start = RIVALS.findIndex((r,j)=>can[j] && !S.sumo[r.key]);
     if(start<0) start = can.indexOf(true);
-    if(start<0) start = RIVALS.length;
+    if(start<0) start = RIVALS.length + 1;
     const c = await choose(opts, {title:'虫ずもう', start});
-    if(c<0 || c===RIVALS.length) return;
+    if(c===RIVALS.length){ await sumoRules(); continue; }
+    if(c<0 || c===RIVALS.length + 1) return;
     if(!S.box.length){ await say('虫かごに虫がいないと、虫ずもうに出られない…。'); return; }
     const m = await choose(S.box.map(it=>({label:`${BUGS[it.id].name} Lv${it.lv}`, desc:fstat(fighter(it.id, it.lv, true))})), {title:'どの虫で勝負する？'});
     if(m<0) continue;
@@ -1289,8 +1329,9 @@ async function sumoBattle(r, it){
   const first = !S.sumo[r.key];
   const upd = ()=>{
     const fr = foe.hp/foe.maxhp, mr = me.hp/me.maxhp;
-    $('bInfo').innerHTML = `<div class="row"><span>${esc(r.short)}の${esc(foe.b.name)}</span></div><div class="row"><span class="lbl">Lv${foe.lv}</span><span>${foe.hp}/${foe.maxhp}</span></div><span class="bar"><i class="${fr<.3?'low':''}" style="width:${fr*100}%"></i></span>`;
-    $('pInfo').innerHTML = `<div class="row"><span>ぼくの${esc(me.b.name)}</span></div><div class="row"><span class="lbl">Lv${me.lv}</span><span>${me.hp}/${me.maxhp}</span></div><span class="bar"><i class="${mr<.3?'low':''}" style="width:${mr*100}%"></i></span>`;
+    const st = f=> [f.open>1 ? '<span class="new">スキ</span>' : '', f.blind ? '<span class="lbl">めくらまし</span>' : '', f.weak<1 ? '<span class="lbl">ちから↓</span>' : '', f.poison ? '<span class="new">どく</span>' : ''].join(' ');
+    $('bInfo').innerHTML = `<div class="row"><span>${esc(r.short)}の${esc(foe.b.name)}</span></div><div class="row"><span class="lbl">Lv${foe.lv}・${foe.t.name}</span><span>${foe.hp}/${foe.maxhp}</span></div><span class="bar"><i class="${fr<.3?'low':''}" style="width:${fr*100}%"></i></span><div class="row">${st(foe)}</div>`;
+    $('pInfo').innerHTML = `<div class="row"><span>ぼくの${esc(me.b.name)}</span></div><div class="row"><span class="lbl">Lv${me.lv}・${me.t.name}</span><span>${me.hp}/${me.maxhp}</span></div><span class="bar"><i class="${mr<.3?'low':''}" style="width:${mr*100}%"></i></span><div class="row">${st(me)}</div>`;
   };
   battleEl.className = 'ov bg-town vs'; battleBg('town'); bSprite.src = spriteURL(foe.id); mSprite.src = spriteURL(me.id); scene = 'battle';
   [[foe.id, bSprite], [me.id, mSprite]].forEach(([id, el])=>{ if(!imgOK[id] && imgReady[id]) imgReady[id].then(()=>{ if(scene==='battle') el.src = spriteURL(id); }); });
@@ -1299,24 +1340,50 @@ async function sumoBattle(r, it){
   await say('はっけよーい……のこった！');
   const name = (f)=> f===me ? `ぼくの${me.b.name}` : `${r.short}の${foe.b.name}`;
   const act = async (a, d, cmd)=>{
-    if(cmd===2){ const h = Math.round(a.maxhp*0.08); a.hp = Math.min(a.maxhp, a.hp + h); upd(); await say(`${name(a)}は、ぐっとふんばった！（たいりょく+${h}）`); return; }
-    const sp = cmd===1, wname = sp ? SPECIAL[a.b.shape] + '！' : 'つっこみ！';
-    if(Math.random() > (sp ? .68 : .95) - d.spd*0.03 + a.spd*0.02){ await say(`${name(a)}の${wname}\n…ひらりとかわされた！`); return; }
-    const dmg = Math.max(1, Math.round(a.atk * (0.85 + Math.random()*0.3) * (sp ? 1.8 : 1) * (d.guard ? 0.4 : 1)));
-    d.hp = Math.max(0, d.hp - dmg); fx(d===me ? mSprite : bSprite, 'hit', 450); if(d===me) fx(screenEl,'shake',300); upd();
-    await say(`${name(a)}の${wname}\n${dmg} のダメージ！${d.guard ? '（ふんばってダメージをへらした）' : ''}`);
+    a.open = 1;   // 自分が動いたら、ひっさつわざのスキはなくなる
+    if(cmd===2){   // ふんばる：タイプで回復量がちがう。2回つづけると半分
+      const h = Math.max(1, Math.round(a.maxhp * a.t.heal * (a.lastGuard ? 0.5 : 1))); a.hp = Math.min(a.maxhp, a.hp + h); a.lastGuard = true; upd();
+      await say(`${name(a)}は、ぐっとふんばった！（たいりょく+${h}）`); return;
+    }
+    a.lastGuard = false;
+    const sp = cmd===1, mv = a.sp, wname = sp ? mv.name + '！' : 'つっこみ！';
+    let hit = (sp ? mv.acc : .95) - d.spd*0.03 + a.spd*0.02;
+    if(a.blind){ hit *= 0.55; a.blind--; }
+    if(sp) a.open = mv.open;   // ひっさつわざを使うと、つぎに動くまでスキができる
+    if(Math.random() > hit){ upd(); await say(`${name(a)}の${wname}\n…ひらりとかわされた！`); return; }
+    const times = sp && mv.hits || 1; let total = 0;
+    for(let n=0; n<times; n++){
+      const guard = d.guard && !(sp && mv.pierce) ? 0.4 : 1;
+      total += Math.max(1, Math.round(a.atk * a.weak * (0.85 + Math.random()*0.3) * (sp ? mv.mult : 1) * d.t.def * guard * d.open));
+    }
+    d.hp = Math.max(0, d.hp - total); fx(d===me ? mSprite : bSprite, 'hit', 450); if(d===me) fx(screenEl,'shake',300);
+    const notes = [];
+    if(d.open > 1) notes.push('スキをつかれた！');
+    if(d.guard) notes.push(sp && mv.pierce ? 'ふんばりをつきやぶった！' : 'ふんばってダメージをへらした');
+    if(sp && mv.blind){ d.blind = mv.blind; notes.push(`${name(d)}は目がくらんだ！`); }
+    if(sp && mv.weaken){ d.weak = Math.max(0.6, d.weak * mv.weaken); notes.push(`${name(d)}のちからが下がった！`); }
+    if(sp && mv.poison){ d.poison = mv.poison; notes.push(`${name(d)}はどくをうけた！`); }
+    upd();
+    await say(`${name(a)}の${wname}${times>1 ? `（${times}回）` : ''}\n${total} のダメージ！ ${notes.join(' ')}`);
   };
   let result = null;
   while(!result){
-    const c = await choose(['つっこむ', SPECIAL[me.b.shape], 'ふんばる', 'こうさん'], {cls:'cmd', cancel:false, title:`ぼくの${me.b.name}、どうする？`,
-      start:0});
+    const c = await choose(['つっこむ', me.sp.name, 'ふんばる', 'こうさん'], {cls:'cmd', cancel:false, title:`ぼくの${me.b.name}、どうする？`, start:0});
     if(c===3){ await say('「まいった！」…こうさんした。'); result = 'lose'; break; }
-    const fc = foe.hp < foe.maxhp*0.3 && Math.random() < .35 ? 2 : Math.random() < .3 ? 1 : 0;
+    // あいての作戦：回復がとくいな虫は弱るとふんばる。ふつうは3回に1回くらいひっさつわざ
+    const low = foe.hp < foe.maxhp*0.35, rnd = Math.random();
+    const fc = low && !foe.lastGuard && rnd < (foe.t.heal >= .14 ? .6 : .3) ? 2 : rnd < .33 ? 1 : rnd < .4 && !foe.lastGuard ? 2 : 0;
     me.guard = c===2; foe.guard = fc===2;
     const order = me.spd > foe.spd || (me.spd===foe.spd && Math.random() < .5) ? [[me,foe,c],[foe,me,fc]] : [[foe,me,fc],[me,foe,c]];
     for(const [a,d,cmd] of order){
       await act(a, d, cmd);
       if(d.hp <= 0){ result = d===foe ? 'win' : 'lose'; await say(`${name(d)}は、切りかぶの外へころがり落ちた！\nしょうぶあり！`); break; }
+    }
+    for(const f of [me, foe]){   // ターンの終わりに、どくのダメージ
+      if(result || !f.poison) continue;
+      const pd = Math.max(1, Math.round(f.maxhp*0.06)); f.hp = Math.max(0, f.hp - pd); f.poison--; upd();
+      await say(`${name(f)}は、どくで ${pd} のダメージ！`);
+      if(f.hp <= 0){ result = f===foe ? 'win' : 'lose'; await say(`${name(f)}は、切りかぶの外へころがり落ちた！\nしょうぶあり！`); }
     }
   }
   S.min += 20;
