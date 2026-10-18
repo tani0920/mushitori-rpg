@@ -1,7 +1,9 @@
-window.ASSET_VER = "1792328111";
+window.ASSET_VER = "1792328628";
 window.BUG_IMAGES = ["abura", "ageha", "amenbo", "genji", "ginyanma", "haguro", "hanmyo", "higurashi", "hirata", "kabuto", "kamakiri", "karasu", "kinkabuto", "kokuwa", "kuma", "minmin", "miyama", "monshiro", "natsuakane", "nokogiri", "oniyanma", "ookuwa", "oomurasaki", "ruriboshi", "shiokara", "shoryo", "suzumebachi", "tamamushi", "tonosama", "tsukutsuku", "usuba"];
 window.BG_IMAGES = ["title_tate", "title_yoko", "bg_joyama_tate", "bg_joyama_yoko", "bg_kawara_tate", "bg_kawara_yoko", "bg_kawara_yoru_tate", "bg_kawara_yoru_yoko", "bg_matsubara_tate", "bg_matsubara_yoko", "bg_oshima_tate", "bg_oshima_yoko", "bg_oshima_yoru_tate", "bg_oshima_yoru_yoko", "bg_taisha_tate", "bg_taisha_yoko", "bg_taisha_yoru_tate", "bg_taisha_yoru_yoko", "bg_tanbo_tate", "bg_tanbo_yoko", "bg_town_tate", "bg_town_yoko", "title_logo"];
 window.BG_EXT = {"title_tate": "jpg", "title_yoko": "jpg"};
 window.HAS_TILES = true;
 window.HAS_PLAYER = true;
 window.FACES = ["boku", "mama", "ojisan", "sensei", "yuta"];
+window.FACES_FINE = true;
+window.HAS_NPC_YUTA = true;

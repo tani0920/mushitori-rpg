@@ -64,6 +64,7 @@ header small{color:var(--mute);font-size:12px}
 #msg .mtxt,#endScr .story .mtxt{flex:1;min-width:0}
 #msg .face,#endScr .story .face{width:4.4em;height:4.4em;flex:none;image-rendering:pixelated;background:#f3ead2;border:2px solid var(--edge);border-radius:4px}
 #endScr .story .face{width:84px;height:84px}
+#msg .face.fine,#endScr .story .face.fine{image-rendering:auto;background:linear-gradient(#fff6e0,#f3ead2)}
 body.touch.land #msg .face{width:3.6em;height:3.6em}
 #msg .next{display:inline-block;margin-left:.3em;animation:blink 1s steps(2) infinite;color:var(--sun)}
 @keyframes blink{50%{opacity:0}}
@@ -778,7 +779,7 @@ function faceFor(text, face){
   if(talkFace && text.startsWith('「')) return talkFace;
   return null;
 }
-const faceImg = f=> (f && (window.FACES||[]).includes(f)) ? `<img class="face" alt="" src="${av('img/sprites/faces/' + f + '.png')}">` : '';
+const faceImg = f=> (f && (window.FACES||[]).includes(f)) ? `<img class="face${window.FACES_FINE ? ' fine' : ''}" alt="" src="${av('img/sprites/faces/' + f + '.png')}">` : '';
 function setMsg(text, face, next){
   const img = faceImg(faceFor(text, face));
   msgEl.classList.toggle('withface', !!img);
@@ -946,13 +947,17 @@ function loop(ts){
   draw(ts); requestAnimationFrame(loop);
 }
 const NPC_PAL = Object.assign({}, PC, {h:'#2f6fd0', b:'#2f6fd0', t:'#f0d040', u:'#c84030', p:'#3a3a3a', g:'#c84030'});   // 青い帽子・黄色いシャツの子
+/* 町の切りかぶの子（ゆうた）：img/sprites/npc_yuta.png の4コマ（立つ・右手をふる・立つ・左手をふる）をくり返す */
+let npcSheet = null;
+if(window.HAS_NPC_YUTA){ const im = new Image(); im.onload = ()=>{ npcSheet = im; }; im.src = av('img/sprites/npc_yuta.png'); }
 function drawNpc(tx, ty, ts){
-  const px = tx*TS, py = ty*TS - 4, bob = Math.floor(ts/400) % 2 ? -1 : 0;
-  P_FRONT.forEach((r,y)=>[...r].forEach((ch,i)=>{ if(ch==='.') return; ctx.fillStyle = NPC_PAL[ch]; ctx.fillRect(px + 2 + i, py + y + bob, 1, 1); }));
+  const px = tx*TS, py = ty*TS - 4, bob = npcSheet ? 0 : (Math.floor(ts/400) % 2 ? -1 : 0);
+  if(npcSheet) ctx.drawImage(npcSheet, (Math.floor(ts/350) % 4) * 16, 0, 16, 16, px, py, 16, 16);
+  else P_FRONT.forEach((r,y)=>[...r].forEach((ch,i)=>{ if(ch==='.') return; ctx.fillStyle = NPC_PAL[ch]; ctx.fillRect(px + 2 + i, py + y + bob, 1, 1); }));
   if(sumoNext()){ ctx.fillStyle = '#fff'; ctx.fillRect(px+6, py-9+bob, 5, 8); ctx.fillStyle = '#e04030'; ctx.fillRect(px+8, py-8+bob, 1, 4); ctx.fillRect(px+8, py-3+bob, 1, 1); }   // 「！」
 }
 /* 主人公の歩きの絵（img/sprites/player.png：横3コマ＝立ち・右足・左足、たて4段＝下・左・右・上、1コマ16ドット） */
-const USE_PLAYER_ART = false;   // true にすると img/sprites/player.png の主人公を使う（いまは作り直し中なので、シンプルな絵）
+const USE_PLAYER_ART = true;    // true：img/sprites/player.png の主人公／false：プログラムで描いたシンプルな主人公
 let playerSheet = null, footRow = [15, 15, 15, 15];
 if(USE_PLAYER_ART && window.HAS_PLAYER){ const im = new Image(); im.onload = ()=>{
   // 段ごとに足のいちばん下の行をしらべて、足がちょうど地面（マスのいちばん下）につくようにする
