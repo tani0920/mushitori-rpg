@@ -138,6 +138,30 @@ header small{color:var(--mute);font-size:12px}
 #dexDetail dl{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;margin:.8em 0 0;font-size:13px}
 #dexDetail dt{color:#7a6a4a}
 #dexDetail dd{margin:0}
+#dexDetail .real{margin-top:12px;border-top:1px dashed var(--paper-line);padding-top:10px}
+#dexDetail .real img{width:100%;height:auto;max-height:220px;object-fit:cover;image-rendering:auto;background:none}
+#cam{background:var(--paper);color:var(--paper-ink)}
+#cam .in{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+#cam .top{display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:3px double var(--paper-ink);padding-bottom:6px}
+#cam h2{margin:0;font-weight:400;font-size:20px;letter-spacing:.1em}
+#cam h3{margin:8px 0 0;font-weight:400;font-size:17px;border-bottom:1px solid var(--paper-line);padding-bottom:4px}
+#cam .lead{margin:0;line-height:1.7}
+#cam .lead small{color:#7a6a4a}
+.camBtns{display:flex;gap:10px;flex-wrap:wrap}
+.camBtns label{flex:1 1 160px;text-align:center;font-size:17px;padding:.8em 1em}
+.vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}
+#camResult:empty{display:none}
+#camResult{border:2px solid var(--paper-ink);border-radius:6px;background:#fffaf0;padding:12px;display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start}
+#camResult img{width:160px;max-width:100%;border-radius:4px;flex:none}
+#camResult .txt{flex:1 1 200px;min-width:0;line-height:1.7}
+#camResult .big{font-size:19px}
+#camResult .ok{color:#2f7a2a}
+#camResult .ng{color:#a8442e}
+#camResult ul{margin:.3em 0 0;padding-left:1.2em}
+#album{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}
+#album .a{border:2px solid var(--paper-line);border-radius:4px;background:#fffaf0;padding:4px;text-align:center;font-size:11px;line-height:1.3}
+#album .a img,#album .a .no{width:100%;aspect-ratio:1;object-fit:cover;border-radius:2px;display:block;margin-bottom:3px}
+#album .a .no{background:repeating-linear-gradient(45deg,#efe4c8 0 6px,#f6eedb 6px 12px);display:flex;align-items:center;justify-content:center;font-size:22px;color:#c8b890}
 #endScr{background:linear-gradient(#1b3f7a,#3d2f6a 60%,#17261d);color:var(--ink);display:flex;align-items:center;justify-content:center}
 #endScr .in{max-width:520px;width:100%;text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center}
 #endScr h2{margin:0;font-weight:400;color:var(--sun);font-size:26px;letter-spacing:.1em}
@@ -192,6 +216,20 @@ header small{color:var(--mute);font-size:12px}
   <div class="in">
     <div class="top"><h2>昆虫図鑑</h2><span class="cnt" id="dexCnt"></span><button class="btn" id="dexClose">とじる</button></div>
     <div class="body"><div id="dexGrid"></div><div id="dexDetail"></div></div>
+  </div>
+</div>
+<div id="cam" class="full" hidden>
+  <div class="in">
+    <div class="top"><h2>本物の虫を撮る</h2><span class="cnt" id="camCnt"></span><button class="btn" id="camClose">とじる</button></div>
+    <p class="lead">外で見つけた本物の虫を撮ると、ゲームでごほうびがもらえるよ！（1日5まいまで）<br>
+      <small>写真はこの端末の中だけでAIが判定します。どこにも送られません。</small></p>
+    <div class="camBtns">
+      <label class="btn">カメラで撮る<input id="camIn" class="vh" type="file" accept="image/*" capture="environment"></label>
+      <label class="btn">アルバムから選ぶ<input id="libIn" class="vh" type="file" accept="image/*"></label>
+    </div>
+    <div id="camResult"></div>
+    <h3>本物の虫アルバム <span id="albumCnt"></span></h3>
+    <div id="album"></div>
   </div>
 </div>
 <div id="endScr" class="full" hidden><div class="in" id="endIn"></div></div>
@@ -465,8 +503,10 @@ function mapLayer(id){
 /* =========================================================
    ゲーム状態
    ========================================================= */
-function newState(){ return {day:1, min:START_MIN, lv:1, exp:0, hp:24, money:300, net:0, cage:0, shoes:0, items:{drink:1, mitsu:0},
-  box:[], dex:{}, seen:{}, visited:{town:true}, area:'town', x:3, y:5, dir:'D', rule:'B', warned:false, caughtTotal:0}; }
+function newState(){ return {day:1, min:START_MIN, lv:1, exp:0, hp:24, money:300, net:0, cage:0, shoes:0, items:{drink:1, mitsu:0, jueki:0, note:0},
+  box:[], dex:{}, seen:{}, visited:{town:true}, area:'town', x:3, y:5, dir:'D', rule:'B', warned:false, caughtTotal:0,
+  goldwing:false, trapDay:0, link:{}}; }
+function loadState(json){ const d = newState(), s = Object.assign(d, JSON.parse(json)); s.items = Object.assign(newState().items, s.items); s.link = s.link || {}; return s; }
 let S = newState();
 const maxHp = ()=> 24 + (S.lv-1)*6;
 const patk  = ()=> NETS[S.net].atk + (S.lv-1)*1.5;
@@ -612,8 +652,13 @@ async function onStep(){
 function pickBug(){
   const slot = slotOf(S.min), list = AREAS[S.area].bugs.filter(id=>BUGS[id].time.includes(slot));
   if(!list.length) return null;
-  let r = Math.random() * list.reduce((s,id)=>s + BUGS[id].w, 0);
-  for(const id of list){ r -= BUGS[id].w; if(r <= 0) return id; }
+  const wt = id=>{ const b = BUGS[id]; let w = b.w;
+    if(S.trapDay===S.day && b.rank>=3) w *= 3;            // 樹液トラップ
+    if((S.link[b.shape]||0) >= S.day) w *= 2;             // 本物の虫を撮ったなかまが出やすい
+    if(id==='kinkabuto' && S.goldwing) w *= 8;            // 金色のはね
+    return w; };
+  let r = Math.random() * list.reduce((s,id)=>s + wt(id), 0);
+  for(const id of list){ r -= wt(id); if(r <= 0) return id; }
   return list[list.length-1];
 }
 async function checkFront(){
@@ -660,14 +705,15 @@ async function sleep(faint){
 /* ---------- メニュー ---------- */
 async function fieldMenu(){
   while(true){
-    const c = await choose(['ずかん','虫かご','どうぐ','ステータス','ルール','セーブ','とじる'], {title:'メニュー', cls:'side'});
-    if(c<0 || c===6) return;
+    const c = await choose(['ずかん','虫かご','どうぐ','本物の虫を撮る','ステータス','ルール','セーブ','とじる'], {title:'メニュー', cls:'side'});
+    if(c<0 || c===7) return;
     if(c===0) await openDex();
     if(c===1) await boxMenu();
     if(c===2) await itemMenu();
-    if(c===3) await say(`Lv${S.lv}　けいけんち ${S.exp}/${need(S.lv)}\nたいりょく ${S.hp}/${maxHp()}　こうげき ${Math.round(patk())}\nあみ：${NETS[S.net].name}／くつ：${SHOES[S.shoes].name}\nかご：${CAGES[S.cage].name}（つかまえる力${Math.round(CAGES[S.cage].pow*100)}・${cap()}ひきまで）`);
-    if(c===4) await ruleMenu();
-    if(c===5){ save(); await say('セーブしました。'); }
+    if(c===3) await openCam();
+    if(c===5) await ruleMenu();
+    if(c===6){ save(); await say('セーブしました。'); }
+    if(c===4) await say(`Lv${S.lv}　けいけんち ${S.exp}/${need(S.lv)}\nたいりょく ${S.hp}/${maxHp()}　こうげき ${Math.round(patk())}\nあみ：${NETS[S.net].name}／くつ：${SHOES[S.shoes].name}\nかご：${CAGES[S.cage].name}（つかまえる力${Math.round(CAGES[S.cage].pow*100)}・${cap()}ひきまで）`);
   }
 }
 async function boxMenu(){
@@ -681,9 +727,14 @@ async function boxMenu(){
   }
 }
 async function itemMenu(){
-  const opts = ITEMS.map(t=>({label:`${t.name} ×${S.items[t.key]}`, note:t.desc, disabled:t.key!=='drink'||S.items[t.key]<=0}));
+  const list = [...ITEMS, ...PHOTO_ITEMS];
+  const opts = list.map(t=>({label:`${t.name} ×${S.items[t.key]||0}`, note:t.desc, disabled:t.key==='mitsu' || !(S.items[t.key]>0)}));
+  if(S.goldwing) opts.push({label:'金色のはね（だいじなもの）', note:'キンイロカブトが出やすくなる', disabled:true});
   const c = await choose(opts, {title:'どうぐ'});
-  if(c===0){ S.items.drink--; const before = S.hp; S.hp = Math.min(maxHp(), S.hp+25); hud(); await say(`スポーツドリンクをのんだ！\nたいりょくが ${S.hp-before} 回復した。`); }
+  const key = list[c]?.key;
+  if(key==='drink'){ S.items.drink--; const before = S.hp; S.hp = Math.min(maxHp(), S.hp+25); hud(); await say(`スポーツドリンクをのんだ！\nたいりょくが ${S.hp-before} 回復した。`); }
+  if(key==='jueki'){ if(S.trapDay===S.day){ await say('今日はもう樹液トラップをしかけてある。'); return; } S.items.jueki--; S.trapDay = S.day; await say('樹液トラップをしかけた！\n今日いちにち、めずらしい虫が出やすくなる。'); }
+  if(key==='note'){ S.items.note--; await say('観察ノートを読んだ。虫のことがよくわかった！'); await gainExp(40); hud(); }
 }
 async function ruleMenu(){
   const c = await choose([
@@ -861,7 +912,8 @@ function openDex(){
       const id = ids[i], b = BUGS[id], got = S.dex[id], seen = S.seen[id];
       det.innerHTML = `<div class="hd"><img alt="" src="${spriteURL(id, !got)}"><div><div>No.${String(i+1).padStart(2,'0')}</div><h3>${got||seen ? esc(b.name) : '？？？'}</h3><div class="stars">${got ? stars(b.rank) : ''}</div></div></div>`+
         (got ? `<p>${esc(b.desc)}</p><dl><dt>いる場所</dt><dd>${esc(where(id))}</dd><dt>時間</dt><dd>${b.time.map(t=>SLOT_NAMES[t]).join('・')}</dd><dt>つかまえた数</dt><dd>${got.n}ひき</dd><dt>さいこうLv</dt><dd>${got.best}</dd><dt>売り値のめやす</dt><dd>${b.price}円</dd></dl>`
-             : seen ? `<p>見かけたけど、まだつかまえていない。</p>` : `<p>まだ見たことがない虫。</p>`);
+             : seen ? `<p>見かけたけど、まだつかまえていない。</p>` : `<p>まだ見たことがない虫。</p>`) +
+        (()=>{ const r = realPhotoFor(b.shape); return r && r[1].img ? `<div class="real"><div>本物の${esc(PHOTO_CATS[r[0]].name)}の写真</div><img alt="" src="${r[1].img}"></div>` : ''; })();
       grid.querySelector('.sel')?.scrollIntoView({block:'nearest'});
     };
     const close = ()=>{ uiHandler = null; $('dex').hidden = true; res(); };
@@ -877,6 +929,110 @@ function openDex(){
 }
 
 /* =========================================================
+   本物の虫を撮る（端末内AIで判定 → ごほうび）
+   ========================================================= */
+const PHOTO_KEY = 'munakata-photos-v1';
+const PHOTO_DAILY = 5;   // 1日（現実の日付）にごほうびがもらえる枚数
+const PHOTO_MIN = .25;   // 虫らしさがこれ以上なら「虫」と判定
+const MODEL_URL = 'https://storage.googleapis.com/tfjs-models/savedmodel/mobilenet_v2_1.0_224/model.json';
+const PHOTO_ITEMS = [
+  {key:'jueki', name:'樹液トラップ', desc:'今日いちにち、★3以上の虫が出やすくなる'},
+  {key:'note',  name:'観察ノート',   desc:'読むとけいけんち+40'},
+];
+/* AIのラベル（ImageNet）→ 本物の虫のなかま */
+const PHOTO_CATS = {
+  kabuto:    {name:'カブトムシ・クワガタのなかま', money:300, item:'jueki', shapes:['beetle','stag'], labels:['rhinoceros beetle']},
+  beetle:    {name:'甲虫のなかま',               money:120, item:'jueki', shapes:['beetle','stag','longhorn'], labels:['ground beetle','long-horned beetle','leaf beetle','dung beetle','weevil']},
+  hanmyo:    {name:'ハンミョウ',                 money:150, item:'note',  shapes:['jewel'], labels:['tiger beetle']},
+  tentou:    {name:'テントウムシ',               money:80,  item:'note',  shapes:[], labels:['ladybug']},
+  cicada:    {name:'セミ',                       money:100, item:'jueki', shapes:['cicada'], labels:['cicada']},
+  mantis:    {name:'カマキリ',                   money:150, item:'note',  shapes:['mantis'], labels:['mantis']},
+  dragonfly: {name:'トンボ',                     money:100, item:'note',  shapes:['dragonfly'], labels:['dragonfly','damselfly']},
+  batta:     {name:'バッタ・コオロギ',           money:80,  item:'note',  shapes:['grass'], labels:['grasshopper','cricket']},
+  chou:      {name:'チョウ',                     money:100, item:'note',  shapes:['butterfly'], labels:['admiral','ringlet','monarch','cabbage butterfly','sulphur butterfly','lycaenid']},
+  hachi:     {name:'ハチ',                       money:150, item:'note',  shapes:['bee'], labels:['bee']},
+  ari:       {name:'アリ',                       money:40,  item:null,    shapes:[], labels:['ant']},
+  hae:       {name:'ハエ',                       money:30,  item:null,    shapes:[], labels:['fly']},
+  sonota:    {name:'そのほかの虫',               money:60,  item:'note',  shapes:['strider','firefly'], labels:['walking stick','cockroach','leafhopper','lacewing']},
+};
+const LABEL2CAT = {}; Object.entries(PHOTO_CATS).forEach(([k,c])=>c.labels.forEach(l=>LABEL2CAT[l]=k));
+function loadPhotos(){ let p; try{ p = JSON.parse(localStorage.getItem(PHOTO_KEY)); }catch(e){} p = p || {}; p.cats = p.cats || {}; p.hashes = p.hashes || []; p.daily = p.daily || {date:'', n:0}; return p; }
+let photos = loadPhotos();
+function savePhotos(){ try{ localStorage.setItem(PHOTO_KEY, JSON.stringify(photos)); return true; }catch(e){ return false; } }
+const todayKey = ()=> new Date().toLocaleDateString('ja-JP');
+const photoLeft = ()=> photos.daily.date===todayKey() ? Math.max(0, PHOTO_DAILY - photos.daily.n) : PHOTO_DAILY;
+const realPhotoFor = shape=> Object.keys(PHOTO_CATS).map(k=>photos.cats[k] && PHOTO_CATS[k].shapes.includes(shape) ? [k,photos.cats[k]] : null).find(Boolean);
+
+function loadScript(src){ return new Promise((res,rej)=>{ const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = ()=>rej(new Error(src)); document.head.appendChild(s); }); }
+let aiModel = null;
+async function getModel(){
+  if(aiModel) return aiModel;
+  if(!window.tf) await loadScript('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js');
+  if(!window.mobilenet) await loadScript('https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1/dist/mobilenet.min.js');
+  aiModel = await mobilenet.load({version:2, alpha:1.0, modelUrl:MODEL_URL});
+  return aiModel;
+}
+function fileToImage(file){ return new Promise((res,rej)=>{ const u = URL.createObjectURL(file), im = new Image(); im.onload = ()=>res(im); im.onerror = rej; im.src = u; }); }
+function scaled(im, max){ const r = Math.min(1, max / Math.max(im.naturalWidth, im.naturalHeight)); const c = document.createElement('canvas');
+  c.width = Math.round(im.naturalWidth*r); c.height = Math.round(im.naturalHeight*r); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); return c; }
+function aHash(im){ const c = document.createElement('canvas'); c.width = c.height = 8; const g = c.getContext('2d'); g.drawImage(im, 0, 0, 8, 8);
+  const d = g.getImageData(0,0,8,8).data, v = []; for(let i=0;i<64;i++) v.push(d[i*4]*.3 + d[i*4+1]*.59 + d[i*4+2]*.11);
+  const avg = v.reduce((a,b)=>a+b, 0) / 64; return v.map(x=>x>avg ? 1 : 0).join(''); }
+const hamming = (a,b)=> [...a].reduce((n,ch,i)=>n + (ch!==b[i]), 0);
+
+function renderAlbum(){
+  const keys = Object.keys(PHOTO_CATS), got = keys.filter(k=>photos.cats[k]).length;
+  $('albumCnt').textContent = `${got} / ${keys.length}`;
+  $('camCnt').textContent = `今日のこり ${photoLeft()}まい`;
+  $('album').innerHTML = keys.map(k=>{ const p = photos.cats[k];
+    return `<div class="a">${p ? `<img alt="" src="${p.img}">` : '<div class="no">？</div>'}${esc(PHOTO_CATS[k].name)}${p ? `<br><span style="color:#8a7a5a">${p.n}まい</span>` : ''}</div>`; }).join('');
+}
+function camResult(html){ $('camResult').innerHTML = html; }
+async function handlePhoto(file){
+  if(!file) return;
+  const im = await fileToImage(file).catch(()=>null);
+  if(!im){ camResult('<div class="txt ng">写真を読みこめなかった…。べつの写真でためしてね。</div>'); return; }
+  const thumb = scaled(im, 360).toDataURL('image/jpeg', .72);
+  const head = `<img alt="" src="${thumb}">`;
+  if(photoLeft() <= 0){ camResult(head + '<div class="txt ng big">今日のぶんはおしまい！</div><div class="txt">ごほうびは1日5まいまで。また明日、外で虫をさがしてみよう。</div>'); return; }
+  const h = aHash(im);
+  if(photos.hashes.some(x=>hamming(x,h) <= 4)){ camResult(head + '<div class="txt ng big">この写真はもう見せてもらったよ！</div><div class="txt">ちがう虫か、べつの角度で撮ってみよう。</div>'); return; }
+  camResult(head + '<div class="txt">AIが写真を調べているよ…<br><small>（はじめての時は準備に少し時間がかかります）</small></div>');
+  let preds;
+  try{ const model = await getModel(); preds = await model.classify(scaled(im, 448), 20); }
+  catch(e){ camResult(head + '<div class="txt ng">AIを読みこめなかった…。インターネットにつながっているか確かめて、もう一度ためしてね。</div>'); return; }
+  const score = {}; let total = 0;
+  preds.forEach(p=>{ const k = LABEL2CAT[p.className.split(',')[0].trim()]; if(k){ score[k] = (score[k]||0) + p.probability; total += p.probability; } });
+  const cat = Object.keys(score).sort((a,b)=>score[b]-score[a])[0];
+  if(!cat || total < PHOTO_MIN){
+    camResult(head + `<div class="txt ng big">うーん、虫が見つからないみたい…</div><div class="txt">虫に近づいて、虫が大きく写るように撮ってみよう。${cat ? `<br><small>（${esc(PHOTO_CATS[cat].name)}かも？ ${Math.round(total*100)}%）</small>` : ''}</div>`);
+    return;
+  }
+  // ごほうび
+  const C = PHOTO_CATS[cat], first = !photos.cats[cat], gifts = [];
+  const money = C.money * (first ? 2 : 1); S.money += money; gifts.push(`おこづかい ${money}円${first ? '（はじめてボーナス2倍！）' : ''}`);
+  if(C.item && (first || Math.random() < .35)){ const it = PHOTO_ITEMS.find(t=>t.key===C.item); S.items[C.item] = (S.items[C.item]||0) + 1; gifts.push(`${it.name}（${it.desc}）`); }
+  if(cat==='kabuto' && !S.goldwing){ S.goldwing = true; gifts.push('金色のはね！ 大島の伝説の虫が出やすくなった…！'); }
+  if(C.shapes.length){ C.shapes.forEach(s=>S.link[s] = S.day + 1); gifts.push(`ゲームの中で${C.name}が出やすくなった（明日まで）`); }
+  photos.cats[cat] = {img:thumb, n:(photos.cats[cat]?.n||0) + 1, date:todayKey()};
+  photos.hashes.push(h); if(photos.hashes.length > 300) photos.hashes.shift();
+  photos.daily = {date:todayKey(), n:(photos.daily.date===todayKey() ? photos.daily.n : 0) + 1};
+  if(!savePhotos()){ photos.cats[cat].img = ''; savePhotos(); }
+  save(); hud(); renderAlbum();
+  camResult(head + `<div class="txt"><div class="ok big">${esc(C.name)}だ！</div><small>AIのはんてい ${Math.round(score[cat]*100)}%</small>${first ? '<div>アルバムに登録された！</div>' : ''}<ul>${gifts.map(g=>`<li>${esc(g)}</li>`).join('')}</ul></div>`);
+}
+['camIn','libIn'].forEach(id=>$(id).addEventListener('change', e=>{ const f = e.target.files[0]; e.target.value = ''; handlePhoto(f); }));
+function openCam(){
+  return new Promise(res=>{
+    camResult(''); renderAlbum(); $('cam').hidden = false;
+    getModel().catch(()=>{});   // 先にAIを読みこんでおく
+    const close = ()=>{ uiHandler = null; $('cam').hidden = true; res(); };
+    uiHandler = k=>{ if(k==='B'||k==='M') close(); };
+    $('camClose').onclick = close;
+  });
+}
+
+/* =========================================================
    タイトル・オープニング・エンディング
    ========================================================= */
 async function titleScreen(){
@@ -884,7 +1040,7 @@ async function titleScreen(){
   const has = !!loadRaw();
   const c = await choose([{label:'はじめから'}, {label:'つづきから', disabled:!has}], {cls:'title', cancel:false, start: has ? 1 : 0});
   $('titleScr').hidden = true;
-  if(c===1){ try{ S = Object.assign(newState(), JSON.parse(loadRaw())); }catch(e){ S = newState(); } scene = 'field'; hud(); await say(`${dateStr()} ${hhmm()}\nつづきから はじめます。`); }
+  if(c===1){ try{ S = loadState(loadRaw()); }catch(e){ S = newState(); } scene = 'field'; hud(); await say(`${dateStr()} ${hhmm()}\nつづきから はじめます。`); }
   else { S = newState(); scene = 'field'; hud(); await intro(); }
 }
 async function intro(){
@@ -894,6 +1050,7 @@ async function intro(){
     'お母さん「虫とりもいいけど、夜9時までには帰ってくるのよ。\nはい、おこづかい300円。」',
     `夏休みは ${dateStr(DAYS)} までの ${DAYS}日間。\n宗像じゅうの虫をつかまえて、昆虫図鑑を完成させよう！`,
     'つかまえた虫は、家のとなりの「虫具店」で売れる。\nお金をためて、いいあみ・虫かご・くつを買おう！',
+    '本物の虫を見つけたら、メニューの「本物の虫を撮る」で写真を見せてね。\nおこづかいや、お店では買えないアイテムがもらえるよ！',
     touch ? '【そうさ】十字キー：いどう　A：けってい　B/メニュー：メニュー\n草むらを歩くと虫が出てくるよ。下の出口から町の外へ！'
           : '【そうさ】やじるしキー：いどう　Z：けってい　X：メニュー\n草むらを歩くと虫が出てくるよ。下の出口から町の外へ！'
   );
@@ -927,7 +1084,7 @@ async function ending(){
 requestAnimationFrame(loop);
 window.claude?.hot?.snapshot?.(()=>({save:JSON.stringify(S), scene}));
 function start(data){
-  if(data && data.save && data.scene==='field'){ try{ S = Object.assign(newState(), JSON.parse(data.save)); scene = 'field'; $('titleScr').hidden = true; hud(); return; }catch(e){} }
+  if(data && data.save && data.scene==='field'){ try{ S = loadState(data.save); scene = 'field'; $('titleScr').hidden = true; hud(); return; }catch(e){} }
   run(titleScreen);
 }
 window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
