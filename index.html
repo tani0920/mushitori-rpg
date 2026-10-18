@@ -289,6 +289,8 @@ const START_MIN = 6*60;          // 1日のはじまり 6:00
 const END_MIN = 21*60;           // 夜9時で強制帰宅
 const STEP_MIN = 2;              // 1歩で進む時間（分）
 const BATTLE_MIN = 10;           // 1回のバトルで進む時間（分）
+const FAINT_LOSE = 0.5;          // 熱中症で倒れたとき、虫かごからにげる割合
+const FAINT_ALL = 0.2;           // 熱中症で倒れたとき、虫が全部にげてしまう確率
 const USE_IMAGE_FILES = false;   // true にすると img/bugs/<id>.png があればそれを使う（ChatGPTのドット絵差し替え用）
 const SAVE_KEY = 'munakata-mushitori-v1';
 
@@ -942,6 +944,20 @@ async function getBug(e){
   await gainExp(expOf(e));
   return true;
 }
+/* 熱中症ペナルティ：虫かごの虫がにげてしまう（図鑑の記録は消えない） */
+async function faintPenalty(){
+  if(!S.box.length) return;
+  if(Math.random() < FAINT_ALL){
+    const n = S.box.length; S.box = [];
+    await say(`たおれたひょうしに、虫かごのふたが開いてしまった！\n虫かごの虫が ${n}ひき ぜんぶ にげてしまった…`);
+    return;
+  }
+  const n = Math.max(1, Math.round(S.box.length * FAINT_LOSE));
+  const gone = [];
+  for(let k=0;k<n;k++) gone.push(S.box.splice(Math.floor(Math.random()*S.box.length), 1)[0]);
+  const names = gone.map(it=>BUGS[it.id].name).join('、');
+  await say(`たおれたひょうしに、虫かごから虫がにげてしまった！\n${names}（${n}ひき）がいなくなった…`);
+}
 async function useItemBattle(e){
   const opts = ITEMS.map(t=>({label:`${t.name} ×${S.items[t.key]}`, desc:t.desc, disabled: S.items[t.key]<=0 || (t.key==='mitsu' && e.mitsu)}));
   const c = await choose(opts, {title:'どうぐ', cls:'cmd'});
@@ -995,7 +1011,7 @@ async function battle(id){
     if(S.hp <= 0){ await say('目の前がくらくらする…熱中症かも！\nいそいで家に帰って休もう。'); result = 'faint'; }
   }
   await fade(()=>{ battleEl.hidden = true; scene = 'field'; S.min += BATTLE_MIN; hud(); });
-  if(result==='faint') await sleep(true);
+  if(result==='faint'){ await faintPenalty(); await sleep(true); }
 }
 
 /* =========================================================
