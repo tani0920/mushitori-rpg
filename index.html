@@ -80,6 +80,7 @@ header small{color:var(--mute);font-size:12px}
 #titleScr .t1{font-size:clamp(14px,4cqw,22px);color:#fff;letter-spacing:.2em;text-shadow:2px 2px 0 #0008}
 #titleScr .t2{font-size:clamp(26px,9cqw,54px);color:var(--sun);letter-spacing:.06em;text-shadow:3px 3px 0 #5a2a10,-1px -1px 0 #fff3;line-height:1.15;margin:.15em 0}
 #titleScr .t3{font-size:clamp(11px,2.8cqw,16px);color:#fff;text-shadow:1px 1px 0 #0009}
+#titleScr .t4{max-width:34em;margin-top:.8em;padding:.35em .8em;font-size:clamp(9px,2.1cqw,12px);line-height:1.5;color:#fff;background:#0006;border-radius:4px}
 #titleScr .sun{position:absolute;right:9%;top:8%;width:12%;aspect-ratio:1;border-radius:50%;background:#ffe27a;box-shadow:0 0 0 6px #ffe27a44}
 
 /* バトル */
@@ -141,6 +142,7 @@ header small{color:var(--mute);font-size:12px}
 #dexDetail dl{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;margin:.8em 0 0;font-size:13px}
 #dexDetail dt{color:#7a6a4a}
 #dexDetail dd{margin:0}
+#dexDetail .note{font-size:12px;color:#7a6a4a;margin-top:.8em}
 #dexDetail .real{margin-top:12px;border-top:1px dashed var(--paper-line);padding-top:10px}
 #dexDetail .real img{width:100%;height:auto;max-height:220px;object-fit:cover;image-rendering:auto;background:none}
 #cam{background:var(--paper);color:var(--paper-ink)}
@@ -248,6 +250,7 @@ body.touch #titleScr{padding-top:calc(env(safe-area-inset-top,0px) + 14%)}
 body.touch #titleScr .t2{font-size:clamp(34px,11vmin,64px)}
 body.touch #titleScr .t1{font-size:clamp(16px,4.6vmin,26px)}
 body.touch #titleScr .t3{font-size:clamp(13px,3.6vmin,20px);padding:0 16px}
+body.touch #titleScr .t4{font-size:clamp(11px,2.9vmin,15px);margin-left:12px;margin-right:12px}
 body.touch #dexGrid{grid-template-columns:repeat(auto-fill,minmax(72px,1fr))}
 body.touch #dexGrid .c{font-size:12px}
 body.touch #dexDetail{font-size:15px}
@@ -267,6 +270,7 @@ body.touch #dexDetail dl{font-size:14px}
       <div class="t1">夏休み さいごの14日間</div>
       <div class="t2">むなかた<br>虫とり日記</div>
       <div class="t3">宗像じゅうの虫をつかまえて、図鑑を完成させよう</div>
+      <div class="t4">※このゲームに出てくる場所と虫の組み合わせはゲーム用のもので、実際にその場所にいる虫とはかぎりません。ミアレカブトは架空の虫です。</div>
     </div>
     <div id="battle" class="ov" hidden>
       <div id="bInfo" class="binfo win"></div>
@@ -434,7 +438,7 @@ const BUGS = {
   oomurasaki: {name:'オオムラサキ',     shape:'butterfly', c:['#4a3a8a','#222222','#f0e060','#6a4ac0'], rank:4, lv:15, hp:44,  atk:6,  spd:4, catch:0.65, price:750,  time:['hiru'],                w:2,
                desc:'日本の国チョウ。オスのはねはむらさき色にかがやく。'},
   suzumebachi:{name:'オオスズメバチ',   shape:'bee',       c:['#e8a020','#222222','#e85020','#ddddc8'], rank:5, lv:20, hp:70,  atk:18, spd:3, catch:0.5,  price:1200, time:['hiru'],                w:1,
-               desc:'世界最大級のハチ。とても危険！ 大人でもにげだす強敵。'},
+               desc:'世界最大級のハチ。とても危険！ 見つけたら、さわがず、手でふりはらわず、しずかにその場をはなれよう。\n（ゲームでも、つかまえずに遠くから観察するだけ）', danger:true},
   karasu:     {name:'カラスアゲハ',     shape:'butterfly', c:['#1a2a2a','#111111','#3ac0a0','#2a4a5a'], rank:3, lv:14, hp:40,  atk:5,  spd:4, catch:0.8,  price:400,  time:['asa','hiru'],          w:3,
                desc:'黒いはねが、光の角度で青緑にかがやくアゲハ。'},
   ruriboshi:  {name:'ルリボシカミキリ', shape:'longhorn',  c:['#60b0e8','#111111','#111111'],            rank:4, lv:17, hp:50,  atk:8,  spd:3, catch:0.65, price:900,  time:['hiru'],                w:2,
@@ -1020,10 +1024,25 @@ async function useItemBattle(e){
   if(c===1){ S.items.mitsu--; e.mitsu = true; updateB(e); await say(`虫みつをぬった！ ${e.b.name}はあまいにおいにうっとりしている。`); }
   return true;
 }
+/* 危ない虫（スズメバチ）：戦わずにしずかに逃げる。図鑑には「観察した」として記録 */
+async function dangerEncounter(id){
+  const b = BUGS[id], slot = slotOf(S.min);
+  battleEl.className = 'ov bg-' + AREAS[S.area].style + (slot==='yoru' ? ' night' : slot==='yu' ? ' dusk' : '');
+  bSprite.src = spriteURL(id); scene = 'battle';
+  if(!imgOK[id] && imgReady[id]) imgReady[id].then(()=>{ if(scene==='battle') bSprite.src = spriteURL(id); });
+  await fade(()=>{ battleEl.hidden = false; $('bInfo').innerHTML = `<div class="row"><span>${esc(b.name)}</span></div><div class="row"><span class="new">きけん！</span></div>`; $('pInfo').innerHTML = `<div class="row"><span>ぼく</span><span>Lv${S.lv}</span></div>`; });
+  await say(`ブーーン…！ ${b.name}だ！`);
+  await say('スズメバチはとても危ない！\nさわがず、手でふりはらわず、しずかにその場をはなれよう…。');
+  const first = !S.dex[id];
+  if(first){ S.dex[id] = {n:0, best:0, watched:true}; hud(); }
+  await say('そーっと、後ろに下がって にげた。ふう、あぶなかった…。' + (first ? `\n遠くから観察したので、昆虫図鑑に ${b.name} を記録した！` : ''));
+  await fade(()=>{ battleEl.hidden = true; scene = 'field'; S.min += 5; hud(); });
+}
 async function battle(id){
   const b = BUGS[id], lv = b.lv + rint(0,2), k = 1 + 0.08*(lv - b.lv);
   const e = {id, b, lv, maxhp:Math.round(b.hp*k), atk:Math.max(1, Math.round(b.atk*k)), mitsu:false}; e.hp = e.maxhp;
   S.seen[id] = true;
+  if(b.danger) return dangerEncounter(id);   // スズメバチは戦わずに逃げる
   const slot = slotOf(S.min);
   battleEl.className = 'ov bg-' + AREAS[S.area].style + (slot==='yoru' ? ' night' : slot==='yu' ? ' dusk' : '');
   bSprite.src = spriteURL(id); scene = 'battle';
@@ -1178,7 +1197,7 @@ function openDex(){
         return `<div class="c ${j===i?'sel':''}" data-j="${j}"><img alt="" src="${spriteURL(id, !got)}"><span class="no">No.${String(j+1).padStart(2,'0')}</span><br>${got||seen ? esc(BUGS[id].name) : '？？？'}</div>`; }).join('');
       const id = ids[i], b = BUGS[id], got = S.dex[id], seen = S.seen[id];
       det.innerHTML = `<div class="hd"><img alt="" src="${spriteURL(id, !got)}"><div><div>No.${String(i+1).padStart(2,'0')}</div><h3>${got||seen ? esc(b.name) : '？？？'}</h3><div class="stars">${got ? stars(b.rank) : ''}</div></div></div>`+
-        (got ? `<p>${fmt(b.desc)}</p><dl><dt>いる場所</dt><dd>${esc(where(id))}</dd><dt>時間</dt><dd>${b.time.map(t=>SLOT_NAMES[t]).join('・')}</dd><dt>つかまえた数</dt><dd>${got.n}ひき</dd><dt>さいこうLv</dt><dd>${got.best}</dd><dt>売り値のめやす</dt><dd>${b.price}円</dd></dl>`
+        (got ? `<p>${fmt(b.desc)}</p><dl><dt>ゲームで出る場所</dt><dd>${esc(where(id))}</dd><dt>時間</dt><dd>${b.time.map(t=>SLOT_NAMES[t]).join('・')}</dd>${got.watched ? '<dt>きろく</dt><dd>遠くから観察した（危ないのでつかまえない）</dd>' : `<dt>つかまえた数</dt><dd>${got.n}ひき</dd><dt>さいこうLv</dt><dd>${got.best}</dd><dt>売り値のめやす</dt><dd>${b.price}円</dd>`}</dl><p class="note">※出る場所はゲーム用です。実際にその場所にいるとはかぎりません。</p>`
              : seen ? `<p>見かけたけど、まだつかまえていない。</p>` : `<p>まだ見たことがない虫。</p>`) +
         (()=>{ const r = realPhotoFor(b.shape); return r && r[1].img ? `<div class="real"><div>本物の${esc(PHOTO_CATS[r[0]].name)}の写真</div><img alt="" src="${r[1].img}"></div>` : ''; })();
       grid.querySelector('.sel')?.scrollIntoView({block:'nearest'});
@@ -1217,7 +1236,7 @@ const PHOTO_CATS = {
   dragonfly: {name:'トンボ',                     money:100, item:'note',  shapes:['dragonfly'], labels:['dragonfly','damselfly']},
   batta:     {name:'バッタ・コオロギ',           money:80,  item:'note',  shapes:['grass'], labels:['grasshopper','cricket']},
   chou:      {name:'チョウ',                     money:100, item:'note',  shapes:['butterfly'], labels:['admiral','ringlet','monarch','cabbage butterfly','sulphur butterfly','lycaenid']},
-  hachi:     {name:'ハチ',                       money:150, item:'note',  shapes:['bee'], labels:['bee']},
+  hachi:     {name:'ハチ（近づかないで！）',       money:0,   item:null,    shapes:[], labels:['bee']},
   ari:       {name:'アリ',                       money:40,  item:null,    shapes:[], labels:['ant']},
   hae:       {name:'ハエ',                       money:30,  item:null,    shapes:[], labels:['fly']},
   sonota:    {name:'そのほかの虫',               money:60,  item:'note',  shapes:['strider','firefly'], labels:['walking stick','cockroach','leafhopper','lacewing']},
@@ -1248,7 +1267,7 @@ function aHash(im){ const c = document.createElement('canvas'); c.width = c.heig
 const hamming = (a,b)=> [...a].reduce((n,ch,i)=>n + (ch!==b[i]), 0);
 
 function renderAlbum(){
-  const keys = Object.keys(PHOTO_CATS), got = keys.filter(k=>photos.cats[k]).length;
+  const keys = Object.keys(PHOTO_CATS).filter(k=>k!=='hachi'), got = keys.filter(k=>photos.cats[k]).length;   // ハチはアルバムにのせない
   $('albumCnt').textContent = `${got} / ${keys.length}`;
   $('camCnt').textContent = `今日のこり ${photoLeft()}まい`;
   $('album').innerHTML = keys.map(k=>{ const p = photos.cats[k];
@@ -1273,6 +1292,10 @@ async function handlePhoto(file){
   const cat = Object.keys(score).sort((a,b)=>score[b]-score[a])[0];
   if(!cat || total < PHOTO_MIN){
     camResult(head + `<div class="txt ng big">うーん、虫が見つからないみたい…</div><div class="txt">虫に近づいて、虫が大きく写るように撮ってみよう。${cat ? `<br><small>（${esc(PHOTO_CATS[cat].name)}かも？ ${Math.round(total*100)}%）</small>` : ''}</div>`);
+    return;
+  }
+  if(cat==='hachi'){   // ハチに近づいて撮るのは危ないので、ごほうびは出さない
+    camResult(head + '<div class="txt"><div class="ng big">ハチかも！ 気をつけて！</div>ハチ（とくにスズメバチ）は、さされるととても危険です。<br>写真をとるために近づいたりしないでね。<br><small>ハチの写真では、ごほうびはもらえません。</small></div>');
     return;
   }
   // ごほうび
@@ -1462,7 +1485,7 @@ function start(data){
   const demo = QS.get('demo');
   if(demo){ S = newState(); scene = 'field'; $('titleScr').hidden = true; S.area = 'taisha'; S.x = 9; S.y = 9; hud(); layout();
     if(demo==='battle') run(()=>battle(QS.get('id') || 'kabuto'));
-    else if(demo==='dex'){ Object.keys(BUGS).slice(0, +(QS.get('n')||12)).forEach(id=>S.dex[id] = {n:1, best:BUGS[id].lv}); S.seen.kokuwa = true; setTimeout(()=>run(openDex), 600); }
+    else if(demo==='dex'){ Object.keys(BUGS).slice(0, +(QS.get('n')||12)).forEach(id=>S.dex[id] = {n:1, best:BUGS[id].lv}); S.seen.kokuwa = true; if(QS.has('hachi')) S.dex.suzumebachi = {n:0, best:0, watched:true}; setTimeout(()=>{ run(openDex); if(QS.has('hachi')) setTimeout(()=>{ for(let k=0;k<26;k++) press('R'); }, 300); }, 600); }
     else if(demo==='menu') run(fieldMenu);
     else if(demo==='sumo'){ S.area = 'town'; S.x = 13; S.y = 10; S.dir = 'U'; S.box = [{id:QS.get('id')||'kokuwa', lv:12}]; hud();
       if(QS.has('fight')) run(()=>sumoBattle(RIVALS[+QS.get('fight')||0], S.box[0])); else run(()=>say('7月…')); }
