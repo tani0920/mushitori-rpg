@@ -233,6 +233,17 @@ body.touch .binfo{font-size:.8em}
 body.touch #bInfo{top:calc(var(--hudH) + 4px);left:calc(var(--sideL) + 8px);min-width:0;width:calc(50% - var(--sideL) - 12px);max-width:16em}
 body.touch #pInfo{top:calc(var(--hudH) + 4px);right:calc(var(--sideR) + 8px);min-width:0;width:calc(50% - var(--sideR) - 12px);max-width:12em}
 body.touch #bWrap{top:calc(var(--hudH) + 5.5em);width:min(64%,38vh)}
+#mWrap{position:absolute;z-index:2;display:none}
+#mSprite{width:100%;display:block;image-rendering:pixelated;animation:bob 1.2s ease-in-out infinite .6s}
+#mSprite.hit{animation:hit .45s steps(2) 1}
+#battle.vs #bWrap{left:8%;right:auto;transform:none;width:24%;top:25%}   /* あいて：左上（左の名前の下） */
+#battle.vs #mWrap{display:block;right:8%;left:auto;width:24%;top:37%}   /* ぼく：右下（右の名前の下） */
+#battle.vs #bShadow,#battle.vs #netfx{display:none}
+body.touch #battle.vs #bWrap{top:calc(var(--hudH) + 5.5em);width:min(44%,26vh)}
+body.touch #battle.vs #mWrap{top:calc(var(--hudH) + 5.5em + min(30%,22vh));width:min(44%,26vh)}
+#battle .vsmark{display:none;position:absolute;left:50%;top:38%;transform:translateX(-50%);z-index:3;font-size:1.6em;color:#fff;text-shadow:2px 2px 0 #a8442e,-1px -1px 0 #a8442e}
+#battle.vs .vsmark{display:block}
+body.touch #battle.vs .vsmark{top:calc(var(--hudH) + 5.5em + min(22%,16vh))}
 body.touch #titleScr{padding-top:calc(env(safe-area-inset-top,0px) + 14%)}
 body.touch #titleScr .t2{font-size:clamp(34px,11vmin,64px)}
 body.touch #titleScr .t1{font-size:clamp(16px,4.6vmin,26px)}
@@ -261,6 +272,8 @@ body.touch #dexDetail dl{font-size:14px}
       <div id="bInfo" class="binfo win"></div>
       <div id="pInfo" class="binfo win"></div>
       <div id="bWrap"><div id="netfx"></div><img id="bSprite" alt=""><div id="bShadow"></div></div>
+      <div id="mWrap"><img id="mSprite" alt=""></div>
+      <div class="vsmark">VS</div>
     </div>
     <div id="menu" class="win ov" hidden></div>
     <div id="msg" class="win ov" hidden></div>
@@ -295,6 +308,7 @@ body.touch #dexDetail dl{font-size:14px}
 </div>
 <div id="endScr" class="full" hidden><div class="in" id="endIn"></div></div>
 
+<script src="img/sprites/bugs/list.js"></script>
 <script>
 'use strict';
 /* =========================================================
@@ -468,7 +482,8 @@ function spriteURL(id, sil){
   return spriteCache[key] = c.toDataURL();
 }
 const imgReady = {};   // 読みこみ待ち（読みこめたら resolve）
-if(USE_IMAGE_FILES) Object.keys(BUGS).forEach(id=>{ imgReady[id] = new Promise(res=>{ const im = new Image(); im.onload = ()=>{ imgOK[id] = im; res(); }; im.src = BUG_IMG_DIR + id + '.png'; }); });
+// BUG_IMAGES（絵がある虫の一覧）は tools/process_bugs.py が img/sprites/bugs/list.js に書き出す
+if(USE_IMAGE_FILES) (window.BUG_IMAGES || Object.keys(BUGS)).forEach(id=>{ imgReady[id] = new Promise(res=>{ const im = new Image(); im.onload = ()=>{ imgOK[id] = im; res(); }; im.src = BUG_IMG_DIR + id + '.png'; }); });
 
 /* 主人公（麦わらぼうしの小学生） 12x16 */
 const PC = {h:'#e8cf6a', b:'#c8402e', s:'#f1c08e', k:'#2a1e14', t:'#fbf8ef', u:'#3d6fd6', p:'#33447e', g:'#2f7fd0', m:'#c0504a'};
@@ -493,7 +508,7 @@ const TOWN = [
   "T,,,,....,,,,,.....T",
   'T,"",....,""",..TT.T',
   "T,,,,....,,,,,..TT.T",
-  "T..................T",
+  "T............K.....T",
   "T.....~~~~.........T",
   "T.....~~~~....,,,,.T",
   'T.............,"",.T',
@@ -560,6 +575,7 @@ function drawTile(g, m, x, y, st){
       if(above !== t){ fill(roof); for(let i=3;i<16;i+=4) px(dark,0,i,16,1); }
       else { fill('#f0e6d0'); px('#c8b890',0,15,16,1); if((x+y)%2) { px('#7ab8e0',4,4,8,6); px('#5a4a3a',4,4,8,1); } }
       break; }
+    case 'K': fill('#d9c48e'); specks('#c4ad78',5); px('#7a5a3a',1,11,14,4); px('#9a7a52',2,11,12,2); break;   // 切りかぶの土俵（子どもは上にかく）
     case 'D': case 'P': fill('#f0e6d0'); px('#7a4a2a',3,3,10,13); px('#e8c060',10,9,2,2); if(t==='P'){ px('#3a6fb0',1,1,14,4); px('#fff',6,2,4,2); } break;
     default: fill('#000');
   }
@@ -577,8 +593,8 @@ function mapLayer(id){
    ========================================================= */
 function newState(){ return {day:1, min:START_MIN, lv:1, exp:0, hp:24, money:300, net:0, cage:0, shoes:0, items:{drink:1, mitsu:0, jueki:0, note:0},
   box:[], dex:{}, seen:{}, visited:{town:true}, area:'town', x:3, y:5, dir:'D', rule:'B', warned:false, caughtTotal:0,
-  goldwing:false, trapDay:0, link:{}, round:1}; }
-function loadState(json){ const d = newState(), s = Object.assign(d, JSON.parse(json)); s.items = Object.assign(newState().items, s.items); s.link = s.link || {}; return s; }
+  goldwing:false, trapDay:0, link:{}, round:1, sumo:{}, sumoDay:{}, sumoChamp:false}; }
+function loadState(json){ const d = newState(), s = Object.assign(d, JSON.parse(json)); s.items = Object.assign(newState().items, s.items); s.link = s.link || {}; s.sumo = s.sumo || {}; s.sumoDay = s.sumoDay || {}; return s; }
 let S = newState();
 const maxHp = ()=> 24 + (S.lv-1)*6;
 const patk  = ()=> NETS[S.net].atk + (S.lv-1)*1.5;
@@ -742,6 +758,12 @@ function loop(ts){
   if(mv && ts - mv.t0 >= MOVE_MS){ S.x = mv.tx; S.y = mv.ty; mv = null; run(onStep); }
   draw(ts); requestAnimationFrame(loop);
 }
+const NPC_PAL = Object.assign({}, PC, {h:'#2f6fd0', b:'#2f6fd0', t:'#f0d040', u:'#c84030', p:'#3a3a3a', g:'#c84030'});   // 青い帽子・黄色いシャツの子
+function drawNpc(tx, ty, ts){
+  const px = tx*TS, py = ty*TS - 4, bob = Math.floor(ts/400) % 2 ? -1 : 0;
+  P_FRONT.forEach((r,y)=>[...r].forEach((ch,i)=>{ if(ch==='.') return; ctx.fillStyle = NPC_PAL[ch]; ctx.fillRect(px + 2 + i, py + y + bob, 1, 1); }));
+  if(sumoNext()){ ctx.fillStyle = '#fff'; ctx.fillRect(px+6, py-9+bob, 5, 8); ctx.fillStyle = '#e04030'; ctx.fillRect(px+8, py-8+bob, 1, 4); ctx.fillRect(px+8, py-3+bob, 1, 1); }   // 「！」
+}
 function drawPlayer(px, py, ts){
   const rows = S.dir==='U' ? P_BACK : S.dir==='D' ? P_FRONT : P_SIDE, flip = S.dir==='L';
   const bob = mv && Math.floor((ts - mv.t0) / (MOVE_MS/2)) % 2 ? -1 : 0;
@@ -760,6 +782,7 @@ function draw(ts){
   ctx.save(); ctx.translate(-Math.round(camX), -Math.round(camY));
   ctx.drawImage(mapLayer(S.area), 0, 0);
   if(S.area==='town'){ ctx.fillStyle = '#fbf8ef'; ctx.fillRect(12*TS+20, 2*TS+4, 40, 9); ctx.fillStyle = '#284f82'; ctx.font = '8px sans-serif'; ctx.textBaseline = 'top'; ctx.fillText('虫具店', 12*TS+28, 2*TS+4); }
+  if(S.area==='town') maps.town.forEach((r,y)=>r.forEach((t,x)=>{ if(t==='K') drawNpc(x, y, ts); }));
   drawPlayer(px, py, ts);
   const slot = slotOf(S.min);
   ctx.restore();
@@ -796,6 +819,7 @@ async function checkFront(){
   const [dx,dy] = DIRS[S.dir], t = tileAt(S.x+dx, S.y+dy);
   const lines = {T:'大きな木だ。あまい樹液のにおいがする…', '~': S.area==='matsubara'||S.area==='oshima' ? '玄界灘の海だ。遠くに島が見える。' : '水がきれいだ。メダカが泳いでいる。',
     H:'ぼくの家だ。', S:'虫具店。むなかたの虫とりキッズ御用達の店。', J:'宗像大社のおやしろだ。虫がたくさんとれますように…', o:'大きな石だ。下に虫がかくれているかも？'};
+  if(t==='K'){ await sumoMenu(); await checkTime(); return; }
   if(lines[t]) await say(lines[t]);
 }
 async function checkTime(){
@@ -1046,6 +1070,102 @@ async function battle(id){
 }
 
 /* =========================================================
+   虫ずもう（町の広場で、近所の子どもと虫どうしを勝負させる）
+   ========================================================= */
+const SUMO_CHAMP_PT = 10;   // チャンピオンになると自由研究に +10点
+const RIVALS = [
+  {key:'yuta',  name:'ゆうた（1年生）',               short:'ゆうた', bug:'abura',    lv:6,  money:100,  item:'drink', hi:'ぼくのセミ、つよいんだぞ！',              win:'うわーん、まけた〜！',            lose:'やったー！ セミの勝ち！'},
+  {key:'haruka',name:'はるか（3年生）',               short:'はるか', bug:'kamakiri', lv:10, money:200,  item:'mitsu', hi:'カマキリのカマ、なめないでよね。',        win:'…くやしい。でも、いい虫ね。',      lose:'ほらね、カマキリは最強なの。'},
+  {key:'kenta', name:'けんた（4年生・となりのクラス）', short:'けんた', bug:'nokogiri', lv:13, money:400,  item:'jueki', hi:'ノコギリのはさみで、まっぷたつだ！',      win:'まじかよ…！ 二学期、教えてくれよな。', lose:'へへん、となりのクラスの勝ちだな！'},
+  {key:'soma',  name:'そうま（5年生）',               short:'そうま', bug:'kabuto',   lv:16, money:700,  item:'note',  hi:'夏の王様カブトムシに勝てるかな？',        win:'王様がやられた…。きみ、やるなあ。',  lose:'王様の力、思い知ったか！'},
+  {key:'daichi',name:'だいち（6年生・ガキ大将）',       short:'だいち', bug:'miyama',   lv:20, money:1200, item:'jueki', hi:'おれのミヤマは、城山でいちばん強いぜ！',  win:'…おまえ、ただものじゃないな。',     lose:'ガッハッハ！ 出直してこい！'},
+  {key:'ren',   name:'れん（中学1年生・チャンピオン）',  short:'れん',   bug:'hirata',   lv:22, money:2000, item:'champ', hi:'チャンピオンの座は、ゆずらないよ。',      win:'参った。今日からきみがチャンピオンだ。', lose:'まだまだ。また挑戦しにおいで。'},
+];
+const SPECIAL = {beetle:'ツノでなげとばし', stag:'大あごではさみなげ', mantis:'カマのれんぞくぎり', bee:'どくばりアタック', cicada:'ミンミン大音量',
+  butterfly:'りんぷんふぶき', dragonfly:'きゅうこうかアタック', grass:'ジャンプキック', firefly:'ピカピカフラッシュ', strider:'水しぶきスプラッシュ', longhorn:'かみつきロック', jewel:'にじいろビーム'};
+const sumoNext = ()=> S.area==='town' && RIVALS.find((r,i)=>!(S.sumo||{})[r.key] && (i===0 || (S.sumo||{})[RIVALS[i-1].key]));
+function fighter(id, lv, mine){
+  const b = BUGS[id], k = 1 + 0.08*(lv - b.lv), cheer = mine ? 1 + (S.lv-1)*0.02 : 1;   // ぼくのレベルが高いほど、おうえんで少し強くなる
+  const maxhp = Math.round(b.hp*k*1.4);
+  return {id, b, lv, maxhp, hp:maxhp, atk:Math.max(1, b.atk*k*cheer), spd:b.spd, guard:false};
+}
+const fstat = f=> `たいりょく${f.maxhp}・ちから${Math.round(f.atk)}・すばやさ${f.spd}`;
+async function sumoMenu(){
+  S.sumo = S.sumo || {}; S.sumoDay = S.sumoDay || {};
+  await say('広場の切りかぶの上で、近所の子どもたちが虫ずもうをしている！');
+  while(true){
+    const opts = RIVALS.map((r,i)=>{
+      const won = S.sumo[r.key], locked = i>0 && !S.sumo[RIVALS[i-1].key], done = S.sumoDay[r.key]===S.day;
+      return {label: locked ? '？？？' : r.name,
+        note: locked ? '' : done ? '今日はおわり' : won ? `再戦 ${Math.round(r.money/4)}円` : `賞金 ${r.money}円`,
+        desc: locked ? '前の相手に勝つと、挑戦できるようになる' : `あいての虫：${BUGS[r.bug].name} Lv${r.lv}` + (won ? '（勝ったことがある。再戦は1日1回）' : ''),
+        disabled: locked || done};
+    });
+    opts.push({label:'やめる'});
+    const c = await choose(opts, {title:'虫ずもう'});
+    if(c<0 || c===RIVALS.length) return;
+    if(!S.box.length){ await say('虫かごに虫がいないと、虫ずもうに出られない…。'); return; }
+    const m = await choose(S.box.map(it=>({label:`${BUGS[it.id].name} Lv${it.lv}`, desc:fstat(fighter(it.id, it.lv, true))})), {title:'どの虫で勝負する？'});
+    if(m<0) continue;
+    await sumoBattle(RIVALS[c], S.box[m]);
+    hud();
+    if(S.min >= END_MIN) return;
+  }
+}
+async function sumoBattle(r, it){
+  const me = fighter(it.id, it.lv, true), foe = fighter(r.bug, r.lv, false), mSprite = $('mSprite');
+  const first = !S.sumo[r.key];
+  const upd = ()=>{
+    const fr = foe.hp/foe.maxhp, mr = me.hp/me.maxhp;
+    $('bInfo').innerHTML = `<div class="row"><span>${esc(r.short)}の${esc(foe.b.name)}</span></div><div class="row"><span class="lbl">Lv${foe.lv}</span><span>${foe.hp}/${foe.maxhp}</span></div><span class="bar"><i class="${fr<.3?'low':''}" style="width:${fr*100}%"></i></span>`;
+    $('pInfo').innerHTML = `<div class="row"><span>ぼくの${esc(me.b.name)}</span></div><div class="row"><span class="lbl">Lv${me.lv}</span><span>${me.hp}/${me.maxhp}</span></div><span class="bar"><i class="${mr<.3?'low':''}" style="width:${mr*100}%"></i></span>`;
+  };
+  battleEl.className = 'ov bg-town vs'; bSprite.src = spriteURL(foe.id); mSprite.src = spriteURL(me.id); scene = 'battle';
+  [[foe.id, bSprite], [me.id, mSprite]].forEach(([id, el])=>{ if(!imgOK[id] && imgReady[id]) imgReady[id].then(()=>{ if(scene==='battle') el.src = spriteURL(id); }); });
+  await fade(()=>{ battleEl.hidden = false; upd(); });
+  await say(`${r.short}「${r.hi}」`);
+  await say('はっけよーい……のこった！');
+  const name = (f)=> f===me ? `ぼくの${me.b.name}` : `${r.short}の${foe.b.name}`;
+  const act = async (a, d, cmd)=>{
+    if(cmd===2){ const h = Math.round(a.maxhp*0.08); a.hp = Math.min(a.maxhp, a.hp + h); upd(); await say(`${name(a)}は、ぐっとふんばった！（たいりょく+${h}）`); return; }
+    const sp = cmd===1, wname = sp ? SPECIAL[a.b.shape] + '！' : 'つっこみ！';
+    if(Math.random() > (sp ? .68 : .95) - d.spd*0.03 + a.spd*0.02){ await say(`${name(a)}の${wname}\n…ひらりとかわされた！`); return; }
+    const dmg = Math.max(1, Math.round(a.atk * (0.85 + Math.random()*0.3) * (sp ? 1.8 : 1) * (d.guard ? 0.4 : 1)));
+    d.hp = Math.max(0, d.hp - dmg); fx(d===me ? mSprite : bSprite, 'hit', 450); if(d===me) fx(screenEl,'shake',300); upd();
+    await say(`${name(a)}の${wname}\n${dmg} のダメージ！${d.guard ? '（ふんばってダメージをへらした）' : ''}`);
+  };
+  let result = null;
+  while(!result){
+    const c = await choose(['つっこむ', SPECIAL[me.b.shape], 'ふんばる', 'こうさん'], {cls:'cmd', cancel:false, msg:`ぼくの${me.b.name}、どうする？`,
+      start:0});
+    if(c===3){ await say('「まいった！」…こうさんした。'); result = 'lose'; break; }
+    const fc = foe.hp < foe.maxhp*0.3 && Math.random() < .35 ? 2 : Math.random() < .3 ? 1 : 0;
+    me.guard = c===2; foe.guard = fc===2;
+    const order = me.spd > foe.spd || (me.spd===foe.spd && Math.random() < .5) ? [[me,foe,c],[foe,me,fc]] : [[foe,me,fc],[me,foe,c]];
+    for(const [a,d,cmd] of order){
+      await act(a, d, cmd);
+      if(d.hp <= 0){ result = d===foe ? 'win' : 'lose'; await say(`${name(d)}は、切りかぶの外へころがり落ちた！\nしょうぶあり！`); break; }
+    }
+  }
+  S.min += 20;
+  if(result==='win'){
+    await say(`${r.short}「${r.win}」`);
+    const money = first ? r.money : Math.round(r.money/4); S.money += money;
+    let msg = `虫ずもうに勝った！ 賞金 ${money}円 をもらった！`;
+    if(first){
+      if(r.item==='champ'){ S.sumoChamp = true; msg += `\n「虫ずもうチャンピオン」になった！（自由研究 +${SUMO_CHAMP_PT}点）`; }
+      else { const t = [...ITEMS, ...PHOTO_ITEMS].find(t=>t.key===r.item); S.items[r.item] = (S.items[r.item]||0) + 1; msg += `\nさらに ${t.name} をもらった！`; }
+    }
+    S.sumo[r.key] = (S.sumo[r.key]||0) + 1;
+    hud(); await say(msg);
+  } else {
+    await say(`${r.short}「${r.lose}」`);
+  }
+  S.sumoDay[r.key] = S.day;   // 同じ相手とは1日1回
+  await fade(()=>{ battleEl.hidden = true; battleEl.className = 'ov'; scene = 'field'; hud(); });
+}
+
+/* =========================================================
    図鑑
    ========================================================= */
 function openDex(){
@@ -1211,6 +1331,7 @@ async function intro(){
     'お母さん「宿題がんばったわね。でも夜9時までには帰ってくるのよ。\nはい、おこづかい300円。」',
     `${dateStr(DAYS+1)}からは二学期がはじまる。\n${dateStr(DAYS)}までの${DAYS}日間で、宗像じゅうの虫をつかまえて昆虫図鑑を完成させよう！`,
     '自由研究は「昆虫図鑑づくり」！\nたくさんの虫、めずらしい虫をのせるほど、二学期の発表で注目されるぞ。',
+    '町の広場の切りかぶでは、近所の子どもたちが「虫ずもう」をしているらしい。\nつかまえた虫で勝負して、賞金をかせごう！（子どもに話しかけるとはじまる）',
     'つかまえた虫は、家のとなりの「虫具店」で売れる。\nお金をためて、いいあみ・虫かご・くつを買おう！',
     '本物の虫を見つけたら、メニューの「本物の虫を撮る」で写真を見せてね。\nおこづかいや、お店では買えないアイテムがもらえるよ！',
     touch ? '【そうさ】十字キー：いどう　A：けってい　B/メニュー：メニュー\n草むらを歩くと虫が出てくるよ。下の出口から町の外へ！'
@@ -1226,7 +1347,8 @@ function research(){
   const photo = Object.keys(photos.cats).length * 2;
   const effort = Math.floor(Math.min(S.caughtTotal, 60) / 3);
   const best = ids.slice().sort((a,b)=>BUGS[b].rank - BUGS[a].rank || BUGS[b].price - BUGS[a].price)[0];
-  return {ids, species:ids.length, rare, photo, effort, total:rare + photo + effort, best,
+  const sumo = S.sumoChamp ? SUMO_CHAMP_PT : 0;
+  return {ids, species:ids.length, rare, photo, effort, sumo, total:rare + photo + effort + sumo, best,
     complete: ids.length >= Object.keys(BUGS).length, kin: !!S.dex.kinkabuto};
 }
 const ENDINGS = [
@@ -1241,6 +1363,7 @@ function endingOf(r){ if(r.complete || (r.kin && r.total >= 90)) return ENDINGS[
 function endingStory(e, r){
   const best = r.best ? BUGS[r.best].name : '虫';
   const open = [`${dateStr(DAYS+1)}。二学期のはじまりだ。`, `自由研究の「ぼくの昆虫図鑑」をかかえて、学校へ向かった。\n（図鑑：${r.species}しゅるい）`];
+  if(S.sumoChamp) open.push('夏休みに虫ずもうチャンピオンになったことは、もう学校中のうわさになっていた！');
   const body = {
     legend:[
       '教室に入ったとたん、クラス中が図鑑のまわりに集まって大さわぎになった！',
@@ -1308,6 +1431,7 @@ async function ending(){
         <tr><th>レア度ポイント</th><td>${r.rare} 点</td></tr>
         <tr><th>本物の虫の写真</th><td>${r.photo} 点</td></tr>
         <tr><th>がんばり（のべ ${S.caughtTotal}ひき）</th><td>${r.effort} 点</td></tr>
+        ${r.sumo ? `<tr><th>虫ずもうチャンピオン</th><td>${r.sumo} 点</td></tr>` : ''}
         <tr class="sum"><th>自由研究の点数</th><td>${r.total} 点</td></tr>
       </table>
       ${r.best ? `<div class="bestbug"><img alt="" src="${spriteURL(r.best)}"><span>いちばんすごい虫<br>${esc(BUGS[r.best].name)}　${stars(BUGS[r.best].rank)}</span></div>` : ''}
@@ -1340,6 +1464,8 @@ function start(data){
     if(demo==='battle') run(()=>battle(QS.get('id') || 'kabuto'));
     else if(demo==='dex'){ Object.keys(BUGS).slice(0, +(QS.get('n')||12)).forEach(id=>S.dex[id] = {n:1, best:BUGS[id].lv}); S.seen.kokuwa = true; setTimeout(()=>run(openDex), 600); }
     else if(demo==='menu') run(fieldMenu);
+    else if(demo==='sumo'){ S.area = 'town'; S.x = 13; S.y = 10; S.dir = 'U'; S.box = [{id:QS.get('id')||'kokuwa', lv:12}]; hud();
+      if(QS.has('fight')) run(()=>sumoBattle(RIVALS[+QS.get('fight')||0], S.box[0])); else run(()=>say('7月…')); }
     else if(demo==='items'){ Object.assign(S.items, {jueki:2, note:1}); S.goldwing = true; run(itemMenu); }
     else if(demo==='shop') run(()=>buyGear('cage'));
     else if(demo==='end'){ const n = +(QS.get('n')||10); Object.keys(BUGS).slice(0, n).forEach(id=>S.dex[id] = {n:1, best:BUGS[id].lv}); if(QS.has('kin')) S.dex.kinkabuto = {n:1, best:25};

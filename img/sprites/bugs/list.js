@@ -1,0 +1,1 @@
+window.BUG_IMAGES = ["abura", "ageha", "amenbo", "genji", "ginyanma", "haguro", "hanmyo", "higurashi", "hirata", "kabuto", "kamakiri", "kokuwa", "kuma", "minmin", "miyama", "monshiro", "natsuakane", "nokogiri", "oniyanma", "shiokara", "shoryo", "tamamushi", "tonosama", "tsukutsuku", "usuba"];
