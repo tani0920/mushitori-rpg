@@ -110,7 +110,7 @@ header small{color:var(--mute);font-size:12px}
 .binfo .stars{color:var(--sun);letter-spacing:.05em}
 .binfo .new{color:#ff8a6a}
 .binfo .gauge{color:var(--sun);letter-spacing:.1em}
-.binfo .lbl{color:var(--mute);font-size:.85em}
+.binfo .lbl{color:var(--mute);font-size:.85em;white-space:nowrap}
 
 /* 図鑑・エンディング（画面全体） */
 .full{position:fixed;inset:0;z-index:100;overflow-y:auto;
@@ -174,12 +174,56 @@ header small{color:var(--mute);font-size:12px}
 @media (hover:none),(pointer:coarse){#pad{display:flex}#keys{display:none}}
 .dpad{display:grid;grid-template-columns:repeat(3,52px);grid-template-rows:repeat(3,52px)}
 #pad button{font:inherit;font-size:18px;color:var(--ink);background:var(--frame-2);border:2px solid #f7f1df55;border-radius:10px;touch-action:none;cursor:pointer}
-#pad button:active{background:#33503f}
+#pad button:active,#pad button.on{background:#33503f}
 .dpad [data-k=U]{grid-area:1/2}.dpad [data-k=L]{grid-area:2/1}.dpad [data-k=R]{grid-area:2/3}.dpad [data-k=D]{grid-area:3/2}
 .ab{display:grid;grid-template-columns:64px 64px;gap:10px;align-items:center}
 .ab [data-k=A],.ab [data-k=B]{width:64px;height:64px;border-radius:50%!important;grid-row:1}
 .ab [data-k=A]{background:#7a3a22!important;border-color:var(--sun)!important}
 .ab [data-k=M]{font-size:13px!important;padding:6px 10px;grid-row:2;grid-column:1/3;white-space:nowrap}
+/* ===== スマホ・タブレット：ゲーム画面を全画面に、ボタンは上に重ねる ===== */
+body.touch{position:fixed;inset:0;overflow:hidden;padding:0}
+html:has(body.touch){padding:0}
+body.touch #app{max-width:none;height:100%;padding:0;display:block;position:relative}
+body.touch header,body.touch #keys{display:none}
+body.touch #screen{position:absolute;inset:0;width:100%;height:100%;min-width:0;max-width:none;aspect-ratio:auto;border:0;border-radius:0;z-index:1;
+  --hudH:40px;--padH:200px;--sideL:0px;--sideR:0px}
+body.touch #hud{position:absolute;top:0;left:0;right:0;z-index:2;pointer-events:none;font-size:clamp(13px,3.4vmin,19px);gap:0 10px;min-height:0;
+  padding:calc(env(safe-area-inset-top,0px) + 5px) max(12px,env(safe-area-inset-right,0px)) 10px max(12px,env(safe-area-inset-left,0px));
+  background:linear-gradient(#000c 60%,#0000);text-shadow:1px 1px 0 #000}
+body.touch #hud:empty{display:none}
+body.touch #hud .bar{width:54px}
+body.touch #pad{position:absolute;left:0;right:0;bottom:0;z-index:3;display:flex;align-items:flex-end;pointer-events:none;
+  padding:0 max(14px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 16px) max(14px,env(safe-area-inset-left,0px))}
+body.touch .dpad,body.touch .ab{pointer-events:auto}
+body.touch .dpad{--c:clamp(56px,8.5vmin,80px);grid-template-columns:repeat(3,var(--c));grid-template-rows:repeat(3,var(--c));touch-action:none;
+  background:radial-gradient(circle,#0005 0 62%,transparent 63%);border-radius:50%}
+body.touch #pad button{background:#21362acc;border-color:#f7f1df88;font-size:20px;box-shadow:0 2px 0 #0006}
+body.touch #pad button.on{background:#4a6f55ee}
+body.touch .ab{--b:clamp(68px,10vmin,96px);grid-template-columns:var(--b) var(--b);gap:12px}
+body.touch .ab [data-k=A],body.touch .ab [data-k=B]{width:var(--b);height:var(--b);font-size:22px}
+body.touch .ab [data-k=A]{background:#8a3e22dd!important}
+body.touch .ab [data-k=M]{font-size:14px!important;padding:8px 10px}
+body.touch #screen .ov{font-size:clamp(15px,4.4vmin,24px)}
+body.touch .win{border-width:3px;padding:.5em .8em;line-height:1.55}
+body.touch #msg{left:calc(var(--sideL) + 8px);right:calc(var(--sideR) + 8px);bottom:calc(var(--padH) + 8px);min-height:6em;max-height:45%;overflow-y:auto}
+body.touch #menu{top:calc(var(--hudH) + 6px);right:calc(var(--sideR) + 8px);max-width:calc(100% - var(--sideL) - var(--sideR) - 16px);
+  max-height:calc(100% - var(--hudH) - var(--padH) - 6em - 30px)}
+body.touch #menu.map{left:calc(var(--sideL) + 8px);right:auto}
+body.touch #menu.cmd{top:auto;bottom:calc(var(--padH) + 6em + 16px)}
+body.touch #menu.title{top:58%;bottom:auto;right:auto;left:50%}
+body.touch #menu li{padding-top:.3em;padding-bottom:.3em}
+body.touch .binfo{font-size:.8em}
+body.touch #bInfo{top:calc(var(--hudH) + 4px);left:calc(var(--sideL) + 8px);min-width:0;width:calc(50% - var(--sideL) - 12px);max-width:16em}
+body.touch #pInfo{top:calc(var(--hudH) + 4px);right:calc(var(--sideR) + 8px);min-width:0;width:calc(50% - var(--sideR) - 12px);max-width:12em}
+body.touch #bWrap{top:calc(var(--hudH) + 6.5em);width:min(46%,32vh)}
+body.touch #titleScr{padding-top:calc(env(safe-area-inset-top,0px) + 14%)}
+body.touch #titleScr .t2{font-size:clamp(34px,11vmin,64px)}
+body.touch #titleScr .t1{font-size:clamp(16px,4.6vmin,26px)}
+body.touch #titleScr .t3{font-size:clamp(13px,3.6vmin,20px);padding:0 16px}
+body.touch #dexGrid{grid-template-columns:repeat(auto-fill,minmax(72px,1fr))}
+body.touch #dexGrid .c{font-size:12px}
+body.touch #dexDetail{font-size:15px}
+body.touch #dexDetail dl{font-size:14px}
 #keys{color:var(--mute);font-size:12px;text-align:center}
 #keys b{color:var(--ink);font-weight:400;border:1px solid #f7f1df55;border-radius:3px;padding:0 4px;margin:0 2px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -565,7 +609,7 @@ function choose(opts, o={}){
   });
 }
 async function fade(fn){ $('fade').classList.add('on'); await wait(260); if(fn) fn(); await wait(80); $('fade').classList.remove('on'); await wait(200); }
-async function run(fn){ if(busy) return; busy = true; held = null; try{ await fn(); } finally { busy = false; } }
+async function run(fn){ if(busy) return; busy = true; try{ await fn(); } finally { busy = false; } }
 
 function hud(){
   if(scene==='title'){ hudEl.innerHTML = ''; return; }
@@ -594,18 +638,60 @@ document.addEventListener('keydown', e=>{
 });
 document.addEventListener('keyup', e=>{ const k = KEYMAP[e.key]; const i = heldKeys.indexOf(k); if(i>=0) heldKeys.splice(i,1); held = heldKeys[heldKeys.length-1] || null; });
 window.addEventListener('blur', ()=>{ heldKeys.length = 0; held = null; });
-document.querySelectorAll('#pad button').forEach(b=>{
-  const k = b.dataset.k;
-  b.addEventListener('pointerdown', e=>{ e.preventDefault(); if('UDLR'.includes(k)){ held = k; padRepeat(k); } press(k); });
-  const up = ()=>{ if(held===k) held = null; clearInterval(b._rep); };
-  b.addEventListener('pointerup', up); b.addEventListener('pointerleave', up); b.addEventListener('pointercancel', up);
-  function padRepeat(k){ clearInterval(b._rep); b._rep = setInterval(()=>{ if(held===k && uiHandler) uiHandler(k); }, 220); }
+/* 十字キー：押しっぱなしで歩き続ける。指をすべらせて向きを変えられる */
+(()=>{
+  const pad = document.querySelector('.dpad'); let pid = null, cur = null, repT = null;
+  const light = k=> pad.querySelectorAll('button').forEach(b=>b.classList.toggle('on', b.dataset.k===k));
+  const setDir = k=>{
+    if(k===cur) return; cur = k; held = k; light(k); clearTimeout(repT);
+    if(!k) return;
+    press(k);
+    const rep = ()=>{ if(cur===k){ if(uiHandler) uiHandler(k); repT = setTimeout(rep, 130); } };
+    repT = setTimeout(rep, 380);   // メニューの中では長押しでカーソルが連続で動く
+  };
+  const dirAt = e=>{ const r = pad.getBoundingClientRect(), dx = e.clientX - (r.left + r.width/2), dy = e.clientY - (r.top + r.height/2);
+    if(Math.hypot(dx,dy) < r.width*0.12) return cur; return Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'R' : 'L') : (dy > 0 ? 'D' : 'U'); };
+  pad.addEventListener('pointerdown', e=>{ e.preventDefault(); pid = e.pointerId; try{ pad.setPointerCapture(pid); }catch(_){} setDir(dirAt(e)); });
+  pad.addEventListener('pointermove', e=>{ if(e.pointerId===pid) setDir(dirAt(e)); });
+  const end = e=>{ if(e.pointerId!==pid) return; pid = null; setDir(null); };
+  pad.addEventListener('pointerup', end); pad.addEventListener('pointercancel', end); pad.addEventListener('lostpointercapture', end);
+  pad.addEventListener('contextmenu', e=>e.preventDefault());
+})();
+document.querySelectorAll('.ab button').forEach(b=>{
+  b.addEventListener('pointerdown', e=>{ e.preventDefault(); b.classList.add('on'); press(b.dataset.k); });
+  const up = ()=>b.classList.remove('on');
+  b.addEventListener('pointerup', up); b.addEventListener('pointercancel', up); b.addEventListener('pointerleave', up);
+  b.addEventListener('contextmenu', e=>e.preventDefault());
 });
 
 /* =========================================================
    フィールド
    ========================================================= */
 const cv = $('cv'), ctx = cv.getContext('2d'); ctx.imageSmoothingEnabled = false;
+/* スマホ・タブレットは全画面。マップを大きく表示して、カメラが主人公を追いかける */
+const QS = new URLSearchParams(location.search);   // ?touch でスマホ表示、?demo=field|battle|menu で画面確認用
+const TOUCH = matchMedia('(hover:none),(pointer:coarse)').matches || QS.has('touch');
+if(TOUCH) document.body.classList.add('touch');
+let hudI = 0;   // HUDの高さ（マップ座標）
+function layout(){
+  if(!TOUCH){ if(cv.width!==320){ cv.width = 320; cv.height = 240; ctx.imageSmoothingEnabled = false; } return; }
+  const r = screenEl.getBoundingClientRect(); if(!r.width || !r.height) return;
+  const land = r.width > r.height;
+  const s = Math.max(1, Math.min(r.width/(11*TS), r.height/(9*TS), 3.6));   // 横11マス・縦9マス以上は見える大きさ
+  const w = Math.round(r.width/s), h = Math.round(r.height/s);
+  if(cv.width!==w || cv.height!==h){ cv.width = w; cv.height = h; ctx.imageSmoothingEnabled = false; }
+  const padEl = $('pad'), dp = padEl.querySelector('.dpad').getBoundingClientRect(), ab = padEl.querySelector('.ab').getBoundingClientRect();
+  const hudH = hudEl.offsetHeight;
+  hudI = hudH / s;
+  const st = screenEl.style;
+  st.setProperty('--hudH', hudH + 'px');
+  st.setProperty('--padH', land ? '0px' : (r.bottom - Math.min(dp.top, ab.top) + 6) + 'px');
+  st.setProperty('--sideL', land ? (dp.right - r.left + 6) + 'px' : '0px');
+  st.setProperty('--sideR', land ? (r.right - ab.left + 6) + 'px' : '0px');
+}
+addEventListener('resize', layout);
+if(window.ResizeObserver) new ResizeObserver(layout).observe(hudEl);
+layout();
 let mv = null; const MOVE_MS = 140;
 const DIRS = {U:[0,-1], D:[0,1], L:[-1,0], R:[1,0]};
 function tryMove(k, ts){
@@ -626,14 +712,21 @@ function drawPlayer(px, py, ts){
 }
 function draw(ts){
   if(scene==='title'){ return; }
-  ctx.drawImage(mapLayer(S.area), 0, 0);
-  if(S.area==='town'){ ctx.fillStyle = '#fbf8ef'; ctx.fillRect(12*TS+20, 2*TS+4, 40, 9); ctx.fillStyle = '#284f82'; ctx.font = '8px sans-serif'; ctx.textBaseline = 'top'; ctx.fillText('虫具店', 12*TS+28, 2*TS+4); }
   let px = S.x*TS, py = S.y*TS;
   if(mv){ const p = clamp((ts - mv.t0)/MOVE_MS, 0, 1); px = (mv.fx + (mv.tx-mv.fx)*p)*TS; py = (mv.fy + (mv.ty-mv.fy)*p)*TS; }
+  // カメラ：マップが画面より大きい方向だけ主人公を追いかける
+  const MW = W*TS, MH = H*TS, VW = cv.width, VH = cv.height;
+  const camX = MW <= VW ? -(VW-MW)/2 : clamp(px + 8 - VW/2, 0, MW - VW);
+  const camY = MH <= VH - hudI ? -hudI : clamp(py + 8 - (VH + hudI)/2, -hudI, MH - VH);
+  ctx.fillStyle = '#17261d'; ctx.fillRect(0, 0, VW, VH);
+  ctx.save(); ctx.translate(-Math.round(camX), -Math.round(camY));
+  ctx.drawImage(mapLayer(S.area), 0, 0);
+  if(S.area==='town'){ ctx.fillStyle = '#fbf8ef'; ctx.fillRect(12*TS+20, 2*TS+4, 40, 9); ctx.fillStyle = '#284f82'; ctx.font = '8px sans-serif'; ctx.textBaseline = 'top'; ctx.fillText('虫具店', 12*TS+28, 2*TS+4); }
   drawPlayer(px, py, ts);
   const slot = slotOf(S.min);
+  ctx.restore();
   if(slot==='yoru'){ ctx.fillStyle = 'rgba(10,20,70,.48)'; ctx.fillRect(0,0,cv.width,cv.height);
-    if(S.area==='kawara'){ for(let i=0;i<10;i++){ const fx = (i*53 + Math.sin(ts/900+i)*22 + 320) % 320, fy = 30 + (i*37)%170 + Math.cos(ts/700+i*2)*10; ctx.fillStyle = `rgba(230,255,120,${.5+.5*Math.sin(ts/300+i)})`; ctx.fillRect(fx,fy,2,2); } } }
+    if(S.area==='kawara'){ for(let i=0;i<10;i++){ const fx = (i*53 + Math.sin(ts/900+i)*22 + 320) % 320, fy = 30 + (i*37)%170 + Math.cos(ts/700+i*2)*10; ctx.fillStyle = `rgba(230,255,120,${.5+.5*Math.sin(ts/300+i)})`; ctx.fillRect(Math.round(fx-camX), Math.round(fy-camY), 2, 2); } } }
   else if(slot==='yu'){ ctx.fillStyle = 'rgba(220,100,30,.2)'; ctx.fillRect(0,0,cv.width,cv.height); }
   else if(slot==='asa' && S.min < 7*60){ ctx.fillStyle = 'rgba(120,160,230,.14)'; ctx.fillRect(0,0,cv.width,cv.height); }
 }
@@ -1085,6 +1178,12 @@ requestAnimationFrame(loop);
 window.claude?.hot?.snapshot?.(()=>({save:JSON.stringify(S), scene}));
 function start(data){
   if(data && data.save && data.scene==='field'){ try{ S = loadState(data.save); scene = 'field'; $('titleScr').hidden = true; hud(); return; }catch(e){} }
+  const demo = QS.get('demo');
+  if(demo){ S = newState(); scene = 'field'; $('titleScr').hidden = true; S.area = 'taisha'; S.x = 9; S.y = 9; hud(); layout();
+    if(demo==='battle') run(()=>battle('kabuto'));
+    else if(demo==='menu') run(fieldMenu);
+    else run(()=>say('7月21日（火）。今日から夏休みだ！'));
+    return; }
   run(titleScreen);
 }
 window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
