@@ -168,6 +168,31 @@ header small{color:var(--mute);font-size:12px}
 #dexDetail .real{margin-top:12px;border-top:1px dashed var(--paper-line);padding-top:10px}
 #dexDetail .real img{width:100%;height:auto;max-height:220px;object-fit:cover;image-rendering:auto;background:none}
 #cam{background:var(--paper);color:var(--paper-ink)}
+/* タイトルのボタン */
+#titleScr .tbtns{display:flex;gap:.6em;flex-wrap:wrap;justify-content:center;margin-top:.7em}
+#titleScr .tbtn{font:inherit;font-size:clamp(12px,2.6cqw,16px);color:#fff;background:#14284acc;border:2px solid #f7f1df;border-radius:999px;padding:.35em 1em;cursor:pointer;box-shadow:0 2px 0 #0006}
+#titleScr .tbtn:active{transform:translateY(1px)}
+body.touch #titleScr .tbtn{font-size:clamp(13px,3.6vmin,19px)}
+/* 説明パネル（アプリにする方法・友だちに教える） */
+#infoPanel{background:var(--paper);color:var(--paper-ink)}
+#infoPanel .in{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:12px;line-height:1.75;font-size:16px}
+#infoPanel .top{display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:3px double var(--paper-ink);padding-bottom:6px}
+#infoPanel h2{margin:0;font-weight:400;font-size:20px;letter-spacing:.06em}
+#infoPanel h3{margin:.4em 0 .2em;font-weight:400;font-size:17px;color:#7a4a1a}
+#infoPanel ol{margin:0;padding-left:1.4em}
+#infoPanel li{margin:.2em 0}
+#infoPanel .box{background:#fffaf0;border:2px solid var(--paper-line);border-radius:6px;padding:10px 14px}
+#infoPanel .box.now{border-color:#c88a10;background:#fff3c4}
+#infoPanel .note{font-size:13px;color:#7a6a4a}
+#infoPanel details{background:#fffaf0;border:2px solid var(--paper-line);border-radius:6px;padding:8px 14px}
+#infoPanel summary{cursor:pointer}
+#infoPanel .acts{display:flex;flex-wrap:wrap;gap:10px}
+#infoPanel .acts .btn,#infoPanel .acts a.btn{text-decoration:none;font-size:16px;padding:.5em 1.1em}
+#infoPanel .line{background:#06c755;border-color:#06c755;color:#fff}
+#infoPanel .url{font-family:monospace;word-break:break-all;background:#fffaf0;border:1px dashed var(--paper-line);padding:6px 10px;border-radius:4px;user-select:all;-webkit-user-select:all}
+#infoPanel .qr{display:flex;flex-direction:column;align-items:center;gap:4px}
+#infoPanel .qr img{width:200px;height:200px;image-rendering:pixelated;background:#fff;padding:8px;border-radius:6px}
+#infoPanel .ok{color:#2f7a2a}
 #cam .in{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
 #cam .top{display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:3px double var(--paper-ink);padding-bottom:6px}
 #cam h2{margin:0;font-weight:400;font-size:20px;letter-spacing:.1em}
@@ -339,6 +364,7 @@ body.touch.land #menu.title{top:auto;bottom:10px;left:50%;right:auto;transform:t
       <img class="logo" alt="むなかた 虫とり日記" hidden>
       <div class="t3">宗像じゅうの虫をつかまえて、図鑑を完成させよう</div>
       <div class="t4">※このゲームに出てくる場所と虫の組み合わせはゲーム用のもので、実際にその場所にいる虫とはかぎりません。ミアレカブトは架空の虫です。</div>
+      <div class="tbtns"><button type="button" class="tbtn" id="btnInstall">アプリにする方法</button><button type="button" class="tbtn" id="btnShare">友だちに教える</button></div>
     </div>
     <div id="battle" class="ov" hidden>
       <div id="bInfo" class="binfo win"></div>
@@ -376,6 +402,12 @@ body.touch.land #menu.title{top:auto;bottom:10px;left:50%;right:auto;transform:t
     <div id="camResult"></div>
     <h3>本物の虫アルバム <span id="albumCnt"></span></h3>
     <div id="album"></div>
+  </div>
+</div>
+<div id="infoPanel" class="full" hidden>
+  <div class="in">
+    <div class="top"><h2 id="ipTitle"></h2><button type="button" class="btn" id="ipClose">とじる</button></div>
+    <div id="ipBody"></div>
   </div>
 </div>
 <div id="endScr" class="full" hidden><div class="in" id="endIn"></div></div>
@@ -663,7 +695,7 @@ const layerCache = {};
    1段目：草地 草むら 道 砂浜／2段目：田んぼ 水 木 松／3段目：岩 赤い屋根 壁 ドア／4段目：青い屋根 お店の入口 鳥居 おやしろ */
 const TILE_IDX = {',':0, '"':1, '.':2, 's':3, 'f':4, '~':5, 'T':6, 'o':8, 'D':11, 'P':13, 'E':2, 'K':2, 'r':2, 'J':0};
 let tileSheet = null;
-const USE_TILE_ART = false;   // true にするとChatGPTのタイル（img/sprites/tiles.png）でフィールドを描く。false はシンプルな見やすい絵
+const USE_TILE_ART = true;    // true にするとChatGPTのタイル（img/sprites/tiles.png）でフィールドを描く。false はシンプルな見やすい絵
 if(USE_TILE_ART && window.HAS_TILES){ const im = new Image(); im.onload = ()=>{ tileSheet = im; for(const k in layerCache) delete layerCache[k]; }; im.src = av('img/sprites/tiles.png'); }
 const tileAtIdx = (g, i, X, Y)=> g.drawImage(tileSheet, (i%4)*TS, Math.floor(i/4)*TS, TS, TS, X, Y, TS, TS);
 function drawTileImg(g, m, x, y, st){
@@ -1571,6 +1603,71 @@ function openCam(){
 /* =========================================================
    タイトル・オープニング・エンディング
    ========================================================= */
+/* ---------- タイトルのボタン：アプリにする方法・友だちに教える ---------- */
+const GAME_URL = location.origin + location.pathname.replace(/index\.html$/, '');
+const SHARE_TEXT = '宗像が舞台の虫とりRPG「むなかた虫とり日記」で、いっしょに虫とりしよう！';
+const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints > 1);
+const isAndroid = /Android/.test(navigator.userAgent);
+const isStandalone = ()=> matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+let installEvt = null;   // Androidのchromeは「インストール」ボタンを出せる
+addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); installEvt = e; });
+function openPanel(title, html){
+  return new Promise(res=>{
+    $('ipTitle').textContent = title; $('ipBody').innerHTML = html; $('infoPanel').hidden = false; $('infoPanel').scrollTop = 0;
+    const prev = uiHandler;
+    const close = ()=>{ $('infoPanel').hidden = true; uiHandler = prev; res(); };
+    uiHandler = k=>{ if(k==='B' || k==='M') close(); };
+    $('ipClose').onclick = close;
+  });
+}
+function installHTML(){
+  if(isStandalone()) return `<div class="box now"><b class="ok">もうアプリとして遊んでいます！</b><br>ホーム画面の「虫とり日記」のアイコンから、いつでも遊べます。</div>`;
+  const ios = `<ol><li><b>Safari</b>でこのページを開く<br><span class="note">LINEなど、ほかのアプリの中で開いているときは、メニューから「Safariで開く」をえらぶ</span></li>
+    <li>共有ボタン（四角から上やじるしが出ているマーク）をタップ<br><span class="note">iPhoneは画面の下、iPadは画面の右上にあります</span></li>
+    <li>「<b>ホーム画面に追加</b>」をえらぶ<br><span class="note">見つからないときは、メニューを下にスクロール</span></li>
+    <li>右上の「<b>追加</b>」をタップ → ホーム画面に「虫とり日記」のアイコンができる</li></ol>`;
+  const android = `<ol><li><b>Chrome</b>でこのページを開く</li><li>右上の「︙」（点が3つのボタン）をタップ</li>
+    <li>「<b>ホーム画面に追加</b>」または「<b>アプリをインストール</b>」をえらぶ</li><li>「追加」（または「インストール」）をタップ → ホーム画面にアイコンができる</li></ol>`;
+  const pc = `<ol><li>ChromeやEdgeで開く</li><li>アドレスバーの右はしにある「インストール」のマーク（画面に下やじるし）をクリック</li><li>「インストール」をクリック</li></ol>
+    <p class="note">マークがないときは、ブックマーク（お気に入り）に登録しておくと便利です。</p>`;
+  const quick = installEvt ? `<div class="acts"><button type="button" class="btn" id="doInstall">いますぐアプリにする</button></div>` : '';
+  const now = isIOS ? ['iPhone・iPad', ios] : isAndroid ? ['Androidのスマホ・タブレット', android] : ['パソコン', pc];
+  const others = [['iPhone・iPad', ios], ['Androidのスマホ・タブレット', android], ['パソコン', pc]].filter(o=>o[0] !== now[0]);
+  return `<p>ホーム画面に追加すると、アプリのように<b>全画面</b>で遊べて、アイコンからすぐに開けます。</p>${quick}
+    <div class="box now"><h3>いま使っている ${now[0]} のばあい</h3>${now[1]}</div>
+    ${others.map(o=>`<details><summary>${o[0]}のばあい</summary>${o[1]}</details>`).join('')}
+    <p class="note">※iPhone・iPadでは、Safariで遊んだセーブデータと、ホーム画面のアプリのセーブデータは別々になります。はじめからアプリで遊ぶのがおすすめです。</p>`;
+}
+async function showInstall(){
+  const p = openPanel('アプリにする方法', installHTML());
+  const b = $('doInstall'); if(b) b.onclick = async ()=>{ installEvt.prompt(); await installEvt.userChoice.catch(()=>{}); installEvt = null; b.textContent = 'ありがとう！'; b.disabled = true; };
+  await p;
+}
+async function showShare(){
+  const enc = encodeURIComponent(GAME_URL);
+  const html = `<p>このゲームのURLを、友だちやおうちの人に送ろう！</p>
+    <div class="acts">${navigator.share ? '<button type="button" class="btn" id="doShare">共有する</button>' : ''}
+      <a class="btn line" href="https://social-plugins.line.me/lineit/share?url=${enc}" target="_blank" rel="noopener">LINEで送る</a>
+      <button type="button" class="btn" id="doCopy">URLをコピー</button></div>
+    <div class="url" id="shareUrl">${esc(GAME_URL)}</div><div class="note" id="copyMsg"></div>
+    <div class="qr"><div id="qrBox" class="note">QRコードを作っています…</div><div class="note">となりにいる友だちは、カメラでこのQRコードを読みとってね</div></div>`;
+  const p = openPanel('友だちに教える', html);
+  const sh = $('doShare'); if(sh) sh.onclick = ()=> navigator.share({title:'むなかた虫とり日記', text:SHARE_TEXT, url:GAME_URL}).catch(()=>{});
+  $('doCopy').onclick = async ()=>{
+    try{ await navigator.clipboard.writeText(GAME_URL); $('copyMsg').textContent = 'コピーしました！ メッセージにはりつけて送ってね。'; }
+    catch(e){ const r = document.createRange(); r.selectNodeContents($('shareUrl')); const se = getSelection(); se.removeAllRanges(); se.addRange(r); $('copyMsg').textContent = 'URLをえらびました。コピーして送ってね。'; }
+  };
+  try{
+    if(!window.qrcode) await loadScript('https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js');
+    const q = qrcode(0, 'M'); q.addData(GAME_URL); q.make();
+    $('qrBox').outerHTML = `<img alt="ゲームのURLのQRコード" src="${q.createDataURL(8, 2)}">`;
+  }catch(e){ const qb = $('qrBox'); if(qb) qb.textContent = '（QRコードを作れませんでした。URLを送ってね）'; }
+  await p;
+}
+$('btnInstall').onclick = e=>{ e.stopPropagation(); showInstall(); };
+$('btnShare').onclick = e=>{ e.stopPropagation(); showShare(); };
+if(isStandalone()) $('btnInstall').textContent = 'アプリで遊んでいます';
+
 function titleArt(){
   const el = $('titleScr'), n = bgName('title'), logo = el.querySelector('.logo'), hasLogo = (window.BG_IMAGES||[]).includes('title_logo');
   el.classList.toggle('art', !!n); el.classList.toggle('fine', !!n && (window.BG_EXT||{})[n]==='jpg'); el.style.backgroundImage = n ? `url(${bgURL(n)})` : '';
@@ -1735,6 +1832,7 @@ requestAnimationFrame(loop);
 window.claude?.hot?.snapshot?.(()=>({save:JSON.stringify(S), scene}));
 function start(data){
   if(data && data.save && data.scene==='field'){ try{ S = loadState(data.save); scene = 'field'; $('titleScr').hidden = true; hud(); return; }catch(e){} }
+  if(QS.get('panel')) setTimeout(()=> QS.get('panel')==='share' ? showShare() : showInstall(), 700);   // 画面確認用
   const demo = QS.get('demo');
   if(demo){ S = newState(); scene = 'field'; $('titleScr').hidden = true; S.area = 'taisha'; S.x = 9; S.y = 9; if(QS.get('min')) S.min = +QS.get('min'); if(QS.get('area')) S.area = QS.get('area'); hud(); layout();
     if(demo==='battle'){ run(()=>battle(QS.get('id') || 'kabuto')); for(let k=0;k<+(QS.get('skip')||0);k++) setTimeout(()=>press('A'), 1000 + k*250); }
