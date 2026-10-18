@@ -58,8 +58,9 @@ header small{color:var(--mute);font-size:12px}
 #menu{position:absolute;right:2.5%;top:3%;max-height:66%;min-width:40%;max-width:95%;z-index:30;display:flex;flex-direction:column;padding:.4em .5em}
 #menu .mt{padding:.1em .4em .3em;color:var(--sun);border-bottom:1px dashed #f7f1df55;margin-bottom:.2em}
 #menu ul{list-style:none;margin:0;padding:0;overflow-y:auto;position:relative}
-#menu li{display:flex;justify-content:space-between;gap:1em;padding:.15em .4em .15em 1.3em;position:relative;cursor:pointer;border-radius:3px;white-space:nowrap}
-#menu li em{font-style:normal;color:var(--mute)}
+#menu li{display:flex;justify-content:space-between;align-items:baseline;gap:1em;padding:.15em .4em .15em 1.3em;position:relative;cursor:pointer;border-radius:3px}
+#menu li span{min-width:0;overflow-wrap:anywhere}
+#menu li em{font-style:normal;color:var(--mute);white-space:nowrap;flex:none}
 #menu li.sel{background:#ffffff14}
 #menu li.sel::before{content:"▶";position:absolute;left:.25em;color:var(--sun)}
 #menu li.dis{color:#f7f1df66}
@@ -589,22 +590,27 @@ function choose(opts, o={}){
   return new Promise(res=>{
     const items = opts.map(x=> typeof x==='string' ? {label:x} : x);
     let i = clamp(o.start||0, 0, items.length-1);
-    if(o.msg){ msgEl.innerHTML = fmt(o.msg); msgEl.hidden = false; msgEl.onclick = null; }
+    const hasDesc = items.some(it=>it.desc);
+    const showMsg = ()=>{ const t = (hasDesc && items[i].desc) ? `【${items[i].label}】\n${items[i].desc}` : o.msg;
+      if(t){ msgEl.innerHTML = fmt(t); msgEl.hidden = false; msgEl.onclick = null; } };
     menuEl.className = 'win ov ' + (o.cls||'');
     const render = ()=>{
+      showMsg();
       menuEl.innerHTML = (o.title ? `<div class="mt">${esc(o.title)}</div>` : '') + '<ul>' + items.map((it,j)=>
         `<li class="${j===i?'sel':''} ${it.disabled?'dis':''}" data-j="${j}"><span>${esc(it.label)}</span>${it.note!=null?`<em>${esc(it.note)}</em>`:''}</li>`).join('') + '</ul>';
       const ul = menuEl.querySelector('ul'), sel = menuEl.querySelector('.sel');
       if(sel){ const t = sel.offsetTop, b = t + sel.offsetHeight; if(t < ul.scrollTop) ul.scrollTop = t; else if(b > ul.scrollTop + ul.clientHeight) ul.scrollTop = b - ul.clientHeight; }
     };
-    const done = v=>{ uiHandler = null; menuEl.hidden = true; menuEl.onclick = null; if(o.msg) msgEl.hidden = true; res(v); };
+    const done = v=>{ uiHandler = null; menuEl.hidden = true; menuEl.onclick = null; if(o.msg || hasDesc) msgEl.hidden = true; res(v); };
     uiHandler = k=>{
       if(k==='U'){ i = (i-1+items.length) % items.length; render(); }
       else if(k==='D'){ i = (i+1) % items.length; render(); }
       else if(k==='A'){ if(!items[i].disabled) done(i); }
       else if((k==='B'||k==='M') && o.cancel!==false) done(-1);
     };
-    menuEl.onclick = e=>{ const li = e.target.closest('li'); if(!li) return; const j = +li.dataset.j; i = j; render(); if(!items[j].disabled) done(j); };
+    menuEl.onclick = e=>{ const li = e.target.closest('li'); if(!li) return; const j = +li.dataset.j;
+      if(hasDesc && j!==i){ i = j; render(); return; }   // 説明つきメニューは1回目で説明、2回目で決定
+      i = j; render(); if(!items[j].disabled) done(j); };
     menuEl.hidden = false; render();
   });
 }
@@ -821,8 +827,8 @@ async function boxMenu(){
 }
 async function itemMenu(){
   const list = [...ITEMS, ...PHOTO_ITEMS];
-  const opts = list.map(t=>({label:`${t.name} ×${S.items[t.key]||0}`, note:t.desc, disabled:t.key==='mitsu' || !(S.items[t.key]>0)}));
-  if(S.goldwing) opts.push({label:'金色のはね（だいじなもの）', note:'キンイロカブトが出やすくなる', disabled:true});
+  const opts = list.map(t=>({label:`${t.name} ×${S.items[t.key]||0}`, desc:t.desc + (t.key==='mitsu' ? '（バトル中に使う）' : ''), disabled:t.key==='mitsu' || !(S.items[t.key]>0)}));
+  if(S.goldwing) opts.push({label:'金色のはね', note:'だいじなもの', desc:'大島の伝説の虫、キンイロカブトが出やすくなる', disabled:true});
   const c = await choose(opts, {title:'どうぐ'});
   const key = list[c]?.key;
   if(key==='drink'){ S.items.drink--; const before = S.hp; S.hp = Math.min(maxHp(), S.hp+25); hud(); await say(`スポーツドリンクをのんだ！\nたいりょくが ${S.hp-before} 回復した。`); }
@@ -867,15 +873,16 @@ async function sellMenu(){
     }
   }
 }
-function gearNote(kind, g, j){
-  if(kind==='net') return `つよさ${g.atk}`;
-  if(kind==='cage') return `力${Math.round(g.pow*100)}・${g.cap}ひき`;
-  return Object.values(AREAS).filter(a=>a.shoe===j).map(a=>a.name).join('・') || '近所';
+function gearDesc(kind, g, j){
+  if(kind==='net') return `あみのつよさ ${g.atk}（いまは ${NETS[S.net].atk}）`;
+  if(kind==='cage') return `つかまえる力 ${Math.round(g.pow*100)}・${g.cap}ひきまで入る（いまは ${Math.round(CAGES[S.cage].pow*100)}・${CAGES[S.cage].cap}ひき）`;
+  const a = Object.values(AREAS).filter(a=>a.shoe===j).map(a=>a.name).join('と');
+  return a ? `${a}に行けるようになる` : '近所を歩けるくつ';
 }
 async function buyGear(kind){
   const L = {net:NETS, cage:CAGES, shoes:SHOES}[kind], label = {net:'あみ', cage:'虫かご', shoes:'くつ'}[kind];
   while(true){
-    const opts = L.map((g,j)=>({label:`${g.name}（${gearNote(kind,g,j)}）`, note: j===S[kind] ? 'もってる' : j<S[kind] ? '―' : `${g.price}円`, disabled: j<=S[kind]}));
+    const opts = L.map((g,j)=>({label:g.name, note: j===S[kind] ? 'もってる' : j<S[kind] ? '―' : `${g.price}円`, desc:gearDesc(kind,g,j), disabled: j<=S[kind]}));
     const c = await choose(opts, {title:`${label}を買う　${S.money}円`, msg: kind==='shoes' ? '「いいくつがあれば、遠くの場所にも行けるよ。」' : '「いい道具をそろえると、強い虫もつかまえやすくなるよ。」'});
     if(c<0) return;
     const g = L[c];
@@ -890,7 +897,7 @@ async function buyGear(kind){
 }
 async function buyItems(){
   while(true){
-    const c = await choose(ITEMS.map(t=>({label:`${t.name}（${S.items[t.key]}こ）`, note:`${t.price}円`})), {title:`どうぐを買う　${S.money}円`, msg:ITEMS.map(t=>`${t.name}：${t.desc}`).join('\n')});
+    const c = await choose(ITEMS.map(t=>({label:`${t.name}（${S.items[t.key]}こ）`, note:`${t.price}円`, desc:t.desc})), {title:`どうぐを買う　${S.money}円`, msg:'「どれにする？」'});
     if(c<0) return;
     const t = ITEMS[c];
     if(S.money < t.price){ await say('お金が足りない…'); continue; }
@@ -936,7 +943,7 @@ async function getBug(e){
   return true;
 }
 async function useItemBattle(e){
-  const opts = ITEMS.map(t=>({label:`${t.name} ×${S.items[t.key]}`, disabled: S.items[t.key]<=0 || (t.key==='mitsu' && e.mitsu)}));
+  const opts = ITEMS.map(t=>({label:`${t.name} ×${S.items[t.key]}`, desc:t.desc, disabled: S.items[t.key]<=0 || (t.key==='mitsu' && e.mitsu)}));
   const c = await choose(opts, {title:'どうぐ', cls:'cmd'});
   if(c<0) return false;
   if(c===0){ S.items.drink--; const b = S.hp; S.hp = Math.min(maxHp(), S.hp+25); updateB(e); hud(); await say(`スポーツドリンクをのんだ！ たいりょくが ${S.hp-b} 回復した。`); }
@@ -1182,6 +1189,8 @@ function start(data){
   if(demo){ S = newState(); scene = 'field'; $('titleScr').hidden = true; S.area = 'taisha'; S.x = 9; S.y = 9; hud(); layout();
     if(demo==='battle') run(()=>battle('kabuto'));
     else if(demo==='menu') run(fieldMenu);
+    else if(demo==='items'){ Object.assign(S.items, {jueki:2, note:1}); S.goldwing = true; run(itemMenu); }
+    else if(demo==='shop') run(()=>buyGear('cage'));
     else run(()=>say('7月21日（火）。今日から夏休みだ！'));
     return; }
   run(titleScreen);
