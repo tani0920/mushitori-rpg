@@ -244,6 +244,8 @@ body.touch #titleScr .tbtn{font-size:clamp(13px,3.6vmin,19px)}
 #endScr img{width:72px;height:72px;image-rendering:pixelated}
 img[src^="img/"]{image-rendering:auto!important}   /* ChatGPTで作った細かい絵はなめらかに縮小 */
 #endScr .story{font-size:18px;line-height:1.9;min-height:7.5em;text-align:left}
+#endScr .endart{width:100%;max-width:100%;aspect-ratio:3/2;object-fit:cover;border:3px solid var(--edge);border-radius:6px;box-shadow:0 0 0 2px var(--win);image-rendering:auto;height:auto}
+#endScr .in{max-width:640px!important}
 #endScr .dexs{display:grid;grid-template-columns:repeat(auto-fill,minmax(36px,1fr));gap:4px;margin:10px 0;background:#f3ead2;border-radius:4px;padding:6px}
 #endScr .dexs img{width:100%;height:auto;aspect-ratio:1}
 #endScr .score{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;margin-top:6px}
@@ -1145,7 +1147,24 @@ async function shop(){
   talkFace = 'ojisan';
   try{ await shopMain(); } finally { talkFace = null; }
 }
+/* ひみつ：大ざんねんエンディング（がんばったで賞）のあと、つぎに遊ぶときに虫具店のおじさんが道具をくれる */
+const GIFT_KEY = 'munakata-mushitori-gift-v1';
+const hasGift = ()=>{ try{ return localStorage.getItem(GIFT_KEY)==='1'; }catch(e){ return false; } };
+function setGift(on){ try{ on ? localStorage.setItem(GIFT_KEY, '1') : localStorage.removeItem(GIFT_KEY); }catch(e){} }
+async function giveGift(){
+  const net = Math.max(S.net, 3), cage = Math.max(S.cage, 3);   // カーボンのあみ・木の飼育箱（もっといいのを持っていればそのまま）
+  await talk('虫具店のおじさん「おっ、きみか。去年の自由研究、ちょっとざんねんだったんだってな…。」',
+    '虫具店のおじさん「でも、毎日がんばって虫をさがしてたの、おじさんは見てたぞ。」',
+    (S.net < 3 || S.cage < 3) ? '虫具店のおじさん「これは、おじさんが子どものころに使ってた道具だ。持っていきな！」' : '虫具店のおじさん「道具はもう立派だな。じゃあ、これを持っていきな！」');
+  const got = [];
+  if(net > S.net) got.push(NETS[net].name);
+  if(cage > S.cage) got.push(CAGES[cage].name);
+  if(!got.length){ S.items.drink += 3; S.items.mitsu += 3; got.push('スポーツドリンク3本', '虫みつ3こ'); }   // もっといい道具を持っていたら、かわりにどうぐ
+  S.net = net; S.cage = cage; setGift(false); save(); hud();
+  await say(`${got.join('と')}を手に入れた！\nこれで、今年はもっとすごい図鑑がつくれそうだ！`, 'boku');
+}
 async function shopMain(){
+  if(hasGift()) await giveGift();
   let greet = '虫具店のおじさん「いらっしゃい！ 今日はなんの用だい？」';
   while(true){
     const c = await choose(['虫を売る','あみを買う','虫かごを買う','くつを買う','どうぐを買う','店を出る'], {title:`むなかた虫具店　${S.money}円`, msg:greet});
@@ -1789,7 +1808,7 @@ function research(){
   const rare = ids.reduce((s,id)=>s + RANK_PT[BUGS[id].rank], 0);
   const photo = Object.keys(photos.cats).length * 2;
   const effort = Math.floor(Math.min(S.caughtTotal, 60) / 3);
-  const best = ids.slice().sort((a,b)=>BUGS[b].rank - BUGS[a].rank || BUGS[b].price - BUGS[a].price)[0];
+  const best = ids.filter(id=>!S.dex[id].watched).sort((a,b)=>BUGS[b].rank - BUGS[a].rank || BUGS[b].price - BUGS[a].price)[0];   // 観察しただけの虫（スズメバチ）はのぞく
   const sumo = S.sumoChamp ? SUMO_CHAMP_PT : 0;
   return {ids, species:ids.length, rare, photo, effort, sumo, total:rare + photo + effort + sumo, best,
     complete: ids.length >= Object.keys(BUGS).length, kin: !!S.dex.kinkabuto};
@@ -1853,10 +1872,16 @@ async function ending(){
   const r = research(), e = endingOf(r), lines = endingStory(e, r);
   const el = $('endIn'); $('endScr').hidden = false;
   const next = ()=> new Promise(res=>{ uiHandler = k=>{ if(k==='A'){ uiHandler = null; res(); } }; const b = $('endBtn'); if(b) b.onclick = ()=>{ uiHandler = null; res(); }; });
-  // おはなし
+  // おはなし（エンディングのイラストがあれば上に出す。伝説エンディングは、新聞の場面から2枚目）
+  const art = window.ENDING_ART || [];
+  const artURL = n=> art.includes(n) ? av(`img/sprites/ending/${n}.jpg`) : '';
+  const pics = e.key==='legend' ? ['legend_1', 'legend_2'] : [e.key];
+  pics.forEach(n=>{ if(artURL(n)) new Image().src = artURL(n); });   // 先に読みこんでおく
+  let pic = pics[0];
   for(const l of lines){
-    const fi = faceImg(faceFor(l));
-    el.innerHTML = `<h2>二学期のはじまり</h2><div class="win story${fi ? ' withface' : ''}">${fi}<div class="mtxt">${fmt(l)}</div></div><button class="btn" id="endBtn">つぎへ ▼</button>`;
+    if(e.key==='legend' && l.includes('新聞')) pic = pics[1];
+    const fi = faceImg(faceFor(l)), u = artURL(pic);
+    el.innerHTML = `<h2>二学期のはじまり</h2>${u ? `<img class="endart" alt="" src="${u}">` : ''}<div class="win story${fi ? ' withface' : ''}">${fi}<div class="mtxt">${fmt(l)}</div></div><button class="btn" id="endBtn">つぎへ ▼</button>`;
     await next();
   }
   // 結果と、次の夏休みへの引きつぎ
@@ -1866,6 +1891,7 @@ async function ending(){
   const carry = {round:(S.round||1) + 1, lv:S.lv, exp:S.exp, net:S.net, cage:S.cage, shoes:S.shoes, items:S.items, money:S.money + boxValue,
     goldwing:S.goldwing, ticket:S.ticket, visited:S.visited, best, lastScore:r.total, lastAward:e.award};
   saveCarry(carry);
+  if(e.key==='poor') setGift(true);   // ひみつ：つぎの夏休み、虫具店のおじさんがいい道具をくれる
   el.innerHTML = `<h2>自由研究「ぼくの昆虫図鑑」</h2>
     <div class="win">
       <div class="ttl">${esc(e.award)}</div>
@@ -1889,6 +1915,7 @@ async function ending(){
         <li>どうぐ（スポーツドリンク${S.items.drink}・虫みつ${S.items.mitsu}・樹液トラップ${S.items.jueki||0}・観察ノート${S.items.note||0}${S.goldwing ? '・金色のはね' : ''}${S.ticket ? '・乗船チケット' : ''}）</li>
         <li>お金 ${carry.money}円${boxValue ? `（虫かごにのこった${S.box.length}ひきを売った${boxValue}円をふくむ）` : ''}</li></ul>
       <div class="lbl">タイトルの「引きつぎではじめる」から遊べます。図鑑はいちからつくりなおしです。</div>
+      ${e.key==='poor' ? '<div class="lbl" style="margin-top:.4em">……虫具店のおじさんが、なにか気にかけてくれているみたい。</div>' : ''}
     </div>
     <button class="btn" id="endBtn">タイトルへもどる</button>`;
   await next();
