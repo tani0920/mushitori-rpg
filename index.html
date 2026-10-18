@@ -190,6 +190,15 @@ body.touch.land #msg .face{width:3.6em;height:3.6em}
 #dexDetail .real{margin-top:12px;border-top:1px dashed var(--paper-line);padding-top:10px}
 #dexDetail .real img{width:100%;height:auto;max-height:220px;object-fit:cover;image-rendering:auto;background:none}
 #cam{background:var(--paper);color:var(--paper-ink)}
+/* パソコンのタイトル画面：ロゴを小さめにしてメニューと重ならないように */
+body:not(.touch) #titleScr{padding-top:4%}
+body:not(.touch) #titleScr .logo{width:min(44%,340px);margin:0 0 .1em}
+body:not(.touch) #titleScr .t4{max-width:80%}
+body:not(.touch) #menu.title{top:auto;bottom:3%}
+body:not(.touch) #titleScr .tbtns{margin-top:.4em}
+/* タイトルのクレジット（右上のすみ） */
+#titleScr .credit{position:absolute;right:.8em;top:.6em;font-family:var(--f-pixel);font-size:clamp(9px,1.9cqw,13px);letter-spacing:.06em;color:#fff;opacity:.92;text-shadow:1px 1px 0 #000,0 0 3px #000;pointer-events:none}
+body.touch #titleScr .credit{left:auto;right:max(12px,env(safe-area-inset-right,0px));bottom:auto;top:calc(env(safe-area-inset-top,0px) + 8px);font-size:clamp(10px,2.8vmin,14px)}
 /* タイトルのボタン */
 #titleScr .tbtns{display:flex;gap:.6em;flex-wrap:wrap;justify-content:center;margin-top:.7em}
 #titleScr .tbtn{font:inherit;font-size:clamp(12px,2.6cqw,16px);color:#fff;background:#14284acc;border:2px solid #f7f1df;border-radius:999px;padding:.35em 1em;cursor:pointer;box-shadow:0 2px 0 #0006}
@@ -399,6 +408,7 @@ body.touch.land #menu.title{top:auto;bottom:10px;left:50%;right:auto;transform:t
       <img class="logo" alt="むなかた 虫とり日記" hidden>
       <div class="t3">宗像じゅうの虫をつかまえて、図鑑を完成させよう</div>
       <div class="t4">※このゲームに出てくる場所と虫の組み合わせはゲーム用のもので、実際にその場所にいる虫とはかぎりません。ミアレカブトは架空の虫です。</div>
+      <div class="credit">Game Director: Ryuhei Taniguchi</div>
       <div class="tbtns"><button type="button" class="tbtn" id="btnInstall">アプリにする方法</button><button type="button" class="tbtn" id="btnShare">友だちに教える</button></div>
     </div>
     <div id="battle" class="ov" hidden>
