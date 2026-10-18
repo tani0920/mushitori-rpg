@@ -931,14 +931,21 @@ function drawNpc(tx, ty, ts){
   if(sumoNext()){ ctx.fillStyle = '#fff'; ctx.fillRect(px+6, py-9+bob, 5, 8); ctx.fillStyle = '#e04030'; ctx.fillRect(px+8, py-8+bob, 1, 4); ctx.fillRect(px+8, py-3+bob, 1, 1); }   // 「！」
 }
 /* 主人公の歩きの絵（img/sprites/player.png：横3コマ＝立ち・右足・左足、たて4段＝下・左・右・上、1コマ16ドット） */
-let playerSheet = null;
-if(window.HAS_PLAYER){ const im = new Image(); im.onload = ()=>{ playerSheet = im; }; im.src = av('img/sprites/player.png'); }
+const USE_PLAYER_ART = false;   // true にすると img/sprites/player.png の主人公を使う（いまは作り直し中なので、シンプルな絵）
+let playerSheet = null, footRow = [15, 15, 15, 15];
+if(USE_PLAYER_ART && window.HAS_PLAYER){ const im = new Image(); im.onload = ()=>{
+  // 段ごとに足のいちばん下の行をしらべて、足がちょうど地面（マスのいちばん下）につくようにする
+  const c = document.createElement('canvas'); c.width = im.width; c.height = im.height; const g = c.getContext('2d'); g.drawImage(im, 0, 0);
+  const d = g.getImageData(0, 0, im.width, im.height).data;
+  for(let r=0;r<4;r++){ let low = 0; for(let y=0;y<16;y++) for(let x=0;x<im.width;x++) if(d[((r*16+y)*im.width + x)*4 + 3] > 0) low = Math.max(low, y); footRow[r] = low; }
+  playerSheet = im; }; im.src = av('img/sprites/player.png'); }
 const DIR_ROW = {D:0, L:1, R:2, U:3};
 function drawPlayer(px, py, ts){
   if(playerSheet){
-    const col = mv ? 1 + ((mv.tx + mv.ty) % 2) : 0;   // 歩いているあいだは右足・左足を1歩ごとにこうたい
-    ctx.fillStyle = '#0003'; ctx.fillRect(px+3, py+14, 10, 2);
-    ctx.drawImage(playerSheet, col*16, DIR_ROW[S.dir]*16, 16, 16, Math.round(px), Math.round(py) - 2, 16, 16);
+    const row = DIR_ROW[S.dir], col = mv ? 1 + ((mv.tx + mv.ty) % 2) : 0;   // 歩いているあいだは右足・左足を1歩ごとにこうたい
+    const dy = 15 - footRow[row];
+    ctx.fillStyle = '#0002'; ctx.fillRect(Math.round(px)+4, Math.round(py)+14, 8, 2);   // 足もとのうすい影（足の下にかくれる）
+    ctx.drawImage(playerSheet, col*16, row*16, 16, 16, Math.round(px), Math.round(py) + dy, 16, 16);
     return;
   }
   const rows = S.dir==='U' ? P_BACK : S.dir==='D' ? P_FRONT : P_SIDE, flip = S.dir==='L';
