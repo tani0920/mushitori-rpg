@@ -60,6 +60,11 @@ header small{color:var(--mute);font-size:12px}
 #screen .ov{font-size:clamp(11px,3.3cqw,19px)}
 .win{background:var(--win);border:3px solid var(--edge);border-radius:6px;box-shadow:0 0 0 2px var(--win);color:var(--ink);padding:.55em .85em;line-height:1.6}
 #msg{position:absolute;left:2.5%;right:2.5%;bottom:3%;min-height:25%;z-index:20;cursor:pointer}
+#msg.withface,#endScr .story.withface{display:flex;gap:.7em;align-items:flex-start}
+#msg .mtxt,#endScr .story .mtxt{flex:1;min-width:0}
+#msg .face,#endScr .story .face{width:4.4em;height:4.4em;flex:none;image-rendering:pixelated;background:#f3ead2;border:2px solid var(--edge);border-radius:4px}
+#endScr .story .face{width:84px;height:84px}
+body.touch.land #msg .face{width:3.6em;height:3.6em}
 #msg .next{display:inline-block;margin-left:.3em;animation:blink 1s steps(2) infinite;color:var(--sun)}
 @keyframes blink{50%{opacity:0}}
 #menu{position:absolute;right:2.5%;top:3%;max-height:66%;min-width:40%;max-width:95%;z-index:30;display:flex;flex-direction:column;padding:.4em .5em}
@@ -763,21 +768,37 @@ const $ = id=> document.getElementById(id);
 const msgEl = $('msg'), menuEl = $('menu'), hudEl = $('hud'), screenEl = $('screen');
 let uiHandler = null, busy = false, scene = 'title';
 
-function say(text){
+/* 顔グラフィック：「お母さん「…」」のように名前ではじまるせりふは、その人の顔を出す。
+   お店の中のせりふ（「…」ではじまる）はおじさん。ぼくのひとりごとは say(…, 'boku') で指定 */
+const FACE_OF = {'お母さん':'mama', '虫具店のおじさん':'ojisan', '先生':'sensei', 'ゆうた':'yuta'};
+let talkFace = null;   // いま話している相手（お店ではおじさん）
+function faceFor(text, face){
+  if(face) return face;
+  const m = /^([^「\n]{1,10})「/.exec(text); if(m && FACE_OF[m[1]]) return FACE_OF[m[1]];
+  if(talkFace && text.startsWith('「')) return talkFace;
+  return null;
+}
+const faceImg = f=> (f && (window.FACES||[]).includes(f)) ? `<img class="face" alt="" src="${av('img/sprites/faces/' + f + '.png')}">` : '';
+function setMsg(text, face, next){
+  const img = faceImg(faceFor(text, face));
+  msgEl.classList.toggle('withface', !!img);
+  msgEl.innerHTML = img + `<div class="mtxt">${fmt(text)}${next ? '<span class="next">▼</span>' : ''}</div>`;
+}
+function say(text, face){
   return new Promise(res=>{
-    msgEl.innerHTML = fmt(text) + '<span class="next">▼</span>'; msgEl.hidden = false;
+    setMsg(text, face, true); msgEl.hidden = false;
     uiHandler = k=>{ if(k==='A'||k==='B'){ uiHandler = null; msgEl.hidden = true; msgEl.onclick = null; res(); } };
     msgEl.onclick = ()=> uiHandler && uiHandler('A');
   });
 }
-async function talk(...lines){ for(const l of lines) await say(l); }
+async function talk(...lines){ for(const l of lines) await (Array.isArray(l) ? say(l[0], l[1]) : say(l)); }
 function choose(opts, o={}){
   return new Promise(res=>{
     const items = opts.map(x=> typeof x==='string' ? {label:x} : x);
     let i = clamp(o.start||0, 0, items.length-1);
     const hasDesc = items.some(it=>it.desc);
     const showMsg = ()=>{ const t = (hasDesc && items[i].desc) ? `【${items[i].label}】\n${items[i].desc}` : o.msg;
-      if(t){ msgEl.innerHTML = fmt(t); msgEl.hidden = false; msgEl.onclick = null; } };
+      if(t){ setMsg(t, (hasDesc && items[i].desc) ? null : o.face, false); msgEl.hidden = false; msgEl.onclick = null; } };
     menuEl.className = 'win ov ' + (o.cls||'');
     const render = ()=>{
       showMsg();
@@ -1100,6 +1121,10 @@ async function ruleMenu(){
 
 /* ---------- お店 ---------- */
 async function shop(){
+  talkFace = 'ojisan';
+  try{ await shopMain(); } finally { talkFace = null; }
+}
+async function shopMain(){
   let greet = '虫具店のおじさん「いらっしゃい！ 今日はなんの用だい？」';
   while(true){
     const c = await choose(['虫を売る','あみを買う','虫かごを買う','くつを買う','どうぐを買う','店を出る'], {title:`むなかた虫具店　${S.money}円`, msg:greet});
@@ -1192,7 +1217,7 @@ async function getBug(e){
   const first = !S.dex[e.id];
   S.dex[e.id] = {n:(S.dex[e.id]?.n||0) + 1, best:Math.max(S.dex[e.id]?.best||0, e.lv)};
   hud();
-  await say(`やったー！ ${e.b.name}をつかまえた！`);
+  await say(`やったー！ ${e.b.name}をつかまえた！`, 'boku');
   if(first) await say(`昆虫図鑑に ${e.b.name} が登録された！`);
   await gainExp(expOf(e));
   return true;
@@ -1300,7 +1325,7 @@ async function battle(id){
     const d = Math.max(1, Math.round(e.atk*(0.8 + Math.random()*0.4)));
     S.hp = Math.max(0, S.hp - d); fx(screenEl,'shake',300); updateB(e); hud();
     await say(`${b.name}は${ATTACK[b.shape]}\n${d} のダメージをうけた！`);
-    if(S.hp <= 0){ await say('目の前がくらくらする…熱中症かも！\nいそいで家に帰って休もう。'); result = 'faint'; }
+    if(S.hp <= 0){ await say('目の前がくらくらする…熱中症かも！\nいそいで家に帰って休もう。', 'boku'); result = 'faint'; }
   }
   await fade(()=>{ battleEl.hidden = true; scene = 'field'; S.min += BATTLE_MIN; hud(); });
   if(result==='faint'){ await faintPenalty(); await sleep(true); }
@@ -1441,7 +1466,7 @@ async function sumoBattle(r, it){
   let result = null;
   while(!result){
     const c = await choose(['つっこむ', me.sp.name, 'ふんばる', 'こうさん'], {cls:'cmd', cancel:false, title:`ぼくの${me.b.name}、どうする？`, start:0});
-    if(c===3){ await say('「まいった！」…こうさんした。'); result = 'lose'; break; }
+    if(c===3){ await say('「まいった！」…こうさんした。', 'boku'); result = 'lose'; break; }
     // あいての作戦：回復がとくいな虫は弱るとふんばる。ふつうは3回に1回くらいひっさつわざ
     const low = foe.hp < foe.maxhp*0.35, rnd = Math.random();
     const fc = low && !foe.lastGuard && rnd < (foe.t.heal >= .14 ? .6 : .3) ? 2 : rnd < .33 ? 1 : rnd < .4 && !foe.lastGuard ? 2 : 0;
@@ -1468,7 +1493,7 @@ async function sumoBattle(r, it){
       else { const t = [...ITEMS, ...PHOTO_ITEMS].find(t=>t.key===r.item); S.items[r.item] = (S.items[r.item]||0) + 1; msg += `\nさらに ${t.name} をもらった！`; }
     }
     S.sumo[r.key] = (S.sumo[r.key]||0) + 1;
-    hud(); await say(msg);
+    hud(); await say(msg, 'boku');
     const nx = RIVALS[RIVALS.indexOf(r) + 1];
     if(first && nx) await say(`つぎの相手「${nx.name}」と勝負できるようになった！`);
     if(first && !nx) await say('虫ずもうの相手は、ぜんぶたおした！');
@@ -1707,7 +1732,7 @@ async function titleScreen(){
 }
 async function introCarry(c){
   await talk(
-    `${dateStr()}。小学${grade()}年生の夏休み、今年も虫とりの日がやってきた！`,
+    [`${dateStr()}。小学${grade()}年生の夏休み、今年も虫とりの日がやってきた！`, 'boku'],
     `去年の自由研究は「${c.lastAward}」（${c.lastScore}点）。\n自己ベストは ${c.best}点。今年はもっとすごい昆虫図鑑をつくるぞ！`,
     `去年の道具は、ちゃんとしまってある。\nLv${S.lv}・${NETS[S.net].name}・${CAGES[S.cage].name}・${SHOES[S.shoes].name}\nお金 ${S.money}円（おこづかい300円をふくむ）`,
     `図鑑は新しいノートでいちからつくりなおし。\n${dateStr(DAYS)}までの${DAYS}日間、がんばろう！`
@@ -1716,8 +1741,8 @@ async function introCarry(c){
 async function intro(){
   const touch = matchMedia('(hover:none),(pointer:coarse)').matches;
   await talk(
-    `${dateStr()}。いよいよ虫とりの日がやってきた！`,
-    '7月21日に夏休みがはじまってから、がんばって宿題をほとんど終わらせた。\nのこりの夏休みは、虫とりに全力だ！',
+    [`${dateStr()}。いよいよ虫とりの日がやってきた！`, 'boku'],
+    ['7月21日に夏休みがはじまってから、がんばって宿題をほとんど終わらせた。\nのこりの夏休みは、虫とりに全力だ！', 'boku'],
     'お母さん「宿題がんばったわね。でも夜9時までには帰ってくるのよ。\nはい、おこづかい300円。」',
     `${dateStr(DAYS+1)}からは二学期がはじまる。\n${dateStr(DAYS)}までの${DAYS}日間で、宗像じゅうの虫をつかまえて昆虫図鑑を完成させよう！`,
     '自由研究は「昆虫図鑑づくり」！\nたくさんの虫、めずらしい虫をのせるほど、二学期の発表で注目されるぞ。',
@@ -1802,7 +1827,8 @@ async function ending(){
   const next = ()=> new Promise(res=>{ uiHandler = k=>{ if(k==='A'){ uiHandler = null; res(); } }; const b = $('endBtn'); if(b) b.onclick = ()=>{ uiHandler = null; res(); }; });
   // おはなし
   for(const l of lines){
-    el.innerHTML = `<h2>二学期のはじまり</h2><div class="win story">${fmt(l)}</div><button class="btn" id="endBtn">つぎへ ▼</button>`;
+    const fi = faceImg(faceFor(l));
+    el.innerHTML = `<h2>二学期のはじまり</h2><div class="win story${fi ? ' withface' : ''}">${fi}<div class="mtxt">${fmt(l)}</div></div><button class="btn" id="endBtn">つぎへ ▼</button>`;
     await next();
   }
   // 結果と、次の夏休みへの引きつぎ
@@ -1859,6 +1885,8 @@ function start(data){
       if(QS.has('fight')) run(()=>sumoBattle(RIVALS[+QS.get('fight')||0], S.box[0])); else run(()=>say('7月…')); }
     else if(demo==='items'){ Object.assign(S.items, {jueki:2, note:1}); S.goldwing = true; run(itemMenu); }
     else if(demo==='shop') run(()=>buyGear('cage'));
+    else if(demo==='shopmain'){ S.area = 'town'; run(shop); }
+    else if(demo==='talk') run(()=>say(QS.get('t') || '', QS.get('face') || undefined));
     else if(demo==='box'){ S.box = Array.from({length:14}, (_,k)=>({id:['abura','kabuto','genji','ageha'][k%4], lv:k+3})); run(boxMenu); }
     else if(demo==='end'){ const n = +(QS.get('n')||10); Object.keys(BUGS).slice(0, n).forEach(id=>S.dex[id] = {n:1, best:BUGS[id].lv}); if(QS.has('kin')) S.dex.kinkabuto = {n:1, best:25};
       S.caughtTotal = n*2; run(ending); const skip = +(QS.get('skip')||0); for(let k=0;k<skip;k++) setTimeout(()=>press('A'), 300 + k*120); }
