@@ -7,6 +7,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="虫とり日記">
 <meta name="theme-color" content="#17261d">
+<link rel="apple-touch-icon" href="img/icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="img/icons/favicon-32.png">
+<link rel="manifest" href="manifest.webmanifest">
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -348,7 +351,7 @@ body.touch.land #menu.title{top:auto;bottom:10px;left:50%;right:auto;transform:t
 </div>
 <div id="endScr" class="full" hidden><div class="in" id="endIn"></div></div>
 
-<script src="img/sprites/list.js"></script>
+<script>document.write('<script src="img/sprites/list.js?t=' + Date.now() + '"><\/script>');   // 絵の一覧はいつも最新を読む</script>
 <script>
 'use strict';
 /* =========================================================
@@ -364,6 +367,7 @@ const FAINT_LOSE = 0.5;          // 熱中症で倒れたとき、虫かごか�
 const FAINT_ALL = 0.2;           // 熱中症で倒れたとき、虫が全部にげてしまう確率
 const USE_IMAGE_FILES = true;    // img/sprites/bugs/<id>.png があればそれを使う（tools/process_bugs.py で作る）
 const BUG_IMG_DIR = 'img/sprites/bugs/';
+const av = u=> u + (window.ASSET_VER ? '?v=' + window.ASSET_VER : '');   // 絵を差し替えたら古いキャッシュを使わない
 const SAVE_KEY = 'munakata-mushitori-v1';
 
 /* 時間帯 */
@@ -508,7 +512,7 @@ const spriteCache = {};
 const imgOK = {};
 function spriteURL(id, sil){
   if(USE_IMAGE_FILES && imgOK[id]){
-    if(!sil) return BUG_IMG_DIR + id + '.png';
+    if(!sil) return av(BUG_IMG_DIR + id + '.png');
     const k = id + '_fs';   // まだつかまえていない虫のシルエット
     if(!spriteCache[k]){ const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d');
       g.drawImage(imgOK[id], 0, 0, 128, 128); g.globalCompositeOperation = 'source-in'; g.fillStyle = '#2a2418'; g.fillRect(0, 0, 128, 128); spriteCache[k] = c.toDataURL(); }
@@ -523,7 +527,7 @@ function spriteURL(id, sil){
 }
 const imgReady = {};   // 読みこみ待ち（読みこめたら resolve）
 // BUG_IMAGES（絵がある虫の一覧）は tools/process_images.py が img/sprites/list.js に書き出す
-if(USE_IMAGE_FILES) (window.BUG_IMAGES || Object.keys(BUGS)).forEach(id=>{ imgReady[id] = new Promise(res=>{ const im = new Image(); im.onload = ()=>{ imgOK[id] = im; res(); }; im.src = BUG_IMG_DIR + id + '.png'; }); });
+if(USE_IMAGE_FILES) (window.BUG_IMAGES || Object.keys(BUGS)).forEach(id=>{ imgReady[id] = new Promise(res=>{ const im = new Image(); im.onload = ()=>{ imgOK[id] = im; res(); }; im.src = av(BUG_IMG_DIR + id + '.png'); }); });
 
 /* 主人公（麦わらぼうしの小学生） 12x16 */
 const PC = {h:'#e8cf6a', b:'#c8402e', s:'#f1c08e', k:'#2a1e14', t:'#fbf8ef', u:'#3d6fd6', p:'#33447e', g:'#2f7fd0', m:'#c0504a'};
@@ -626,7 +630,7 @@ const layerCache = {};
 const TILE_IDX = {',':0, '"':1, '.':2, 's':3, 'f':4, '~':5, 'T':6, 'o':8, 'D':11, 'P':13, 'E':2, 'K':2, 'r':2, 'J':0};
 let tileSheet = null;
 const USE_TILE_ART = false;   // true にするとChatGPTのタイル（img/sprites/tiles.png）でフィールドを描く。false はシンプルな見やすい絵
-if(USE_TILE_ART && window.HAS_TILES){ const im = new Image(); im.onload = ()=>{ tileSheet = im; for(const k in layerCache) delete layerCache[k]; }; im.src = 'img/sprites/tiles.png'; }
+if(USE_TILE_ART && window.HAS_TILES){ const im = new Image(); im.onload = ()=>{ tileSheet = im; for(const k in layerCache) delete layerCache[k]; }; im.src = av('img/sprites/tiles.png'); }
 const tileAtIdx = (g, i, X, Y)=> g.drawImage(tileSheet, (i%4)*TS, Math.floor(i/4)*TS, TS, TS, X, Y, TS, TS);
 function drawTileImg(g, m, x, y, st){
   const t = m[y][x], down = (m[y+1]||[])[x];
@@ -1093,7 +1097,7 @@ const BG_DIR = 'img/sprites/bg/';
 const portraitNow = ()=> TOUCH && innerHeight > innerWidth;
 function bgName(base){ const list = window.BG_IMAGES || [], a = base + (portraitNow() ? '_tate' : '_yoko'), b = base + (portraitNow() ? '_yoko' : '_tate');
   return list.includes(a) ? a : list.includes(b) ? b : null; }
-const bgURL = n=> `${BG_DIR}${n}.${(window.BG_EXT||{})[n] || 'png'}`;
+const bgURL = n=> av(`${BG_DIR}${n}.${(window.BG_EXT||{})[n] || 'png'}`);
 function battleBg(style){ const n = bgName('bg_' + style); battleEl.style.backgroundImage = n ? `url(${bgURL(n)})` : ''; }
 /* 危ない虫（スズメバチ）：戦わずにしずかに逃げる。図鑑には「観察した」として記録 */
 async function dangerEncounter(id){
@@ -1399,7 +1403,7 @@ function openCam(){
 function titleArt(){
   const el = $('titleScr'), n = bgName('title'), logo = el.querySelector('.logo'), hasLogo = (window.BG_IMAGES||[]).includes('title_logo');
   el.classList.toggle('art', !!n); el.classList.toggle('fine', !!n && (window.BG_EXT||{})[n]==='jpg'); el.style.backgroundImage = n ? `url(${bgURL(n)})` : '';
-  if(hasLogo){ logo.src = BG_DIR + 'title_logo.png'; logo.hidden = false; el.querySelector('.t2').hidden = true; }
+  if(hasLogo){ logo.src = av(BG_DIR + 'title_logo.png'); logo.hidden = false; el.querySelector('.t2').hidden = true; }
 }
 titleArt(); addEventListener('resize', titleArt);
 async function titleScreen(){
