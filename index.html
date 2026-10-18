@@ -216,7 +216,9 @@ body.touch #titleScr .tbtn{font-size:clamp(13px,3.6vmin,19px)}
 #infoPanel .qr img{width:200px;height:200px;image-rendering:pixelated;background:#fff;padding:8px;border-radius:6px}
 #infoPanel .ok{color:#2f7a2a}
 #cam .in{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
-#cam .top{display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:3px double var(--paper-ink);padding-bottom:6px}
+#cam .top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:4px 10px;border-bottom:3px double var(--paper-ink);padding-bottom:6px}
+#cam .top h2,#cam .top .btn{white-space:nowrap}
+#cam .top .cnt{order:3;flex-basis:100%;font-size:13px}
 #cam h2{margin:0;font-weight:400;font-size:20px;letter-spacing:.1em}
 #cam h3{margin:8px 0 0;font-weight:400;font-size:17px;border-bottom:1px solid var(--paper-line);padding-bottom:4px}
 #cam .lead{margin:0;line-height:1.7}
@@ -232,6 +234,15 @@ body.touch #titleScr .tbtn{font-size:clamp(13px,3.6vmin,19px)}
 #camResult .ok{color:#2f7a2a}
 #camResult .ng{color:#a8442e}
 #camResult ul{margin:.3em 0 0;padding-left:1.2em}
+#cam .geo{display:flex;align-items:center;gap:.5em;font-size:16px;background:#fffaf0;border:2px solid var(--paper-line);border-radius:6px;padding:8px 12px;cursor:pointer}
+#cam .geo input{width:22px;height:22px;flex:none}
+#stamps{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+#stamps .st{display:flex;gap:8px;align-items:center;background:#fffaf0;border:2px solid var(--paper-line);border-radius:6px;padding:6px 8px;font-size:12px;line-height:1.4}
+#stamps .st .ink{width:54px;height:54px;flex:none;border-radius:50%;border:3px dashed #c8b890;display:flex;align-items:center;justify-content:center;font-size:12px;color:#b8a880;text-align:center;line-height:1.1;font-weight:700}
+#stamps .st.got .ink{border:3px double #c8402e;color:#c8402e;background:#fff0e8;transform:rotate(-8deg)}
+#stamps .st b{font-size:14px;font-weight:400}
+#camResult .stampbox{flex-basis:100%;border-top:1px dashed var(--paper-line);padding-top:8px;line-height:1.7}
+#camResult .stampbox .btn{margin:.3em .4em 0 0}
 #album{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}
 #album .a{border:2px solid var(--paper-line);border-radius:4px;background:#fffaf0;padding:4px;text-align:center;font-size:11px;line-height:1.3}
 #album .a img,#album .a .no{width:100%;aspect-ratio:1;object-fit:cover;border-radius:2px;display:block;margin-bottom:3px}
@@ -424,6 +435,11 @@ body.touch.land #menu.title{top:auto;bottom:10px;left:50%;right:auto;transform:t
       <label class="btn">アルバムから選ぶ<input id="libIn" class="vh" type="file" accept="image/*"></label>
     </div>
     <div id="camResult"></div>
+    <label class="geo"><input type="checkbox" id="geoOn"> いまいる場所で「スタンプ」ももらう（位置情報をつかう）</label>
+    <p class="lead"><small>位置情報は、この端末の中で「スタンプの場所の近くにいるか」を調べるだけです。いる場所の記録は、保存も送信もしません。</small></p>
+    <h3>宗像 虫とりスタンプラリー <span id="stampCnt"></span></h3>
+    <p class="lead"><small>宗像大社・さつき松原・城山・大島などで本物の虫を撮ると、スタンプと特典がもらえるよ。<b>出かけるときは、かならずおうちの人といっしょに！</b></small></p>
+    <div id="stamps"></div>
     <h3>本物の虫アルバム <span id="albumCnt"></span></h3>
     <div id="album"></div>
   </div>
@@ -1037,6 +1053,7 @@ function pickBug(){
     if(S.trapDay===S.day && b.rank>=3) w *= 3;            // 樹液トラップ
     if((S.link[b.shape]||0) >= S.day) w *= 2;             // 本物の虫を撮ったなかまが出やすい
     if(id==='kinkabuto' && S.goldwing) w *= 8;            // 金色のはね
+    w *= stampBoost(id);                                  // 本物の場所でとったスタンプの特典
     return w; };
   let r = Math.random() * list.reduce((s,id)=>s + wt(id), 0);
   for(const id of list){ r -= wt(id); if(r <= 0) return id; }
@@ -1067,10 +1084,10 @@ async function worldMap(){
   const id = ids[c], A = AREAS[id];
   if(A.ticket && !S.ticket){
     const y = await choose(['買う','やめる'], {cls:'side', start:0,
-      msg:`神湊の渡船ターミナル。大島行きのフェリーには「${TICKET.name}」が必要だ。\n${TICKET.price}円で買いますか？（いま ${S.money}円）`});
+      msg:`神湊の渡船ターミナル。大島行きのフェリーには「${TICKET.name}」が必要だ。\n${ticketPrice()}円で買いますか？${photos.stamps?.oshima ? '（大島のスタンプで半額！）' : ''}（いま ${S.money}円）`});
     if(y!==0){ S.y -= 1; S.dir = 'U'; return; }
-    if(S.money < TICKET.price){ await say('お金が足りない…。虫を売ってお金をためよう。'); S.y -= 1; S.dir = 'U'; return; }
-    S.money -= TICKET.price; S.ticket = true; hud();
+    if(S.money < ticketPrice()){ await say('お金が足りない…。虫を売ってお金をためよう。'); S.y -= 1; S.dir = 'U'; return; }
+    S.money -= ticketPrice(); S.ticket = true; hud();
     await say(`${TICKET.name}を手に入れた！\nこれで、いつでも大島へわたれる。（だいじなもの）`);
   }
   await fade(()=>{ S.min += A.travel; S.area = id; if(id==='town'){ S.x = 9; S.y = 13; } else { S.x = 9; S.y = 13; } S.dir = 'U'; hud(); });
@@ -1641,6 +1658,71 @@ function renderAlbum(){
     return `<div class="a">${p ? `<img alt="" src="${p.img}">` : '<div class="no">？</div>'}${esc(PHOTO_CATS[k].name)}${p ? `<br><span style="color:#8a7a5a">${p.n}まい</span>` : ''}</div>`; }).join('');
 }
 function camResult(html){ $('camResult').innerHTML = html; }
+/* ---------- 宗像 虫とりスタンプラリー（位置情報） ----------
+   本物の虫の写真が成功したとき、スポットの近くにいればスタンプ。位置（緯度・経度）は保存も送信もしない。
+   pts：[緯度, 経度, 半径m]。細長い場所（松原・釣川）は点を何こかならべる。座標は国土地理院の地名検索より */
+const SPOTS = [
+  {key:'oshima',    name:'大島',       pts:[[33.90123,130.42265,3500]],
+   boost:{kinkabuto:3}, info:'ミアレカブトがさらに出やすくなる・乗船チケットが半額に', warn:'海やフェリーのりばでは、おうちの人からはなれないでね。'},
+  {key:'joyama',    name:'城山',       pts:[[33.81722,130.59393,1500]],
+   boost:{miyama:2.5, hirata:2.5, oomurasaki:2.5}, info:'ミヤマ・ヒラタクワガタ、オオムラサキが出やすくなる', warn:'山道はスズメバチやマムシに気をつけて。水分もしっかりとろう。'},
+  {key:'matsubara', name:'さつき松原', pts:[[33.85758,130.5156,1300],[33.8700,130.5260,1300],[33.8830,130.5337,900],[33.8495,130.4990,900]],
+   boost:{oniyanma:2.5, hanmyo:2.5}, info:'オニヤンマ、ハンミョウが出やすくなる', warn:'海に入るときは、かならずおうちの人といっしょにね。'},
+  {key:'taisha',    name:'宗像大社',   pts:[[33.83124,130.5143,700]],
+   boost:{kabuto:2, kokuwa:2, nokogiri:2, tamamushi:2}, info:'カブトムシ・クワガタ・タマムシが出やすくなる', warn:'神社の木や虫はたいせつに。境内では写真をとるだけにしよう。'},
+  {key:'tsurikawa', name:'釣川',       pts:[[33.84475,130.5043,500],[33.85238,130.50005,500],[33.826,130.530,600],[33.80647,130.55864,500]],
+   boost:{genji:2, ginyanma:2}, info:'ゲンジボタル、ギンヤンマが出やすくなる', warn:'川には子どもだけで入らないでね。'},
+  {key:'akama',     name:'赤間',       pts:[[33.80821,130.56945,1200],[33.80049,130.58264,1000]],
+   boost:{}, gift:'jueki', info:'樹液トラップがもらえる', warn:'車や自転車に気をつけてね。'},
+];
+const stampCount = ()=> SPOTS.filter(sp=>(photos.stamps||{})[sp.key]).length;
+function stampBoost(id){ let m = 1; for(const sp of SPOTS) if((photos.stamps||{})[sp.key] && sp.boost[id]) m *= sp.boost[id]; return m; }
+const ticketPrice = ()=> (photos.stamps||{}).oshima ? Math.round(TICKET.price/2) : TICKET.price;
+function distM(a, b, c, d){ const R = 6371000, r = Math.PI/180, x = (d-b)*r*Math.cos((a+c)/2*r), y = (c-a)*r; return Math.hypot(x, y) * R; }
+function nearSpot(lat, lon){
+  let best = null;
+  for(const sp of SPOTS) for(const [a, b, rad] of sp.pts){ const k = distM(lat, lon, a, b) / rad; if(k <= 1 && (!best || k < best.k)) best = {sp, k}; }
+  return best && best.sp;
+}
+function getPos(){
+  const t = QS.get('geo');   // 画面確認用：?geo=緯度,経度
+  if(t){ const [a, b] = t.split(',').map(Number); return Promise.resolve({lat:a, lon:b}); }
+  return new Promise((res, rej)=>{
+    if(!navigator.geolocation) return rej(new Error('none'));
+    navigator.geolocation.getCurrentPosition(p=>res({lat:p.coords.latitude, lon:p.coords.longitude}), rej, {enableHighAccuracy:true, timeout:12000, maximumAge:60000});
+  });
+}
+function renderStamps(){
+  photos.stamps = photos.stamps || {};
+  $('stampCnt').textContent = `${stampCount()} / ${SPOTS.length}`;
+  $('stamps').innerHTML = SPOTS.map(sp=>{ const g = photos.stamps[sp.key];
+    return `<div class="st ${g ? 'got' : ''}"><div class="ink">${g ? esc(sp.name) : '？'}</div><div><b>${esc(sp.name)}</b><br>${g ? `${esc(g.date)} ゲット` : esc(sp.info)}</div></div>`; }).join('');
+}
+function addResult(html){ const d = document.createElement('div'); d.className = 'stampbox'; d.innerHTML = html; $('camResult').appendChild(d); return d; }
+async function stampCheck(){
+  const box = addResult('いる場所をしらべています…');
+  let pos;
+  try{ pos = await getPos(); }
+  catch(e){ box.innerHTML = '位置情報がつかえませんでした。<br><small>スマホの設定で、このページ（Safari／Chrome）の位置情報が「許可」になっているか確かめてね。</small>'; return; }
+  const sp = nearSpot(pos.lat, pos.lon); pos = null;   // 位置そのものはすぐに捨てる
+  if(!sp){ box.innerHTML = '近くに、スタンプのある場所はなかったよ。<br><small>宗像大社・さつき松原・城山・大島・釣川・赤間で撮ると、スタンプがもらえるよ。</small>'; return; }
+  photos.stamps = photos.stamps || {};
+  if(photos.stamps[sp.key]){ box.innerHTML = `ここは「${esc(sp.name)}」！ スタンプはもう持っているよ（${esc(photos.stamps[sp.key].date)}）。`; return; }
+  // 安全の確認
+  const ok = await new Promise(res=>{
+    box.innerHTML = `ここは「<b>${esc(sp.name)}</b>」！ スタンプをおす前に…<br><b>おうちの人といっしょに来た？</b><br>
+      <button type="button" class="btn" id="stYes">いっしょに来た</button><button type="button" class="btn" id="stNo">子どもだけで来た</button>`;
+    $('stYes').onclick = ()=>res(true); $('stNo').onclick = ()=>res(false);
+  });
+  if(!ok){ box.innerHTML = `${esc(sp.name)}のスタンプは、<b>つぎにおうちの人といっしょに来たとき</b>におそう！<br><small>${esc(sp.warn)}</small>`; return; }
+  photos.stamps[sp.key] = {date:todayKey()};
+  if(!savePhotos()){ box.innerHTML = 'スタンプを保存できませんでした。'; return; }
+  let extra = '';
+  if(sp.gift){ const it = PHOTO_ITEMS.find(t=>t.key===sp.gift); S.items[sp.gift] = (S.items[sp.gift]||0) + 1; save(); extra = `<br>${esc(it.name)}をもらった！`; }
+  const all = stampCount() >= SPOTS.length;
+  box.innerHTML = `<b class="ok">「${esc(sp.name)}」のスタンプをゲット！</b>（${stampCount()}/${SPOTS.length}）<br>特典：${esc(sp.info)}${extra}<br>自由研究のフィールドワークに +3点${all ? '<br><b class="ok">スタンプぜんぶ集めた！ さらに +5点！</b>' : ''}<br><small>${esc(sp.warn)}</small>`;
+  renderStamps(); hud();
+}
 async function handlePhoto(file){
   if(!file) return;
   const im = await fileToImage(file).catch(()=>null);
@@ -1677,11 +1759,13 @@ async function handlePhoto(file){
   if(!savePhotos()){ photos.cats[cat].img = ''; savePhotos(); }
   save(); hud(); renderAlbum();
   camResult(head + `<div class="txt"><div class="ok big">${esc(C.name)}だ！</div><small>AIのはんてい ${Math.round(score[cat]*100)}%</small>${first ? '<div>アルバムに登録された！</div>' : ''}<ul>${gifts.map(g=>`<li>${esc(g)}</li>`).join('')}</ul></div>`);
+  if($('geoOn').checked) await stampCheck();
 }
 ['camIn','libIn'].forEach(id=>$(id).addEventListener('change', e=>{ const f = e.target.files[0]; e.target.value = ''; handlePhoto(f); }));
 function openCam(){
   return new Promise(res=>{
-    camResult(''); renderAlbum(); $('cam').hidden = false;
+    camResult(''); renderAlbum(); renderStamps(); $('cam').hidden = false;
+    $('geoOn').checked = !!photos.geoOn; $('geoOn').onchange = ()=>{ photos.geoOn = $('geoOn').checked; savePhotos(); };
     getModel().catch(()=>{});   // 先にAIを読みこんでおく
     const close = ()=>{ uiHandler = null; $('cam').hidden = true; res(); };
     uiHandler = k=>{ if(k==='B'||k==='M') close(); };
@@ -1810,7 +1894,8 @@ function research(){
   const effort = Math.floor(Math.min(S.caughtTotal, 60) / 3);
   const best = ids.filter(id=>!S.dex[id].watched).sort((a,b)=>BUGS[b].rank - BUGS[a].rank || BUGS[b].price - BUGS[a].price)[0];   // 観察しただけの虫（スズメバチ）はのぞく
   const sumo = S.sumoChamp ? SUMO_CHAMP_PT : 0;
-  return {ids, species:ids.length, rare, photo, effort, sumo, total:rare + photo + effort + sumo, best,
+  const nst = stampCount(), field = nst * 3 + (nst >= SPOTS.length ? 5 : 0);   // フィールドワーク：スタンプ1つ3点、ぜんぶで+5点
+  return {ids, species:ids.length, rare, photo, effort, sumo, field, nst, total:rare + photo + effort + sumo + field, best,
     complete: ids.length >= Object.keys(BUGS).length, kin: !!S.dex.kinkabuto};
 }
 const ENDINGS = [
@@ -1825,6 +1910,7 @@ function endingOf(r){ if(r.complete || (r.kin && r.total >= 90)) return ENDINGS[
 function endingStory(e, r){
   const best = r.best ? BUGS[r.best].name : '虫';
   const open = [`${dateStr(DAYS+1)}。二学期のはじまりだ。`, `自由研究の「ぼくの昆虫図鑑」をかかえて、学校へ向かった。\n（図鑑：${r.species}しゅるい）`];
+  if(r.nst >= 3) open.push(r.nst >= SPOTS.length ? '夏休みに宗像じゅうの場所へ出かけて調べた「フィールドワーク」が、先生に大絶賛された！' : '本物の場所に出かけて調べた「フィールドワーク」も、先生にほめられた！');
   if(S.sumoChamp) open.push('夏休みに虫ずもうチャンピオンになったことは、もう学校中のうわさになっていた！');
   const body = {
     legend:[
@@ -1902,6 +1988,7 @@ async function ending(){
         <tr><th>本物の虫の写真</th><td>${r.photo} 点</td></tr>
         <tr><th>がんばり（のべ ${S.caughtTotal}ひき）</th><td>${r.effort} 点</td></tr>
         ${r.sumo ? `<tr><th>虫ずもうチャンピオン</th><td>${r.sumo} 点</td></tr>` : ''}
+        ${r.field ? `<tr><th>フィールドワーク（スタンプ ${r.nst}/${SPOTS.length}）</th><td>${r.field} 点</td></tr>` : ''}
         <tr class="sum"><th>自由研究の点数</th><td>${r.total} 点</td></tr>
       </table>
       ${r.best ? `<div class="bestbug"><img alt="" src="${spriteURL(r.best)}"><span>いちばんすごい虫<br>${esc(BUGS[r.best].name)}<br><span class="lbl">レア度</span> ${stars(BUGS[r.best].rank)}</span></div>` : ''}
@@ -1930,7 +2017,7 @@ requestAnimationFrame(loop);
 window.claude?.hot?.snapshot?.(()=>({save:JSON.stringify(S), scene}));
 function start(data){
   if(data && data.save && data.scene==='field'){ try{ S = loadState(data.save); scene = 'field'; $('titleScr').hidden = true; hud(); return; }catch(e){} }
-  if(QS.get('panel')) setTimeout(()=> QS.get('panel')==='share' ? showShare() : showInstall(), 700);   // 画面確認用
+  if(QS.get('panel')) setTimeout(()=> QS.get('panel')==='share' ? showShare() : QS.get('panel')==='cam' ? (photos.stamps = {oshima:{date:'2026/8/15'}, taisha:{date:'2026/8/18'}, akama:{date:'2026/8/13'}}, openCam()) : showInstall(), 700);   // 画面確認用
   const demo = QS.get('demo');
   if(demo){ S = newState(); scene = 'field'; $('titleScr').hidden = true; S.area = 'taisha'; S.x = 9; S.y = 9; if(QS.get('min')) S.min = +QS.get('min'); if(QS.get('area')) S.area = QS.get('area'); if(QS.get('dir')) S.dir = QS.get('dir'); hud(); layout();
     if(demo==='battle'){ run(()=>battle(QS.get('id') || 'kabuto')); for(let k=0;k<+(QS.get('skip')||0);k++) setTimeout(()=>press('A'), 1000 + k*250); }
