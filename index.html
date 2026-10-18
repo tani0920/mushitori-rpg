@@ -78,13 +78,16 @@ header small{color:var(--mute);font-size:12px}
 #titleScr{position:absolute;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:12%;
   background:linear-gradient(#1b3f7a 0%,#3d77c4 45%,#8fc6e8 62%,#4f9a3c 62%,#2f6b2a 100%);text-align:center}
 #titleScr .t1{font-size:clamp(14px,4cqw,22px);color:#fff;letter-spacing:.2em;text-shadow:2px 2px 0 #0008}
+#titleScr.art{background-size:cover;background-position:center bottom;image-rendering:pixelated}
+#titleScr .logo{width:min(84%,560px);image-rendering:pixelated;filter:drop-shadow(0 3px 0 #0005);margin:.2em 0 .4em}
+#titleScr.art .sun{display:none}
 #titleScr .t2{font-size:clamp(26px,9cqw,54px);color:var(--sun);letter-spacing:.06em;text-shadow:3px 3px 0 #5a2a10,-1px -1px 0 #fff3;line-height:1.15;margin:.15em 0}
 #titleScr .t3{font-size:clamp(11px,2.8cqw,16px);color:#fff;text-shadow:1px 1px 0 #0009}
 #titleScr .t4{max-width:34em;margin-top:.8em;padding:.35em .8em;font-size:clamp(9px,2.1cqw,12px);line-height:1.5;color:#fff;background:#0006;border-radius:4px}
 #titleScr .sun{position:absolute;right:9%;top:8%;width:12%;aspect-ratio:1;border-radius:50%;background:#ffe27a;box-shadow:0 0 0 6px #ffe27a44}
 
 /* バトル */
-#battle{position:absolute;inset:0;z-index:5;overflow:hidden}
+#battle{position:absolute;inset:0;z-index:5;overflow:hidden;background-size:cover!important;background-position:center bottom!important;image-rendering:pixelated}
 #battle.bg-town{background:linear-gradient(#8fd0f0 0 55%,#79b956 55% 100%)}
 #battle.bg-tanbo{background:linear-gradient(#92d4f4 0 50%,#a7d75a 50% 58%,#6cae3e 58% 100%)}
 #battle.bg-kawara{background:linear-gradient(#9ad8f4 0 46%,#4f93cf 46% 60%,#e2d29c 60% 70%,#69a84a 70%)}
@@ -247,7 +250,10 @@ body.touch #battle.vs #mWrap{top:calc(var(--hudH) + 5.5em + min(30%,22vh));width
 #battle.vs .vsmark{display:block}
 body.touch #battle.vs .vsmark{top:calc(var(--hudH) + 5.5em + min(22%,16vh))}
 body.touch #titleScr{padding-top:calc(env(safe-area-inset-top,0px) + 14%)}
-body.touch #titleScr .t2{font-size:clamp(34px,11vmin,64px)}
+body.touch #titleScr.art{background-size:cover;background-position:center bottom;image-rendering:pixelated}
+#titleScr .logo{width:min(84%,560px);image-rendering:pixelated;filter:drop-shadow(0 3px 0 #0005);margin:.2em 0 .4em}
+#titleScr.art .sun{display:none}
+#titleScr .t2{font-size:clamp(34px,11vmin,64px)}
 body.touch #titleScr .t1{font-size:clamp(16px,4.6vmin,26px)}
 body.touch #titleScr .t3{font-size:clamp(13px,3.6vmin,20px);padding:0 16px}
 body.touch #titleScr .t4{font-size:clamp(11px,2.9vmin,15px);margin-left:12px;margin-right:12px}
@@ -269,6 +275,7 @@ body.touch #dexDetail dl{font-size:14px}
       <div class="sun"></div>
       <div class="t1">夏休み さいごの14日間</div>
       <div class="t2">むなかた<br>虫とり日記</div>
+      <img class="logo" alt="むなかた 虫とり日記" hidden>
       <div class="t3">宗像じゅうの虫をつかまえて、図鑑を完成させよう</div>
       <div class="t4">※このゲームに出てくる場所と虫の組み合わせはゲーム用のもので、実際にその場所にいる虫とはかぎりません。ミアレカブトは架空の虫です。</div>
     </div>
@@ -312,7 +319,7 @@ body.touch #dexDetail dl{font-size:14px}
 </div>
 <div id="endScr" class="full" hidden><div class="in" id="endIn"></div></div>
 
-<script src="img/sprites/bugs/list.js"></script>
+<script src="img/sprites/list.js"></script>
 <script>
 'use strict';
 /* =========================================================
@@ -486,7 +493,7 @@ function spriteURL(id, sil){
   return spriteCache[key] = c.toDataURL();
 }
 const imgReady = {};   // 読みこみ待ち（読みこめたら resolve）
-// BUG_IMAGES（絵がある虫の一覧）は tools/process_bugs.py が img/sprites/bugs/list.js に書き出す
+// BUG_IMAGES（絵がある虫の一覧）は tools/process_images.py が img/sprites/list.js に書き出す
 if(USE_IMAGE_FILES) (window.BUG_IMAGES || Object.keys(BUGS)).forEach(id=>{ imgReady[id] = new Promise(res=>{ const im = new Image(); im.onload = ()=>{ imgOK[id] = im; res(); }; im.src = BUG_IMG_DIR + id + '.png'; }); });
 
 /* 主人公（麦わらぼうしの小学生） 12x16 */
@@ -585,10 +592,35 @@ function drawTile(g, m, x, y, st){
   }
 }
 const layerCache = {};
+/* ChatGPTのタイル（img/sprites/tiles.png：4×4マス・1マス16ドット）
+   1段目：草地 草むら 道 砂浜／2段目：田んぼ 水 木 松／3段目：岩 赤い屋根 壁 ドア／4段目：青い屋根 お店の入口 鳥居 おやしろ */
+const TILE_IDX = {',':0, '"':1, '.':2, 's':3, 'f':4, '~':5, 'T':6, 'o':8, 'D':11, 'P':13, 'E':2, 'K':2, 'r':2, 'J':0};
+let tileSheet = null;
+if(window.HAS_TILES){ const im = new Image(); im.onload = ()=>{ tileSheet = im; for(const k in layerCache) delete layerCache[k]; }; im.src = 'img/sprites/tiles.png'; }
+const tileAtIdx = (g, i, X, Y)=> g.drawImage(tileSheet, (i%4)*TS, Math.floor(i/4)*TS, TS, TS, X, Y, TS, TS);
+function drawTileImg(g, m, x, y, st){
+  const t = m[y][x], down = (m[y+1]||[])[x];
+  let i = TILE_IDX[t];
+  if(t==='T' && (st==='matsubara' || st==='oshima')) i = 7;
+  if(t==='H') i = down==='H' || down==='D' ? 9 : 10;    // 下も家なら屋根、いちばん下の段は壁
+  if(t==='S') i = down==='S' || down==='P' ? 12 : 10;
+  if(i==null) return false;
+  tileAtIdx(g, i, x*TS, y*TS);
+  const X = x*TS, Y = y*TS, px = (c,a,b,w,h)=>{ g.fillStyle = c; g.fillRect(X+a, Y+b, w, h); };
+  if(t==='E'){ px('#fff8',6,6,4,1); px('#fff8',7,7,2,2); px('#fff8',4,5,8,1); }                       // 出口の矢じるし
+  if(t==='K'){ px('#7a5a3a',1,11,14,4); px('#9a7a52',2,11,12,2); }                                     // 切りかぶの土俵
+  return true;
+}
 function mapLayer(id){
   if(layerCache[id]) return layerCache[id];
-  const c = document.createElement('canvas'); c.width = W*TS; c.height = H*TS; const g = c.getContext('2d');
-  for(let y=0;y<H;y++) for(let x=0;x<W;x++) drawTile(g, maps[id], x, y, AREAS[id].style);
+  const c = document.createElement('canvas'); c.width = W*TS; c.height = H*TS; const g = c.getContext('2d'), m = maps[id], st = AREAS[id].style;
+  for(let y=0;y<H;y++) for(let x=0;x<W;x++) if(!(tileSheet && drawTileImg(g, m, x, y, st))) drawTile(g, m, x, y, st);
+  if(tileSheet){   // 鳥居とおやしろは2マスのまん中に1つだけ置く
+    for(let y=0;y<H;y++) for(let x=0;x<W;x++){
+      const t = m[y][x]; if((t!=='r' && t!=='J') || m[y][x-1]===t) continue;
+      tileAtIdx(g, t==='r' ? 14 : 15, x*TS + (m[y][x+1]===t ? TS/2 : 0), y*TS);
+    }
+  }
   return layerCache[id] = c;
 }
 
@@ -1024,10 +1056,16 @@ async function useItemBattle(e){
   if(c===1){ S.items.mitsu--; e.mitsu = true; updateB(e); await say(`虫みつをぬった！ ${e.b.name}はあまいにおいにうっとりしている。`); }
   return true;
 }
+/* 戦闘背景の絵（あれば）：スマホ縦なら縦長、それ以外は横長。なければ色のグラデーション */
+const BG_DIR = 'img/sprites/bg/';
+const portraitNow = ()=> TOUCH && innerHeight > innerWidth;
+function bgName(base){ const list = window.BG_IMAGES || [], a = base + (portraitNow() ? '_tate' : '_yoko'), b = base + (portraitNow() ? '_yoko' : '_tate');
+  return list.includes(a) ? a : list.includes(b) ? b : null; }
+function battleBg(style){ const n = bgName('bg_' + style); battleEl.style.backgroundImage = n ? `url(${BG_DIR}${n}.png)` : ''; }
 /* 危ない虫（スズメバチ）：戦わずにしずかに逃げる。図鑑には「観察した」として記録 */
 async function dangerEncounter(id){
   const b = BUGS[id], slot = slotOf(S.min);
-  battleEl.className = 'ov bg-' + AREAS[S.area].style + (slot==='yoru' ? ' night' : slot==='yu' ? ' dusk' : '');
+  battleEl.className = 'ov bg-' + AREAS[S.area].style + (slot==='yoru' ? ' night' : slot==='yu' ? ' dusk' : ''); battleBg(AREAS[S.area].style);
   bSprite.src = spriteURL(id); scene = 'battle';
   if(!imgOK[id] && imgReady[id]) imgReady[id].then(()=>{ if(scene==='battle') bSprite.src = spriteURL(id); });
   await fade(()=>{ battleEl.hidden = false; $('bInfo').innerHTML = `<div class="row"><span>${esc(b.name)}</span></div><div class="row"><span class="new">きけん！</span></div>`; $('pInfo').innerHTML = `<div class="row"><span>ぼく</span><span>Lv${S.lv}</span></div>`; });
@@ -1044,7 +1082,7 @@ async function battle(id){
   S.seen[id] = true;
   if(b.danger) return dangerEncounter(id);   // スズメバチは戦わずに逃げる
   const slot = slotOf(S.min);
-  battleEl.className = 'ov bg-' + AREAS[S.area].style + (slot==='yoru' ? ' night' : slot==='yu' ? ' dusk' : '');
+  battleEl.className = 'ov bg-' + AREAS[S.area].style + (slot==='yoru' ? ' night' : slot==='yu' ? ' dusk' : ''); battleBg(AREAS[S.area].style);
   bSprite.src = spriteURL(id); scene = 'battle';
   if(!imgOK[id] && imgReady[id]) imgReady[id].then(()=>{ if(scene==='battle') bSprite.src = spriteURL(id); });
   await fade(()=>{ battleEl.hidden = false; updateB(e); });
@@ -1139,7 +1177,7 @@ async function sumoBattle(r, it){
     $('bInfo').innerHTML = `<div class="row"><span>${esc(r.short)}の${esc(foe.b.name)}</span></div><div class="row"><span class="lbl">Lv${foe.lv}</span><span>${foe.hp}/${foe.maxhp}</span></div><span class="bar"><i class="${fr<.3?'low':''}" style="width:${fr*100}%"></i></span>`;
     $('pInfo').innerHTML = `<div class="row"><span>ぼくの${esc(me.b.name)}</span></div><div class="row"><span class="lbl">Lv${me.lv}</span><span>${me.hp}/${me.maxhp}</span></div><span class="bar"><i class="${mr<.3?'low':''}" style="width:${mr*100}%"></i></span>`;
   };
-  battleEl.className = 'ov bg-town vs'; bSprite.src = spriteURL(foe.id); mSprite.src = spriteURL(me.id); scene = 'battle';
+  battleEl.className = 'ov bg-town vs'; battleBg('town'); bSprite.src = spriteURL(foe.id); mSprite.src = spriteURL(me.id); scene = 'battle';
   [[foe.id, bSprite], [me.id, mSprite]].forEach(([id, el])=>{ if(!imgOK[id] && imgReady[id]) imgReady[id].then(()=>{ if(scene==='battle') el.src = spriteURL(id); }); });
   await fade(()=>{ battleEl.hidden = false; upd(); });
   await say(`${r.short}「${r.hi}」`);
@@ -1325,6 +1363,12 @@ function openCam(){
 /* =========================================================
    タイトル・オープニング・エンディング
    ========================================================= */
+function titleArt(){
+  const el = $('titleScr'), n = bgName('title'), logo = el.querySelector('.logo'), hasLogo = (window.BG_IMAGES||[]).includes('title_logo');
+  el.classList.toggle('art', !!n); el.style.backgroundImage = n ? `url(${BG_DIR}${n}.png)` : '';
+  if(hasLogo){ logo.src = BG_DIR + 'title_logo.png'; logo.hidden = false; el.querySelector('.t2').hidden = true; }
+}
+titleArt(); addEventListener('resize', titleArt);
 async function titleScreen(){
   scene = 'title'; hud(); $('titleScr').hidden = false;
   const has = !!loadRaw(), carry = loadCarry();
