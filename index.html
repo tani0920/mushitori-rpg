@@ -1177,7 +1177,14 @@ function bgName(base){ const list = window.BG_IMAGES || [], a = base + (portrait
   return list.includes(a) ? a : list.includes(b) ? b : null; }
 const bgURL = n=> av(`${BG_DIR}${n}.${(window.BG_EXT||{})[n] || 'png'}`);
 let lastBgStyle = null;
-function battleBg(style){ lastBgStyle = style; const n = bgName('bg_' + style); battleEl.style.backgroundImage = n ? `url(${bgURL(n)})` : ''; }
+function battleBg(style){
+  lastBgStyle = style;
+  // 夜（19時〜）は夜の背景があればそれを使い、暗くするフィルターははずす
+  const nightArt = slotOf(S.min)==='yoru' && bgName('bg_' + style + '_yoru');
+  if(nightArt) battleEl.classList.remove('night');
+  const n = nightArt || bgName('bg_' + style);
+  battleEl.style.backgroundImage = n ? `url(${bgURL(n)})` : '';
+}
 /* 危ない虫（スズメバチ）：戦わずにしずかに逃げる。図鑑には「観察した」として記録 */
 async function dangerEncounter(id){
   const b = BUGS[id], slot = slotOf(S.min);
@@ -1729,7 +1736,7 @@ window.claude?.hot?.snapshot?.(()=>({save:JSON.stringify(S), scene}));
 function start(data){
   if(data && data.save && data.scene==='field'){ try{ S = loadState(data.save); scene = 'field'; $('titleScr').hidden = true; hud(); return; }catch(e){} }
   const demo = QS.get('demo');
-  if(demo){ S = newState(); scene = 'field'; $('titleScr').hidden = true; S.area = 'taisha'; S.x = 9; S.y = 9; if(QS.get('min')) S.min = +QS.get('min'); hud(); layout();
+  if(demo){ S = newState(); scene = 'field'; $('titleScr').hidden = true; S.area = 'taisha'; S.x = 9; S.y = 9; if(QS.get('min')) S.min = +QS.get('min'); if(QS.get('area')) S.area = QS.get('area'); hud(); layout();
     if(demo==='battle'){ run(()=>battle(QS.get('id') || 'kabuto')); for(let k=0;k<+(QS.get('skip')||0);k++) setTimeout(()=>press('A'), 1000 + k*250); }
     else if(demo==='dex'){ Object.keys(BUGS).slice(0, +(QS.get('n')||12)).forEach(id=>S.dex[id] = {n:1, best:BUGS[id].lv}); S.seen.kokuwa = true; if(QS.has('hachi')) S.dex.suzumebachi = {n:0, best:0, watched:true}; setTimeout(()=>{ run(openDex); if(QS.has('hachi')) setTimeout(()=>{ for(let k=0;k<26;k++) press('R'); }, 300); }, 600); }
     else if(demo==='menu') run(fieldMenu);
