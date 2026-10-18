@@ -181,6 +181,9 @@ img[src^="img/"]{image-rendering:auto!important}   /* ChatGPTで作った細か�
 #endScr .score .sum th,#endScr .score .sum td{color:var(--sun);border-top:1px dashed #f7f1df55;padding-top:6px}
 #endScr .bestbug{display:flex;align-items:center;gap:10px;margin-top:10px}
 #endScr .bestbug img{width:56px;height:56px}
+#endScr .carry{text-align:left;line-height:1.7}
+#endScr .carry ul{margin:.3em 0;padding-left:1.2em}
+#endScr .carry .lbl{color:var(--mute);font-size:13px}
 #endScr .fic{margin:10px 0 0;font-size:12px;color:var(--mute);text-align:center}
 
 /* コントローラー */
@@ -574,7 +577,7 @@ function mapLayer(id){
    ========================================================= */
 function newState(){ return {day:1, min:START_MIN, lv:1, exp:0, hp:24, money:300, net:0, cage:0, shoes:0, items:{drink:1, mitsu:0, jueki:0, note:0},
   box:[], dex:{}, seen:{}, visited:{town:true}, area:'town', x:3, y:5, dir:'D', rule:'B', warned:false, caughtTotal:0,
-  goldwing:false, trapDay:0, link:{}}; }
+  goldwing:false, trapDay:0, link:{}, round:1}; }
 function loadState(json){ const d = newState(), s = Object.assign(d, JSON.parse(json)); s.items = Object.assign(newState().items, s.items); s.link = s.link || {}; return s; }
 let S = newState();
 const maxHp = ()=> 24 + (S.lv-1)*6;
@@ -587,13 +590,18 @@ const stars = n=> '★'.repeat(n) + '☆'.repeat(5-n);
 const esc = s=> String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const fmt = s=> esc(s).replace(/\n/g,'<br>');
 const wait = ms=> new Promise(r=>setTimeout(r,ms));
-function dateStr(day=S.day){ const d = new Date(START_DATE[0], START_DATE[1], START_DATE[2] + day - 1); return `${d.getMonth()+1}月${d.getDate()}日（${'日月火水木金土'[d.getDay()]}）`; }
+function dateStr(day=S.day){ const d = new Date(START_DATE[0] + (S.round||1) - 1, START_DATE[1], START_DATE[2] + day - 1); return `${d.getMonth()+1}月${d.getDate()}日（${'日月火水木金土'[d.getDay()]}）`; }
 const hhmm = (m=S.min)=> `${Math.floor(m/60)}:${String(m%60).padStart(2,'0')}`;
 const sellPrice = it=> Math.round(BUGS[it.id].price * (1 + (it.lv - BUGS[it.id].lv)*0.1));
 const dexCount = ()=> Object.keys(S.dex).length;
 function save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){} }
 function loadRaw(){ try{ return localStorage.getItem(SAVE_KEY); }catch(e){ return null; } }
 function clearSave(){ try{ localStorage.removeItem(SAVE_KEY); }catch(e){} }
+/* クリアしたときの引きつぎデータ（次の夏休みに持っていけるもの） */
+const CARRY_KEY = 'munakata-mushitori-carry-v1';
+function loadCarry(){ try{ return JSON.parse(localStorage.getItem(CARRY_KEY)); }catch(e){ return null; } }
+function saveCarry(c){ try{ localStorage.setItem(CARRY_KEY, JSON.stringify(c)); }catch(e){} }
+const grade = (round=S.round||1)=> Math.min(6, 3 + round);   // 1年目は小学4年生
 
 /* =========================================================
    UI（メッセージ・メニュー）
@@ -1176,11 +1184,24 @@ function openCam(){
    ========================================================= */
 async function titleScreen(){
   scene = 'title'; hud(); $('titleScr').hidden = false;
-  const has = !!loadRaw();
-  const c = await choose([{label:'はじめから'}, {label:'つづきから', disabled:!has}], {cls:'title', cancel:false, start: has ? 1 : 0});
+  const has = !!loadRaw(), carry = loadCarry();
+  const opts = [{label:'はじめから'}, {label:'つづきから', disabled:!has}];
+  if(carry) opts.push({label:`引きつぎではじめる（小学${grade(carry.round)}年生の夏）`});
+  const c = await choose(opts, {cls:'title', cancel:false, start: has ? 1 : carry ? 2 : 0});
   $('titleScr').hidden = true;
   if(c===1){ try{ S = loadState(loadRaw()); }catch(e){ S = newState(); } scene = 'field'; hud(); await say(`${dateStr()} ${hhmm()}\nつづきから はじめます。`); }
+  else if(c===2){ S = newState(); Object.assign(S, {round:carry.round, lv:carry.lv, exp:carry.exp, net:carry.net, cage:carry.cage, shoes:carry.shoes,
+      items:Object.assign(newState().items, carry.items), money:carry.money + 300, goldwing:carry.goldwing});
+    S.hp = maxHp(); S.visited = Object.assign({town:true}, carry.visited); scene = 'field'; hud(); await introCarry(carry); }
   else { S = newState(); scene = 'field'; hud(); await intro(); }
+}
+async function introCarry(c){
+  await talk(
+    `${dateStr()}。小学${grade()}年生の夏休み、今年も虫とりの日がやってきた！`,
+    `去年の自由研究は「${c.lastAward}」（${c.lastScore}点）。\n自己ベストは ${c.best}点。今年はもっとすごい昆虫図鑑をつくるぞ！`,
+    `去年の道具は、ちゃんとしまってある。\nLv${S.lv}・${NETS[S.net].name}・${CAGES[S.cage].name}・${SHOES[S.shoes].name}\nお金 ${S.money}円（おこづかい300円をふくむ）`,
+    `図鑑は新しいノートでいちからつくりなおし。\n${dateStr(DAYS)}までの${DAYS}日間、がんばろう！`
+  );
 }
 async function intro(){
   const touch = matchMedia('(hover:none),(pointer:coarse)').matches;
@@ -1271,8 +1292,13 @@ async function ending(){
     el.innerHTML = `<h2>二学期のはじまり</h2><div class="win story">${fmt(l)}</div><button class="btn" id="endBtn">つぎへ ▼</button>`;
     await next();
   }
-  // 結果
+  // 結果と、次の夏休みへの引きつぎ
   const total = Object.keys(BUGS).length;
+  const prev = loadCarry(), boxValue = S.box.reduce((s,it)=>s + sellPrice(it), 0);
+  const best = Math.max(prev?.best || 0, r.total), newBest = !prev || r.total > (prev.best || 0);
+  const carry = {round:(S.round||1) + 1, lv:S.lv, exp:S.exp, net:S.net, cage:S.cage, shoes:S.shoes, items:S.items, money:S.money + boxValue,
+    goldwing:S.goldwing, visited:S.visited, best, lastScore:r.total, lastAward:e.award};
+  saveCarry(carry);
   el.innerHTML = `<h2>自由研究「ぼくの昆虫図鑑」</h2>
     <div class="win">
       <div class="ttl">${esc(e.award)}</div>
@@ -1287,6 +1313,14 @@ async function ending(){
       ${r.best ? `<div class="bestbug"><img alt="" src="${spriteURL(r.best)}"><span>いちばんすごい虫<br>${esc(BUGS[r.best].name)}　${stars(BUGS[r.best].rank)}</span></div>` : ''}
       <div style="text-align:center;margin-top:10px">あなたの称号は…</div><div class="ttl">「${esc(e.title)}」</div>
       ${r.kin ? '<p class="fic">※ミアレカブトは、このゲームのための架空の昆虫です。</p>' : ''}
+    </div>
+    <div class="win carry">
+      <div class="ttl">${newBest ? '自己ベスト更新！' : `自己ベスト ${best}点`}</div>
+      <div>次の夏休み（小学${grade(carry.round)}年生）に、引きつげるもの：</div>
+      <ul><li>レベル ${S.lv}</li><li>${esc(NETS[S.net].name)}・${esc(CAGES[S.cage].name)}・${esc(SHOES[S.shoes].name)}</li>
+        <li>どうぐ（スポーツドリンク${S.items.drink}・虫みつ${S.items.mitsu}・樹液トラップ${S.items.jueki||0}・観察ノート${S.items.note||0}${S.goldwing ? '・金色のはね' : ''}）</li>
+        <li>お金 ${carry.money}円${boxValue ? `（虫かごにのこった${S.box.length}ひきを売った${boxValue}円をふくむ）` : ''}</li></ul>
+      <div class="lbl">タイトルの「引きつぎではじめる」から遊べます。図鑑はいちからつくりなおしです。</div>
     </div>
     <button class="btn" id="endBtn">タイトルへもどる</button>`;
   await next();
