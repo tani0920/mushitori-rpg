@@ -930,7 +930,17 @@ function drawNpc(tx, ty, ts){
   P_FRONT.forEach((r,y)=>[...r].forEach((ch,i)=>{ if(ch==='.') return; ctx.fillStyle = NPC_PAL[ch]; ctx.fillRect(px + 2 + i, py + y + bob, 1, 1); }));
   if(sumoNext()){ ctx.fillStyle = '#fff'; ctx.fillRect(px+6, py-9+bob, 5, 8); ctx.fillStyle = '#e04030'; ctx.fillRect(px+8, py-8+bob, 1, 4); ctx.fillRect(px+8, py-3+bob, 1, 1); }   // 「！」
 }
+/* 主人公の歩きの絵（img/sprites/player.png：横3コマ＝立ち・右足・左足、たて4段＝下・左・右・上、1コマ16ドット） */
+let playerSheet = null;
+if(window.HAS_PLAYER){ const im = new Image(); im.onload = ()=>{ playerSheet = im; }; im.src = av('img/sprites/player.png'); }
+const DIR_ROW = {D:0, L:1, R:2, U:3};
 function drawPlayer(px, py, ts){
+  if(playerSheet){
+    const col = mv ? 1 + ((mv.tx + mv.ty) % 2) : 0;   // 歩いているあいだは右足・左足を1歩ごとにこうたい
+    ctx.fillStyle = '#0003'; ctx.fillRect(px+3, py+14, 10, 2);
+    ctx.drawImage(playerSheet, col*16, DIR_ROW[S.dir]*16, 16, 16, Math.round(px), Math.round(py) - 2, 16, 16);
+    return;
+  }
   const rows = S.dir==='U' ? P_BACK : S.dir==='D' ? P_FRONT : P_SIDE, flip = S.dir==='L';
   const bob = mv && Math.floor((ts - mv.t0) / (MOVE_MS/2)) % 2 ? -1 : 0;
   ctx.fillStyle = '#0003'; ctx.fillRect(px+3, py+14, 10, 2);
@@ -1834,7 +1844,7 @@ function start(data){
   if(data && data.save && data.scene==='field'){ try{ S = loadState(data.save); scene = 'field'; $('titleScr').hidden = true; hud(); return; }catch(e){} }
   if(QS.get('panel')) setTimeout(()=> QS.get('panel')==='share' ? showShare() : showInstall(), 700);   // 画面確認用
   const demo = QS.get('demo');
-  if(demo){ S = newState(); scene = 'field'; $('titleScr').hidden = true; S.area = 'taisha'; S.x = 9; S.y = 9; if(QS.get('min')) S.min = +QS.get('min'); if(QS.get('area')) S.area = QS.get('area'); hud(); layout();
+  if(demo){ S = newState(); scene = 'field'; $('titleScr').hidden = true; S.area = 'taisha'; S.x = 9; S.y = 9; if(QS.get('min')) S.min = +QS.get('min'); if(QS.get('area')) S.area = QS.get('area'); if(QS.get('dir')) S.dir = QS.get('dir'); hud(); layout();
     if(demo==='battle'){ run(()=>battle(QS.get('id') || 'kabuto')); for(let k=0;k<+(QS.get('skip')||0);k++) setTimeout(()=>press('A'), 1000 + k*250); }
     else if(demo==='dex'){ Object.keys(BUGS).slice(0, +(QS.get('n')||12)).forEach(id=>S.dex[id] = {n:1, best:BUGS[id].lv}); S.seen.kokuwa = true; if(QS.has('hachi')) S.dex.suzumebachi = {n:0, best:0, watched:true}; setTimeout(()=>{ run(openDex); if(QS.has('hachi')) setTimeout(()=>{ for(let k=0;k<26;k++) press('R'); }, 300); }, 600); }
     else if(demo==='menu') run(fieldMenu);
