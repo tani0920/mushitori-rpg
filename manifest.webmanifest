@@ -1,6 +1,6 @@
 {
   "name": "むなかた虫とり日記",
-  "short_name": "虫とり日記",
+  "short_name": "むなかた虫とり日記",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
