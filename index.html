@@ -310,10 +310,12 @@ body.touch.land #menu.cmditem{bottom:calc(4.4em + 18px)}
 body.touch.land #menu.cmd{bottom:8px;min-height:4.4em}
 body.touch.land .binfo{font-size:.75em}
 body.touch.land #bInfo{left:calc(var(--sideL) + 8px)}
-body.touch.land #bWrap{top:calc(var(--hudH) + .4em);width:min(54vh,30%)}
-body.touch.land #battle.vs #bWrap{left:calc(var(--sideL) + 6%);top:calc(var(--hudH) + 4.2em);width:min(26vh,20%)}
-body.touch.land #battle.vs #mWrap{right:calc(var(--sideR) + 6%);top:calc(var(--hudH) + 5.6em);width:min(26vh,20%)}
-body.touch.land #battle.vs .vsmark{top:calc(var(--hudH) + 6em)}
+/* 横向き：虫は「上の情報欄」と「下のメッセージ欄」のあいだの、上下まん中に置く */
+body.touch.land #battle{--free:calc(100% - var(--hudH) - 4.4em - 30px);--mid:calc(var(--hudH) + var(--free) / 2)}
+body.touch.land #bWrap{--w:min(56vh,30vw);width:var(--w);top:max(calc(var(--hudH) + .4em), calc(var(--mid) - var(--w) / 2))}
+body.touch.land #battle.vs #bWrap{--w:min(34vh,22vw);width:var(--w);left:calc(var(--sideL) + 6%);top:max(calc(var(--hudH) + 4.2em), calc(var(--mid) - var(--w) * .8))}
+body.touch.land #battle.vs #mWrap{--w:min(34vh,22vw);width:var(--w);right:calc(var(--sideR) + 6%);top:max(calc(var(--hudH) + 5.6em), calc(var(--mid) - var(--w) * .2))}
+body.touch.land #battle.vs .vsmark{top:calc(var(--mid) - .6em)}
 body.touch.land #titleScr{padding-top:calc(env(safe-area-inset-top,0px) + 3%);justify-content:flex-start}
 body.touch.land #titleScr .t1{font-size:clamp(13px,4vh,20px)}
 body.touch.land #titleScr .logo{width:auto;height:min(32vh,170px);margin:.1em 0}
