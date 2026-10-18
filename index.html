@@ -138,6 +138,11 @@ body.touch.land #msg .face{width:3.6em;height:3.6em}
 .binfo .bar{width:100%;height:.6em}
 .binfo .stars{color:var(--sun);letter-spacing:.05em}
 .binfo .new{color:#ff8a6a}
+.binfo .dexnew{display:inline-flex;align-items:center;gap:.35em;margin:.15em 0 .1em;padding:.1em .6em .1em .35em;border-radius:999px;
+  background:#e8553e;color:#fff;font-size:.95em;font-weight:700;box-shadow:0 0 0 2px #ffd36a;animation:dexpulse 1.2s ease-in-out infinite}
+.binfo .dexicon{width:1.25em;height:1.25em;flex:none}
+@keyframes dexpulse{50%{box-shadow:0 0 0 2px #ffd36a,0 0 10px 3px #ffd36aaa}}
+#bInfo.isnew{border-color:#ffd36a}
 .binfo .gauge{color:var(--sun);letter-spacing:.1em}
 .binfo .lbl{color:var(--mute);font-size:.85em;white-space:nowrap}
 
@@ -1201,10 +1206,14 @@ function catchRate(e){
   return clamp(CAGES[S.cage].pow * (1.15 - hpR*hpWeight) * lvF * e.b.catch * (e.mitsu ? 1.5 : 1), 0.03, 0.97);
 }
 const expOf = e=> Math.round(e.lv*3 + e.b.rank*6);
+/* まだつかまえていない（図鑑にない）虫のしるし：本に「？」のアイコン */
+const DEX_ICON = '<svg class="dexicon" viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="2" width="13" height="12" rx="1.5" fill="#fff4c8" stroke="#5a2a10" stroke-width="1.2"/><line x1="8" y1="2.5" x2="8" y2="13.5" stroke="#5a2a10" stroke-width="1"/><text x="4.75" y="11" font-size="8" font-weight="700" text-anchor="middle" fill="#c8402e">?</text><text x="11.25" y="11" font-size="8" font-weight="700" text-anchor="middle" fill="#c8402e">?</text></svg>';
 function updateB(e){
   const r = e.hp / e.maxhp, pr = S.hp / maxHp(), p = catchRate(e), dots = Math.max(1, Math.ceil(p*5));
+  $('bInfo').classList.toggle('isnew', !S.dex[e.id]);
   $('bInfo').innerHTML = `<div class="row"><span>${esc(e.b.name)}</span><span>Lv${e.lv}</span></div>`+
-    `<div class="row"><span><span class="lbl">レア度</span> <span class="stars">${stars(e.b.rank)}</span></span>${S.dex[e.id] ? '' : '<span class="new">NEW</span>'}</div>`+
+    `<div class="row"><span><span class="lbl">レア度</span> <span class="stars">${stars(e.b.rank)}</span></span></div>`+
+    (S.dex[e.id] ? '' : `<div class="row"><span class="dexnew">${DEX_ICON}まだ図鑑にない虫！</span></div>`)+
     `<span class="bar"><i class="${r<.3?'low':''}" style="width:${r*100}%"></i></span>`+
     `<div class="row"><span class="lbl">つかまえやすさ</span><span class="gauge">${'●'.repeat(dots)}${'○'.repeat(5-dots)}</span></div>`;
   $('pInfo').innerHTML = `<div class="row"><span>ぼく</span><span>Lv${S.lv}</span></div>`+
@@ -1432,6 +1441,7 @@ async function sumoBattle(r, it){
   const upd = ()=>{
     const fr = foe.hp/foe.maxhp, mr = me.hp/me.maxhp;
     const st = f=> [f.open>1 ? '<span class="new">スキ</span>' : '', f.blind ? '<span class="lbl">めくらまし</span>' : '', f.weak<1 ? '<span class="lbl">ちから↓</span>' : '', f.poison ? '<span class="new">どく</span>' : ''].join(' ');
+    $('bInfo').classList.remove('isnew');
     $('bInfo').innerHTML = `<div class="row"><span>${esc(r.short)}の${esc(foe.b.name)}</span></div><div class="row"><span class="lbl">Lv${foe.lv}・${foe.t.name}</span><span>${foe.hp}/${foe.maxhp}</span></div><span class="bar"><i class="${fr<.3?'low':''}" style="width:${fr*100}%"></i></span><div class="row">${st(foe)}</div>`;
     $('pInfo').innerHTML = `<div class="row"><span>ぼくの${esc(me.b.name)}</span></div><div class="row"><span class="lbl">Lv${me.lv}・${me.t.name}</span><span>${me.hp}/${me.maxhp}</span></div><span class="bar"><i class="${mr<.3?'low':''}" style="width:${mr*100}%"></i></span><div class="row">${st(me)}</div>`;
   };
