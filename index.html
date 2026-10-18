@@ -178,6 +178,7 @@ header small{color:var(--mute);font-size:12px}
 #endScr .score .sum th,#endScr .score .sum td{color:var(--sun);border-top:1px dashed #f7f1df55;padding-top:6px}
 #endScr .bestbug{display:flex;align-items:center;gap:10px;margin-top:10px}
 #endScr .bestbug img{width:56px;height:56px}
+#endScr .fic{margin:10px 0 0;font-size:12px;color:var(--mute);text-align:center}
 
 /* コントローラー */
 #pad{display:none;justify-content:space-between;align-items:center;gap:10px;padding-top:4px}
@@ -419,8 +420,8 @@ const BUGS = {
                desc:'空色に黒いもようの、宝石みたいなカミキリムシ。'},
   ookuwa:     {name:'オオクワガタ',     shape:'stag',      c:['#111111','#1c1c1c','#3a3a3a'],            rank:5, lv:22, hp:90,  atk:16, spd:1, catch:0.45, price:2500, time:['yoru'],                w:1,
                desc:'クワガタの王様。とても用心深く、なかなか姿を見せない。'},
-  kinkabuto:  {name:'キンイロカブト',   shape:'beetle',    c:['#e8c040','#c89820','#fff0a0'],            rank:5, lv:25, hp:110, atk:20, spd:2, catch:0.35, price:5000, time:['asa','yoru'],          w:0.4,
-               desc:'大島につたわる伝説の虫。金色にかがやくカブトムシを見た人は、幸せになれるという…'},
+  kinkabuto:  {name:'ミアレカブト',     shape:'beetle',    c:['#e8c040','#c89820','#fff0a0'],            rank:5, lv:25, hp:110, atk:20, spd:2, catch:0.35, price:5000, time:['asa','yoru'],          w:0.4,
+               desc:'大島につたわる伝説の虫。みあれ祭の船団にみちびかれて現れるという、金色にかがやくカブトムシ。見た人には幸せがおとずれるらしい…。\n※ミアレカブトは、このゲームのための架空の昆虫です。'},
 };
 const ATTACK = {beetle:'ツノでつきあげてきた！', stag:'大あごではさんできた！', cicada:'おしっこをひっかけてきた！', butterfly:'りんぷんをまきちらした！',
   dragonfly:'顔のまわりをビュンビュン飛びまわった！', grass:'とびげりしてきた！', mantis:'カマでひっかいてきた！', bee:'おしりの針でさしてきた！',
@@ -840,7 +841,7 @@ async function boxMenu(){
 async function itemMenu(){
   const list = [...ITEMS, ...PHOTO_ITEMS];
   const opts = list.map(t=>({label:`${t.name} ×${S.items[t.key]||0}`, desc:t.desc + (t.key==='mitsu' ? '（バトル中に使う）' : ''), disabled:t.key==='mitsu' || !(S.items[t.key]>0)}));
-  if(S.goldwing) opts.push({label:'金色のはね', note:'だいじなもの', desc:'大島の伝説の虫、キンイロカブトが出やすくなる', disabled:true});
+  if(S.goldwing) opts.push({label:'金色のはね', note:'だいじなもの', desc:'大島の伝説の虫、ミアレカブトが出やすくなる', disabled:true});
   const c = await choose(opts, {title:'どうぐ'});
   const key = list[c]?.key;
   if(key==='drink'){ S.items.drink--; const before = S.hp; S.hp = Math.min(maxHp(), S.hp+25); hud(); await say(`スポーツドリンクをのんだ！\nたいりょくが ${S.hp-before} 回復した。`); }
@@ -984,7 +985,7 @@ async function battle(id){
   battleEl.className = 'ov bg-' + AREAS[S.area].style + (slot==='yoru' ? ' night' : slot==='yu' ? ' dusk' : '');
   bSprite.src = spriteURL(id); scene = 'battle';
   await fade(()=>{ battleEl.hidden = false; updateB(e); });
-  await say(`あっ！ ${b.name}（Lv${lv}）があらわれた！` + (b.rank>=4 ? '\nめずらしい虫だ…！' : ''));
+  await say(`あっ！ ${b.name}（Lv${lv}）があらわれた！` + (id==='kinkabuto' ? '\nまぶしい金色の光…！ これが大島の伝説の…！' : b.rank>=4 ? '\nめずらしい虫だ…！' : ''));
   let result = null;
   while(!result){
     const c = await choose(['あみをふる','つかまえる','どうぐ','にげる'], {cls:'cmd', msg:`どうする？`, cancel:false});
@@ -1037,7 +1038,7 @@ function openDex(){
         return `<div class="c ${j===i?'sel':''}" data-j="${j}"><img alt="" src="${spriteURL(id, !got)}"><span class="no">No.${String(j+1).padStart(2,'0')}</span><br>${got||seen ? esc(BUGS[id].name) : '？？？'}</div>`; }).join('');
       const id = ids[i], b = BUGS[id], got = S.dex[id], seen = S.seen[id];
       det.innerHTML = `<div class="hd"><img alt="" src="${spriteURL(id, !got)}"><div><div>No.${String(i+1).padStart(2,'0')}</div><h3>${got||seen ? esc(b.name) : '？？？'}</h3><div class="stars">${got ? stars(b.rank) : ''}</div></div></div>`+
-        (got ? `<p>${esc(b.desc)}</p><dl><dt>いる場所</dt><dd>${esc(where(id))}</dd><dt>時間</dt><dd>${b.time.map(t=>SLOT_NAMES[t]).join('・')}</dd><dt>つかまえた数</dt><dd>${got.n}ひき</dd><dt>さいこうLv</dt><dd>${got.best}</dd><dt>売り値のめやす</dt><dd>${b.price}円</dd></dl>`
+        (got ? `<p>${fmt(b.desc)}</p><dl><dt>いる場所</dt><dd>${esc(where(id))}</dd><dt>時間</dt><dd>${b.time.map(t=>SLOT_NAMES[t]).join('・')}</dd><dt>つかまえた数</dt><dd>${got.n}ひき</dd><dt>さいこうLv</dt><dd>${got.best}</dd><dt>売り値のめやす</dt><dd>${b.price}円</dd></dl>`
              : seen ? `<p>見かけたけど、まだつかまえていない。</p>` : `<p>まだ見たことがない虫。</p>`) +
         (()=>{ const r = realPhotoFor(b.shape); return r && r[1].img ? `<div class="real"><div>本物の${esc(PHOTO_CATS[r[0]].name)}の写真</div><img alt="" src="${r[1].img}"></div>` : ''; })();
       grid.querySelector('.sel')?.scrollIntoView({block:'nearest'});
@@ -1138,7 +1139,7 @@ async function handlePhoto(file){
   const C = PHOTO_CATS[cat], first = !photos.cats[cat], gifts = [];
   const money = C.money * (first ? 2 : 1); S.money += money; gifts.push(`おこづかい ${money}円${first ? '（はじめてボーナス2倍！）' : ''}`);
   if(C.item && (first || Math.random() < .35)){ const it = PHOTO_ITEMS.find(t=>t.key===C.item); S.items[C.item] = (S.items[C.item]||0) + 1; gifts.push(`${it.name}（${it.desc}）`); }
-  if(cat==='kabuto' && !S.goldwing){ S.goldwing = true; gifts.push('金色のはね！ 大島の伝説の虫が出やすくなった…！'); }
+  if(cat==='kabuto' && !S.goldwing){ S.goldwing = true; gifts.push('金色のはね！ 大島の伝説の虫「ミアレカブト」が出やすくなった…！'); }
   if(C.shapes.length){ C.shapes.forEach(s=>S.link[s] = S.day + 1); gifts.push(`ゲームの中で${C.name}が出やすくなった（明日まで）`); }
   photos.cats[cat] = {img:thumb, n:(photos.cats[cat]?.n||0) + 1, date:todayKey()};
   photos.hashes.push(h); if(photos.hashes.length > 300) photos.hashes.shift();
@@ -1210,7 +1211,7 @@ function endingStory(e, r){
   const body = {
     legend:[
       '教室に入ったとたん、クラス中が図鑑のまわりに集まって大さわぎになった！',
-      r.kin ? '「これ…キンイロカブト！？ 本当にいたの！？」\nみんなの目がまんまるになった。' : `「${Object.keys(BUGS).length}しゅるい、ぜんぶ！？」\nみんなの目がまんまるになった。`,
+      r.kin ? '「これ…ミアレカブト！？ 大島の伝説の虫、本当にいたの！？」\nみんなの目がまんまるになった。' : `「${Object.keys(BUGS).length}しゅるい、ぜんぶ！？」\nみんなの目がまんまるになった。`,
       '先生があわてて校長先生をよんできて、全校集会で発表することになった。',
       '数日後、新聞記者さんが取材に来た。\n「宗像の小学生、夏休みの大発見！」',
       'ぼくの昆虫図鑑は、「海の道むなかた館」にかざられることになった。\nこの夏のことは、ずっとわすれない。',
@@ -1273,6 +1274,7 @@ async function ending(){
       </table>
       ${r.best ? `<div class="bestbug"><img alt="" src="${spriteURL(r.best)}"><span>いちばんすごい虫<br>${esc(BUGS[r.best].name)}　${stars(BUGS[r.best].rank)}</span></div>` : ''}
       <div style="text-align:center;margin-top:10px">あなたの称号は…</div><div class="ttl">「${esc(e.title)}」</div>
+      ${r.kin ? '<p class="fic">※ミアレカブトは、このゲームのための架空の昆虫です。</p>' : ''}
     </div>
     <button class="btn" id="endBtn">タイトルへもどる</button>`;
   await next();
