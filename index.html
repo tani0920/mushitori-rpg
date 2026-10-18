@@ -62,7 +62,14 @@ header small{color:var(--mute);font-size:12px}
 @keyframes blink{50%{opacity:0}}
 #menu{position:absolute;right:2.5%;top:3%;max-height:66%;min-width:40%;max-width:95%;z-index:30;display:flex;flex-direction:column;padding:.4em .5em}
 #menu .mt{padding:.1em .4em .3em;color:var(--sun);border-bottom:1px dashed #f7f1df55;margin-bottom:.2em}
-#menu ul{list-style:none;margin:0;padding:0;overflow-y:auto;position:relative}
+#menu .mlist{position:relative;display:flex;min-height:0;flex:1 1 auto}
+#menu ul{list-style:none;margin:0;padding:0;overflow-y:auto;position:relative;flex:1;min-width:0;scrollbar-width:none}
+#menu ul::-webkit-scrollbar{display:none}
+#menu .sbar{flex:none;width:5px;margin:2px 0 2px 6px;border-radius:3px;background:#ffffff22;position:relative}
+#menu .sbar i{position:absolute;left:0;right:0;border-radius:3px;background:var(--sun)}
+#menu .more{position:absolute;left:50%;transform:translateX(-50%);color:var(--sun);font-size:.8em;line-height:1;pointer-events:none;animation:blink 1s steps(2) infinite;text-shadow:0 0 3px #000}
+#menu .more.up{top:-.15em}
+#menu .more.dn{bottom:-.35em}
 #menu li{display:flex;justify-content:space-between;align-items:baseline;gap:1em;padding:.15em .4em .15em 1.3em;position:relative;cursor:pointer;border-radius:3px}
 #menu li span{min-width:0;overflow-wrap:anywhere}
 #menu li em{font-style:normal;color:var(--mute);white-space:nowrap;flex:none}
@@ -266,6 +273,11 @@ body.touch #bWrap{top:calc(var(--hudH) + 4.8em);width:min(84%,44vh)}
 #battle.vs #bShadow,#battle.vs #netfx{display:none}
 body.touch #battle.vs #bWrap{top:calc(var(--hudH) + 5em);width:min(50%,30vh)}
 body.touch #battle.vs #mWrap{top:calc(var(--hudH) + 5em + min(26%,24vh));width:min(50%,30vh)}
+/* 戦闘中のウィンドウは半透明（背景と虫が見えるように）。文字には影をつけて読みやすく */
+#battle .binfo{background:rgba(20,40,74,.62);box-shadow:none}
+#battle:not([hidden]) ~ #msg{background:rgba(20,40,74,.5);box-shadow:none;text-shadow:0 1px 2px #000,0 0 4px #000}
+#battle:not([hidden]) ~ #menu{background:rgba(20,40,74,.68);box-shadow:none;text-shadow:0 1px 2px #000}
+#battle:not([hidden]) ~ #menu li.sel{background:#ffffff26}
 #battle .vsmark{display:none;position:absolute;left:50%;top:38%;transform:translateX(-50%);z-index:3;font-size:1.6em;color:#fff;text-shadow:2px 2px 0 #a8442e,-1px -1px 0 #a8442e}
 #battle.vs .vsmark{display:block}
 body.touch #battle.vs .vsmark{top:calc(var(--hudH) + 5em + min(24%,20vh))}
@@ -405,8 +417,9 @@ const SHOES = [
   {name:'ビーチサンダル', price:0},
   {name:'スニーカー',     price:800},
   {name:'登山ぐつ',       price:3000},
-  {name:'マリンシューズ', price:6000},
 ];
+/* 大島へのフェリー：神湊の渡船ターミナルで買う「だいじなもの」（くつではない） */
+const TICKET = {name:'乗船チケット（無期限）', price:6000};
 const ITEMS = [
   {key:'drink', name:'スポーツドリンク', price:80,  desc:'たいりょくを25回復'},
   {key:'mitsu', name:'虫みつ',           price:150, desc:'バトル中、虫がつかまえやすくなる'},
@@ -426,7 +439,7 @@ const AREAS = {
               intro:'海ぞいに松林がつづいている。セミの声がすごい！'},
   joyama:    {name:'城山',         style:'joyama',    shoe:2, travel:40, bugs:['higurashi','miyama','hirata','oomurasaki','suzumebachi','kokuwa','nokogiri'],
               intro:'けわしい山道。強い虫がいそうだ。スズメバチには気をつけて！'},
-  oshima:    {name:'大島',         style:'oshima',    shoe:3, travel:90, bugs:['karasu','ruriboshi','ookuwa','kinkabuto','kabuto','miyama','oniyanma'],
+  oshima:    {name:'大島',         style:'oshima',    shoe:0, ticket:true, travel:90, bugs:['karasu','ruriboshi','ookuwa','kinkabuto','kabuto','miyama','oniyanma'],
               intro:'神湊からフェリーでわたった大島。めずらしい虫のうわさがある…'},
 };
 /* 歩いたマスごとの出現率 */
@@ -675,8 +688,9 @@ function mapLayer(id){
    ========================================================= */
 function newState(){ return {day:1, min:START_MIN, lv:1, exp:0, hp:24, money:300, net:0, cage:0, shoes:0, items:{drink:1, mitsu:0, jueki:0, note:0},
   box:[], dex:{}, seen:{}, visited:{town:true}, area:'town', x:3, y:5, dir:'D', rule:'B', warned:false, caughtTotal:0,
-  goldwing:false, trapDay:0, link:{}, round:1, sumo:{}, sumoDay:{}, sumoChamp:false}; }
-function loadState(json){ const d = newState(), s = Object.assign(d, JSON.parse(json)); s.items = Object.assign(newState().items, s.items); s.link = s.link || {}; s.sumo = s.sumo || {}; s.sumoDay = s.sumoDay || {}; return s; }
+  goldwing:false, ticket:false, trapDay:0, link:{}, round:1, sumo:{}, sumoDay:{}, sumoChamp:false}; }
+function loadState(json){ const d = newState(), s = Object.assign(d, JSON.parse(json)); s.items = Object.assign(newState().items, s.items); s.link = s.link || {}; s.sumo = s.sumo || {}; if(s.shoes >= 3){ s.shoes = 2; s.ticket = true; }   // 前のバージョンのマリンシューズ → 乗船チケット
+   s.sumoDay = s.sumoDay || {}; return s; }
 let S = newState();
 const maxHp = ()=> 24 + (S.lv-1)*6;
 const patk  = ()=> NETS[S.net].atk + (S.lv-1)*1.5;
@@ -726,17 +740,28 @@ function choose(opts, o={}){
     menuEl.className = 'win ov ' + (o.cls||'');
     const render = ()=>{
       showMsg();
-      menuEl.innerHTML = (o.title ? `<div class="mt">${esc(o.title)}</div>` : '') + '<ul>' + items.map((it,j)=>
-        `<li class="${j===i?'sel':''} ${it.disabled?'dis':''}" data-j="${j}"><span>${esc(it.label)}</span>${it.note!=null?`<em>${esc(it.note)}</em>`:''}</li>`).join('') + '</ul>';
+      menuEl.innerHTML = (o.title ? `<div class="mt">${esc(o.title)}</div>` : '') + '<div class="mlist"><ul>' + items.map((it,j)=>
+        `<li class="${j===i?'sel':''} ${it.disabled?'dis':''}" data-j="${j}"><span>${esc(it.label)}</span>${it.note!=null?`<em>${esc(it.note)}</em>`:''}</li>`).join('') +
+        '</ul><div class="sbar" hidden><i></i></div><div class="more up" hidden>▲</div><div class="more dn" hidden>▼</div></div>';
       const ul = menuEl.querySelector('ul'), sel = menuEl.querySelector('.sel');
       if(sel){ const t = sel.offsetTop, b = t + sel.offsetHeight; if(t < ul.scrollTop) ul.scrollTop = t; else if(b > ul.scrollTop + ul.clientHeight) ul.scrollTop = b - ul.clientHeight; }
+      // 見えていない続きがあるときは ▲▼ とスクロールバーを出す
+      const bar = menuEl.querySelector('.sbar'), thumb = bar.firstChild, up = menuEl.querySelector('.more.up'), dn = menuEl.querySelector('.more.dn');
+      const upd = ()=>{ const more = ul.scrollHeight - ul.clientHeight > 2; bar.hidden = !more;
+        up.hidden = !more || ul.scrollTop <= 2; dn.hidden = !more || ul.scrollTop + ul.clientHeight >= ul.scrollHeight - 2;
+        if(more){ const h = ul.clientHeight / ul.scrollHeight; thumb.style.height = h*100 + '%'; thumb.style.top = (ul.scrollTop / ul.scrollHeight)*100 + '%'; } };
+      ul.onscroll = upd; upd();
     };
     const done = v=>{ uiHandler = null; menuEl.hidden = true; menuEl.onclick = null; if(o.msg || hasDesc) msgEl.hidden = true; res(v); };
     uiHandler = k=>{
       const cols = o.cls==='cmd' ? 2 : 1;   // 戦闘コマンドは2列：左右で横、上下で縦にうごく
       if(cols>1 && (k==='L' || k==='R')){ const row = i - i % cols, c = (i % cols + (k==='R' ? 1 : cols-1)) % cols; i = Math.min(row + c, items.length-1); render(); }
-      else if(k==='U'){ i = cols>1 ? (i - cols + items.length) % items.length : (i-1+items.length) % items.length; render(); }
-      else if(k==='D'){ i = cols>1 ? (i + cols) % items.length : (i+1) % items.length; render(); }
+      else if(k==='U' || k==='D'){
+        if(cols>1){   // 2列のときは、たての列ごとにぐるっと一周：あみ→どうぐ→つかまえる→にげる→あみ
+          const order = []; for(let c=0;c<cols;c++) for(let j=c;j<items.length;j+=cols) order.push(j);
+          const p = order.indexOf(i); i = order[(p + (k==='D' ? 1 : order.length-1)) % order.length];
+        } else i = (i + (k==='D' ? 1 : items.length-1)) % items.length;
+        render(); }
       else if(k==='A'){ if(!items[i].disabled) done(i); }
       else if((k==='B'||k==='M') && o.cancel!==false) done(-1);
     };
@@ -921,12 +946,22 @@ async function checkTime(){
 /* ---------- 宗像市マップ（移動） ---------- */
 async function worldMap(){
   const ids = Object.keys(AREAS).filter(a=>a !== S.area);
-  const opts = ids.map(a=>{ const A = AREAS[a], ok = S.shoes >= A.shoe;
+  const opts = ids.map(a=>{ const A = AREAS[a];
+    if(A.ticket) return {label:A.name, note: S.ticket ? `フェリー ${A.travel}分` : '乗船チケットが必要'};   // チケットはターミナルで買える
+    const ok = S.shoes >= A.shoe;
     return {label:A.name, note: ok ? `${A.travel}分` : `${SHOES[A.shoe].name}が必要`, disabled:!ok}; });
   opts.push({label:'やめる'});
   const c = await choose(opts, {title:'宗像市マップ', msg:'どこへ行こう？', cls:'map'});
   if(c < 0 || c === ids.length){ S.y -= 1; S.dir = 'U'; return; }
   const id = ids[c], A = AREAS[id];
+  if(A.ticket && !S.ticket){
+    const y = await choose(['買う','やめる'], {cls:'side', start:0,
+      msg:`神湊の渡船ターミナル。大島行きのフェリーには「${TICKET.name}」が必要だ。\n${TICKET.price}円で買いますか？（いま ${S.money}円）`});
+    if(y!==0){ S.y -= 1; S.dir = 'U'; return; }
+    if(S.money < TICKET.price){ await say('お金が足りない…。虫を売ってお金をためよう。'); S.y -= 1; S.dir = 'U'; return; }
+    S.money -= TICKET.price; S.ticket = true; hud();
+    await say(`${TICKET.name}を手に入れた！\nこれで、いつでも大島へわたれる。（だいじなもの）`);
+  }
   await fade(()=>{ S.min += A.travel; S.area = id; if(id==='town'){ S.x = 9; S.y = 13; } else { S.x = 9; S.y = 13; } S.dir = 'U'; hud(); });
   const first = !S.visited[id]; S.visited[id] = true;
   await say(`${A.name}に着いた。（${hhmm()}）` + (first ? '\n' + A.intro : ''));
@@ -964,7 +999,7 @@ async function fieldMenu(){
     if(c===3) await openCam();
     if(c===5) await ruleMenu();
     if(c===6){ save(); await say('セーブしました。'); }
-    if(c===4) await say(`自由研究（昆虫図鑑）：${research().total}点・いまなら「${endingOf(research()).award}」\nLv${S.lv}　けいけんち ${S.exp}/${need(S.lv)}\nたいりょく ${S.hp}/${maxHp()}　こうげき ${Math.round(patk())}\nあみ：${NETS[S.net].name}／くつ：${SHOES[S.shoes].name}\nかご：${CAGES[S.cage].name}（つかまえる力${Math.round(CAGES[S.cage].pow*100)}・${cap()}ひきまで）`);
+    if(c===4) await say(`自由研究（昆虫図鑑）：${research().total}点・いまなら「${endingOf(research()).award}」\nLv${S.lv}　けいけんち ${S.exp}/${need(S.lv)}\nたいりょく ${S.hp}/${maxHp()}　こうげき ${Math.round(patk())}\nあみ：${NETS[S.net].name}／くつ：${SHOES[S.shoes].name}${S.ticket ? '／乗船チケットあり' : ''}\nかご：${CAGES[S.cage].name}（つかまえる力${Math.round(CAGES[S.cage].pow*100)}・${cap()}ひきまで）`);
   }
 }
 async function boxMenu(){
@@ -980,6 +1015,7 @@ async function boxMenu(){
 async function itemMenu(){
   const list = [...ITEMS, ...PHOTO_ITEMS];
   const opts = list.map(t=>({label:`${t.name} ×${S.items[t.key]||0}`, desc:t.desc + (t.key==='mitsu' ? '（バトル中に使う）' : ''), disabled:t.key==='mitsu' || !(S.items[t.key]>0)}));
+  if(S.ticket) opts.push({label:TICKET.name, note:'だいじなもの', desc:'神湊から大島へ、フェリーでいつでもわたれる', disabled:true});
   if(S.goldwing) opts.push({label:'金色のはね', note:'だいじなもの', desc:'大島の伝説の虫、ミアレカブトが出やすくなる', disabled:true});
   const c = await choose(opts, {title:'どうぐ'});
   const key = list[c]?.key;
@@ -1035,7 +1071,7 @@ async function buyGear(kind){
   const L = {net:NETS, cage:CAGES, shoes:SHOES}[kind], label = {net:'あみ', cage:'虫かご', shoes:'くつ'}[kind];
   while(true){
     const opts = L.map((g,j)=>({label:g.name, note: j===S[kind] ? 'もってる' : j<S[kind] ? '―' : `${g.price}円`, desc:gearDesc(kind,g,j), disabled: j<=S[kind]}));
-    const c = await choose(opts, {title:`${label}を買う　${S.money}円`, msg: kind==='shoes' ? '「いいくつがあれば、遠くの場所にも行けるよ。」' : '「いい道具をそろえると、強い虫もつかまえやすくなるよ。」'});
+    const c = await choose(opts, {title:`${label}を買う　${S.money}円`, msg: kind==='shoes' ? '「いいくつがあれば、遠くの場所にも行けるよ。大島へは、神湊でフェリーの乗船チケットを買うんだよ。」' : '「いい道具をそろえると、強い虫もつかまえやすくなるよ。」'});
     if(c<0) return;
     const g = L[c];
     if(S.money < g.price){ await say('お金が足りない…'); continue; }
@@ -1448,7 +1484,8 @@ async function titleScreen(){
   $('titleScr').hidden = true;
   if(c===1){ try{ S = loadState(loadRaw()); }catch(e){ S = newState(); } scene = 'field'; hud(); await say(`${dateStr()} ${hhmm()}\nつづきから はじめます。`); }
   else if(c===2){ S = newState(); Object.assign(S, {round:carry.round, lv:carry.lv, exp:carry.exp, net:carry.net, cage:carry.cage, shoes:carry.shoes,
-      items:Object.assign(newState().items, carry.items), money:carry.money + 300, goldwing:carry.goldwing});
+      items:Object.assign(newState().items, carry.items), money:carry.money + 300, goldwing:carry.goldwing, ticket:!!carry.ticket || carry.shoes >= 3});
+    if(S.shoes >= 3) S.shoes = 2;
     S.hp = maxHp(); S.visited = Object.assign({town:true}, carry.visited); scene = 'field'; hud(); await introCarry(carry); }
   else { S = newState(); scene = 'field'; hud(); await intro(); }
 }
@@ -1557,7 +1594,7 @@ async function ending(){
   const prev = loadCarry(), boxValue = S.box.reduce((s,it)=>s + sellPrice(it), 0);
   const best = Math.max(prev?.best || 0, r.total), newBest = !prev || r.total > (prev.best || 0);
   const carry = {round:(S.round||1) + 1, lv:S.lv, exp:S.exp, net:S.net, cage:S.cage, shoes:S.shoes, items:S.items, money:S.money + boxValue,
-    goldwing:S.goldwing, visited:S.visited, best, lastScore:r.total, lastAward:e.award};
+    goldwing:S.goldwing, ticket:S.ticket, visited:S.visited, best, lastScore:r.total, lastAward:e.award};
   saveCarry(carry);
   el.innerHTML = `<h2>自由研究「ぼくの昆虫図鑑」</h2>
     <div class="win">
@@ -1579,7 +1616,7 @@ async function ending(){
       <div class="ttl">${newBest ? '自己ベスト更新！' : `自己ベスト ${best}点`}</div>
       <div>次の夏休み（小学${grade(carry.round)}年生）に、引きつげるもの：</div>
       <ul><li>レベル ${S.lv}</li><li>${esc(NETS[S.net].name)}・${esc(CAGES[S.cage].name)}・${esc(SHOES[S.shoes].name)}</li>
-        <li>どうぐ（スポーツドリンク${S.items.drink}・虫みつ${S.items.mitsu}・樹液トラップ${S.items.jueki||0}・観察ノート${S.items.note||0}${S.goldwing ? '・金色のはね' : ''}）</li>
+        <li>どうぐ（スポーツドリンク${S.items.drink}・虫みつ${S.items.mitsu}・樹液トラップ${S.items.jueki||0}・観察ノート${S.items.note||0}${S.goldwing ? '・金色のはね' : ''}${S.ticket ? '・乗船チケット' : ''}）</li>
         <li>お金 ${carry.money}円${boxValue ? `（虫かごにのこった${S.box.length}ひきを売った${boxValue}円をふくむ）` : ''}</li></ul>
       <div class="lbl">タイトルの「引きつぎではじめる」から遊べます。図鑑はいちからつくりなおしです。</div>
     </div>
@@ -1605,6 +1642,7 @@ function start(data){
       if(QS.has('fight')) run(()=>sumoBattle(RIVALS[+QS.get('fight')||0], S.box[0])); else run(()=>say('7月…')); }
     else if(demo==='items'){ Object.assign(S.items, {jueki:2, note:1}); S.goldwing = true; run(itemMenu); }
     else if(demo==='shop') run(()=>buyGear('cage'));
+    else if(demo==='box'){ S.box = Array.from({length:14}, (_,k)=>({id:['abura','kabuto','genji','ageha'][k%4], lv:k+3})); run(boxMenu); }
     else if(demo==='end'){ const n = +(QS.get('n')||10); Object.keys(BUGS).slice(0, n).forEach(id=>S.dex[id] = {n:1, best:BUGS[id].lv}); if(QS.has('kin')) S.dex.kinkabuto = {n:1, best:25};
       S.caughtTotal = n*2; run(ending); const skip = +(QS.get('skip')||0); for(let k=0;k<skip;k++) setTimeout(()=>press('A'), 300 + k*120); }
     else run(()=>say(`${dateStr()}。いよいよ虫とりの日がやってきた！`));
