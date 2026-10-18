@@ -932,8 +932,13 @@ async function sleep(faint){
 /* ---------- メニュー ---------- */
 async function fieldMenu(){
   while(true){
-    const c = await choose(['ずかん','虫かご','どうぐ','本物の虫を撮る','ステータス','ルール','セーブ','とじる'], {title:'メニュー', cls:'side'});
-    if(c<0 || c===7) return;
+    const c = await choose(['ずかん','虫かご','どうぐ','本物の虫を撮る','ステータス','ルール','セーブ','タイトルにもどる','とじる'], {title:'メニュー', cls:'side'});
+    if(c<0 || c===8) return;
+    if(c===7){
+      const y = await choose(['はい','いいえ'], {msg:'本当にタイトルにもどりますか？\n（セーブしていないところまでの進み具合は消えます）', cls:'side', start:1});
+      if(y===0){ await fade(()=>{ mv = null; }); await titleScreen(); return; }
+      continue;
+    }
     if(c===0) await openDex();
     if(c===1) await boxMenu();
     if(c===2) await itemMenu();
