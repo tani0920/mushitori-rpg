@@ -65,7 +65,10 @@ header small{color:var(--mute);font-size:12px}
 #menu li.sel::before{content:"▶";position:absolute;left:.25em;color:var(--sun)}
 #menu li.dis{color:#f7f1df66}
 #menu li.dis em{color:#f7f1df55}
-#menu.cmd{top:auto;bottom:31%;right:2.5%;min-width:34%}
+#menu.cmditem{top:auto;bottom:31%;right:2.5%;min-width:34%}
+#menu.cmd{top:auto;left:2.5%;right:2.5%;bottom:3%;min-height:25%;max-width:none;z-index:31}   /* 戦闘コマンド：メッセージ欄の場所に2列で */
+#menu.cmd ul{display:grid;grid-template-columns:1fr 1fr;gap:.25em .8em;overflow:visible}
+#menu.cmd li{padding-top:.3em;padding-bottom:.3em}
 #menu.map{left:2.5%;right:auto;min-width:62%}
 #menu.title{right:auto;left:50%;transform:translateX(-50%);top:60%;min-width:44%}
 #menu.side{min-width:32%}
@@ -81,6 +84,7 @@ header small{color:var(--mute);font-size:12px}
 #titleScr.art{background-size:cover;background-position:center bottom;image-rendering:pixelated}
 #titleScr .logo{width:min(84%,560px);image-rendering:pixelated;filter:drop-shadow(0 3px 0 #0005);margin:.2em 0 .4em}
 #titleScr.art .sun{display:none}
+#titleScr.fine{image-rendering:auto}
 #titleScr .t2{font-size:clamp(26px,9cqw,54px);color:var(--sun);letter-spacing:.06em;text-shadow:3px 3px 0 #5a2a10,-1px -1px 0 #fff3;line-height:1.15;margin:.15em 0}
 #titleScr .t3{font-size:clamp(11px,2.8cqw,16px);color:#fff;text-shadow:1px 1px 0 #0009}
 #titleScr .t4{max-width:34em;margin-top:.8em;padding:.35em .8em;font-size:clamp(9px,2.1cqw,12px);line-height:1.5;color:#fff;background:#0006;border-radius:4px}
@@ -97,7 +101,7 @@ header small{color:var(--mute);font-size:12px}
 #battle.bg-oshima{background:linear-gradient(#8fd6f8 0 42%,#2f78c0 42% 56%,#e8d6a0 56% 64%,#5a9a48 64%)}
 #battle.night::after{content:"";position:absolute;inset:0;background:#0a1440;opacity:.5;pointer-events:none}
 #battle.dusk::after{content:"";position:absolute;inset:0;background:#d8641e;opacity:.22;pointer-events:none}
-#bWrap{position:absolute;left:50%;top:12%;width:42%;transform:translateX(-50%);z-index:2}
+#bWrap{position:absolute;left:50%;top:21%;width:34%;transform:translateX(-50%);z-index:2}
 #bSprite{width:100%;display:block;image-rendering:pixelated;image-rendering:crisp-edges;animation:bob 1.2s ease-in-out infinite}
 #bShadow{width:70%;height:8%;margin:-4% auto 0;border-radius:50%;background:#0003}
 @keyframes bob{50%{transform:translateY(-5%)}}
@@ -225,34 +229,36 @@ body.touch .ab{--b:clamp(68px,10vmin,96px);grid-template-columns:var(--b) var(--
 body.touch .ab [data-k=A],body.touch .ab [data-k=B]{width:var(--b);height:var(--b);font-size:22px}
 body.touch .ab [data-k=A]{background:#8a3e22dd!important}
 body.touch .ab [data-k=M]{font-size:14px!important;padding:8px 10px}
-body.touch #screen .ov{font-size:clamp(15px,4.4vmin,24px)}
+body.touch #screen .ov{font-size:clamp(15px,4.4vmin,30px)}
 body.touch .win{border-width:3px;padding:.5em .8em;line-height:1.55}
 body.touch #msg{left:calc(var(--sideL) + 8px);right:calc(var(--sideR) + 8px);bottom:calc(var(--padH) + 8px);min-height:6em;max-height:45%;overflow-y:auto}
 body.touch #menu{top:calc(var(--hudH) + 6px);right:calc(var(--sideR) + 8px);max-width:calc(100% - var(--sideL) - var(--sideR) - 16px);
   max-height:calc(100% - var(--hudH) - var(--padH) - 6em - 30px)}
 body.touch #menu.map{left:calc(var(--sideL) + 8px);right:auto}
-body.touch #menu.cmd{top:auto;bottom:calc(var(--padH) + 6em + 16px)}
-body.touch #menu.title{top:58%;bottom:auto;right:auto;left:50%}
+body.touch #menu.cmditem{top:auto;bottom:calc(var(--padH) + 6em + 16px)}
+body.touch #menu.cmd{left:calc(var(--sideL) + 8px);right:calc(var(--sideR) + 8px);bottom:calc(var(--padH) + 8px);top:auto;min-height:6em;max-height:none}
+body.touch #menu.title{top:60%;bottom:auto;left:auto;right:6%;transform:none;min-width:0}   /* 男の子（左より）にかぶらないよう右に */
 body.touch #menu li{padding-top:.3em;padding-bottom:.3em}
 body.touch .binfo{font-size:.8em}
 body.touch #bInfo{top:calc(var(--hudH) + 4px);left:calc(var(--sideL) + 8px);min-width:0;width:calc(50% - var(--sideL) - 12px);max-width:16em}
 body.touch #pInfo{top:calc(var(--hudH) + 4px);right:calc(var(--sideR) + 8px);min-width:0;width:calc(50% - var(--sideR) - 12px);max-width:12em}
-body.touch #bWrap{top:calc(var(--hudH) + 5.5em);width:min(64%,38vh)}
+body.touch #bWrap{top:calc(var(--hudH) + 4.8em);width:min(84%,44vh)}
 #mWrap{position:absolute;z-index:2;display:none}
 #mSprite{width:100%;display:block;image-rendering:pixelated;animation:bob 1.2s ease-in-out infinite .6s}
 #mSprite.hit{animation:hit .45s steps(2) 1}
 #battle.vs #bWrap{left:8%;right:auto;transform:none;width:24%;top:25%}   /* あいて：左上（左の名前の下） */
 #battle.vs #mWrap{display:block;right:8%;left:auto;width:24%;top:37%}   /* ぼく：右下（右の名前の下） */
 #battle.vs #bShadow,#battle.vs #netfx{display:none}
-body.touch #battle.vs #bWrap{top:calc(var(--hudH) + 5.5em);width:min(44%,26vh)}
-body.touch #battle.vs #mWrap{top:calc(var(--hudH) + 5.5em + min(30%,22vh));width:min(44%,26vh)}
+body.touch #battle.vs #bWrap{top:calc(var(--hudH) + 5em);width:min(50%,30vh)}
+body.touch #battle.vs #mWrap{top:calc(var(--hudH) + 5em + min(26%,24vh));width:min(50%,30vh)}
 #battle .vsmark{display:none;position:absolute;left:50%;top:38%;transform:translateX(-50%);z-index:3;font-size:1.6em;color:#fff;text-shadow:2px 2px 0 #a8442e,-1px -1px 0 #a8442e}
 #battle.vs .vsmark{display:block}
-body.touch #battle.vs .vsmark{top:calc(var(--hudH) + 5.5em + min(22%,16vh))}
+body.touch #battle.vs .vsmark{top:calc(var(--hudH) + 5em + min(24%,20vh))}
 body.touch #titleScr{padding-top:calc(env(safe-area-inset-top,0px) + 14%)}
 body.touch #titleScr.art{background-size:cover;background-position:center bottom;image-rendering:pixelated}
 #titleScr .logo{width:min(84%,560px);image-rendering:pixelated;filter:drop-shadow(0 3px 0 #0005);margin:.2em 0 .4em}
 #titleScr.art .sun{display:none}
+#titleScr.fine{image-rendering:auto}
 #titleScr .t2{font-size:clamp(34px,11vmin,64px)}
 body.touch #titleScr .t1{font-size:clamp(16px,4.6vmin,26px)}
 body.touch #titleScr .t3{font-size:clamp(13px,3.6vmin,20px);padding:0 16px}
@@ -270,10 +276,11 @@ body.touch.land #msg{min-height:4.4em;max-height:38%;bottom:8px}
 body.touch.land #menu{max-height:calc(100% - var(--hudH) - 4.4em - 26px)}
 body.touch.land #menu.side,body.touch.land #menu.map{max-height:calc(100% - var(--hudH) - 14px)}
 body.touch.land #menu li{padding-top:.12em;padding-bottom:.12em}
-body.touch.land #menu.cmd{bottom:calc(4.4em + 18px)}
+body.touch.land #menu.cmditem{bottom:calc(4.4em + 18px)}
+body.touch.land #menu.cmd{bottom:8px;min-height:4.4em}
 body.touch.land .binfo{font-size:.75em}
 body.touch.land #bInfo{left:calc(var(--sideL) + 8px)}
-body.touch.land #bWrap{top:calc(var(--hudH) + 2em);width:min(30vh,34%)}
+body.touch.land #bWrap{top:calc(var(--hudH) + .4em);width:min(54vh,30%)}
 body.touch.land #battle.vs #bWrap{left:calc(var(--sideL) + 6%);top:calc(var(--hudH) + 4.2em);width:min(26vh,20%)}
 body.touch.land #battle.vs #mWrap{right:calc(var(--sideR) + 6%);top:calc(var(--hudH) + 5.6em);width:min(26vh,20%)}
 body.touch.land #battle.vs .vsmark{top:calc(var(--hudH) + 6em)}
@@ -282,7 +289,7 @@ body.touch.land #titleScr .t1{font-size:clamp(13px,4vh,20px)}
 body.touch.land #titleScr .logo{width:auto;height:min(32vh,170px);margin:.1em 0}
 body.touch.land #titleScr .t3{font-size:clamp(11px,3.4vh,16px)}
 body.touch.land #titleScr .t4{font-size:clamp(9px,2.8vh,13px);max-width:min(60%,34em);margin-top:.4em}
-body.touch.land #menu.title{top:auto;bottom:10px}
+body.touch.land #menu.title{top:auto;bottom:10px;left:50%;right:auto;transform:translateX(-50%)}
 #keys{color:var(--mute);font-size:12px;text-align:center}
 #keys b{color:var(--ink);font-weight:400;border:1px solid #f7f1df55;border-radius:3px;padding:0 4px;margin:0 2px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -1075,7 +1082,7 @@ async function faintPenalty(){
 }
 async function useItemBattle(e){
   const opts = ITEMS.map(t=>({label:`${t.name} ×${S.items[t.key]}`, desc:t.desc, disabled: S.items[t.key]<=0 || (t.key==='mitsu' && e.mitsu)}));
-  const c = await choose(opts, {title:'どうぐ', cls:'cmd'});
+  const c = await choose(opts, {title:'どうぐ', cls:'cmditem'});
   if(c<0) return false;
   if(c===0){ S.items.drink--; const b = S.hp; S.hp = Math.min(maxHp(), S.hp+25); updateB(e); hud(); await say(`スポーツドリンクをのんだ！ たいりょくが ${S.hp-b} 回復した。`); }
   if(c===1){ S.items.mitsu--; e.mitsu = true; updateB(e); await say(`虫みつをぬった！ ${e.b.name}はあまいにおいにうっとりしている。`); }
@@ -1086,7 +1093,8 @@ const BG_DIR = 'img/sprites/bg/';
 const portraitNow = ()=> TOUCH && innerHeight > innerWidth;
 function bgName(base){ const list = window.BG_IMAGES || [], a = base + (portraitNow() ? '_tate' : '_yoko'), b = base + (portraitNow() ? '_yoko' : '_tate');
   return list.includes(a) ? a : list.includes(b) ? b : null; }
-function battleBg(style){ const n = bgName('bg_' + style); battleEl.style.backgroundImage = n ? `url(${BG_DIR}${n}.png)` : ''; }
+const bgURL = n=> `${BG_DIR}${n}.${(window.BG_EXT||{})[n] || 'png'}`;
+function battleBg(style){ const n = bgName('bg_' + style); battleEl.style.backgroundImage = n ? `url(${bgURL(n)})` : ''; }
 /* 危ない虫（スズメバチ）：戦わずにしずかに逃げる。図鑑には「観察した」として記録 */
 async function dangerEncounter(id){
   const b = BUGS[id], slot = slotOf(S.min);
@@ -1114,7 +1122,7 @@ async function battle(id){
   await say(`あっ！ ${b.name}（Lv${lv}）があらわれた！` + (id==='kinkabuto' ? '\nまぶしい金色の光…！ これが大島の伝説の…！' : b.rank>=4 ? '\nめずらしい虫だ…！' : ''));
   let result = null;
   while(!result){
-    const c = await choose(['あみをふる','つかまえる','どうぐ','にげる'], {cls:'cmd', msg:`どうする？`, cancel:false});
+    const c = await choose(['あみをふる','つかまえる','どうぐ','にげる'], {cls:'cmd', title:`${b.name}を どうする？`, cancel:false});
     let turn = true;
     if(c===0){
       if(Math.random() < b.spd*0.05){ await say(`ブンッ！ ${b.name}にあみをよけられた！`); }
@@ -1218,7 +1226,7 @@ async function sumoBattle(r, it){
   };
   let result = null;
   while(!result){
-    const c = await choose(['つっこむ', SPECIAL[me.b.shape], 'ふんばる', 'こうさん'], {cls:'cmd', cancel:false, msg:`ぼくの${me.b.name}、どうする？`,
+    const c = await choose(['つっこむ', SPECIAL[me.b.shape], 'ふんばる', 'こうさん'], {cls:'cmd', cancel:false, title:`ぼくの${me.b.name}、どうする？`,
       start:0});
     if(c===3){ await say('「まいった！」…こうさんした。'); result = 'lose'; break; }
     const fc = foe.hp < foe.maxhp*0.3 && Math.random() < .35 ? 2 : Math.random() < .3 ? 1 : 0;
@@ -1390,7 +1398,7 @@ function openCam(){
    ========================================================= */
 function titleArt(){
   const el = $('titleScr'), n = bgName('title'), logo = el.querySelector('.logo'), hasLogo = (window.BG_IMAGES||[]).includes('title_logo');
-  el.classList.toggle('art', !!n); el.style.backgroundImage = n ? `url(${BG_DIR}${n}.png)` : '';
+  el.classList.toggle('art', !!n); el.classList.toggle('fine', !!n && (window.BG_EXT||{})[n]==='jpg'); el.style.backgroundImage = n ? `url(${bgURL(n)})` : '';
   if(hasLogo){ logo.src = BG_DIR + 'title_logo.png'; logo.hidden = false; el.querySelector('.t2').hidden = true; }
 }
 titleArt(); addEventListener('resize', titleArt);
@@ -1553,7 +1561,7 @@ function start(data){
   if(data && data.save && data.scene==='field'){ try{ S = loadState(data.save); scene = 'field'; $('titleScr').hidden = true; hud(); return; }catch(e){} }
   const demo = QS.get('demo');
   if(demo){ S = newState(); scene = 'field'; $('titleScr').hidden = true; S.area = 'taisha'; S.x = 9; S.y = 9; hud(); layout();
-    if(demo==='battle') run(()=>battle(QS.get('id') || 'kabuto'));
+    if(demo==='battle'){ run(()=>battle(QS.get('id') || 'kabuto')); for(let k=0;k<+(QS.get('skip')||0);k++) setTimeout(()=>press('A'), 1000 + k*250); }
     else if(demo==='dex'){ Object.keys(BUGS).slice(0, +(QS.get('n')||12)).forEach(id=>S.dex[id] = {n:1, best:BUGS[id].lv}); S.seen.kokuwa = true; if(QS.has('hachi')) S.dex.suzumebachi = {n:0, best:0, watched:true}; setTimeout(()=>{ run(openDex); if(QS.has('hachi')) setTimeout(()=>{ for(let k=0;k<26;k++) press('R'); }, 300); }, 600); }
     else if(demo==='menu') run(fieldMenu);
     else if(demo==='sumo'){ S.area = 'town'; S.x = 13; S.y = 10; S.dir = 'U'; S.box = [{id:QS.get('id')||'kokuwa', lv:12}]; hud();
