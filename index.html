@@ -138,6 +138,17 @@ body.touch.land #msg .face{width:3.6em;height:3.6em}
 .binfo .bar{width:100%;height:.6em}
 .binfo .stars{color:var(--sun);letter-spacing:.05em}
 .binfo .new{color:#ff8a6a}
+/* スズメバチ：黄色と黒のしましまの警告 */
+.binfo .warn{display:inline-flex;align-items:center;gap:.35em;margin:.2em 0;padding:.15em .7em .15em .4em;border-radius:4px;font-weight:700;color:#1b130c;
+  background:repeating-linear-gradient(-45deg,#ffd23a 0 8px,#ffe680 8px 16px);border:2px solid #1b130c;animation:warnblink .6s steps(2) infinite}
+.binfo .warnicon{width:1.35em;height:1.35em;flex:none}
+@keyframes warnblink{50%{filter:brightness(1.25)}}
+#battle .binfo.danger{width:auto!important;max-width:calc(100% - 16px)!important;white-space:nowrap;border-color:#ffd23a;box-shadow:0 0 0 3px #1b130c,0 0 0 6px #ffd23a}
+#battle.alarm::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;border:10px solid transparent;
+  border-image:repeating-linear-gradient(-45deg,#ffd23a 0 14px,#1b130c 14px 28px) 10;animation:alarmflash 1s ease-in-out infinite;opacity:.85}
+#battle.alarm::after{content:"";position:absolute;inset:0;background:#c8202044;pointer-events:none;animation:alarmflash 1s ease-in-out infinite}
+@keyframes alarmflash{50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){#battle.alarm::before,#battle.alarm::after,.binfo .warn{animation:none}}
 .binfo .dexnew{display:inline-flex;align-items:center;gap:.35em;margin:.15em 0 .1em;padding:.1em .6em .1em .35em;border-radius:999px;
   background:#e8553e;color:#fff;font-size:.95em;font-weight:700;box-shadow:0 0 0 2px #ffd36a;animation:dexpulse 1.2s ease-in-out infinite}
 .binfo .dexicon{width:1.25em;height:1.25em;flex:none}
@@ -1210,7 +1221,7 @@ const expOf = e=> Math.round(e.lv*3 + e.b.rank*6);
 const DEX_ICON = '<svg class="dexicon" viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="2" width="13" height="12" rx="1.5" fill="#fff4c8" stroke="#5a2a10" stroke-width="1.2"/><line x1="8" y1="2.5" x2="8" y2="13.5" stroke="#5a2a10" stroke-width="1"/><text x="4.75" y="11" font-size="8" font-weight="700" text-anchor="middle" fill="#c8402e">?</text><text x="11.25" y="11" font-size="8" font-weight="700" text-anchor="middle" fill="#c8402e">?</text></svg>';
 function updateB(e){
   const r = e.hp / e.maxhp, pr = S.hp / maxHp(), p = catchRate(e), dots = Math.max(1, Math.ceil(p*5));
-  $('bInfo').classList.toggle('isnew', !S.dex[e.id]);
+  $('bInfo').classList.toggle('isnew', !S.dex[e.id]); $('bInfo').classList.remove('danger');
   $('bInfo').innerHTML = `<div class="row"><span>${esc(e.b.name)}</span><span>Lv${e.lv}</span></div>`+
     `<div class="row"><span><span class="lbl">レア度</span> <span class="stars">${stars(e.b.rank)}</span></span></div>`+
     (S.dex[e.id] ? '' : `<div class="row"><span class="dexnew">${DEX_ICON}まだ図鑑にない虫！</span></div>`)+
@@ -1273,19 +1284,21 @@ function battleBg(style){
   const n = nightArt || bgName('bg_' + style);
   battleEl.style.backgroundImage = n ? `url(${bgURL(n)})` : '';
 }
+/* 警告マーク（黄色い三角に「！」） */
+const WARN_ICON = '<svg class="warnicon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.2 L15.2 14.4 H0.8 Z" fill="#ffd23a" stroke="#1b130c" stroke-width="1.3" stroke-linejoin="round"/><rect x="7.1" y="5.2" width="1.8" height="5" rx=".6" fill="#1b130c"/><rect x="7.1" y="11.3" width="1.8" height="1.8" rx=".6" fill="#1b130c"/></svg>';
 /* 危ない虫（スズメバチ）：戦わずにしずかに逃げる。図鑑には「観察した」として記録 */
 async function dangerEncounter(id){
   const b = BUGS[id], slot = slotOf(S.min);
   battleEl.className = 'ov bg-' + AREAS[S.area].style + (slot==='yoru' ? ' night' : slot==='yu' ? ' dusk' : ''); battleBg(AREAS[S.area].style);
   bSprite.src = spriteURL(id); scene = 'battle';
   if(!imgOK[id] && imgReady[id]) imgReady[id].then(()=>{ if(scene==='battle') bSprite.src = spriteURL(id); });
-  await fade(()=>{ battleEl.hidden = false; $('bInfo').innerHTML = `<div class="row"><span>${esc(b.name)}</span></div><div class="row"><span class="new">きけん！</span></div>`; $('pInfo').innerHTML = `<div class="row"><span>ぼく</span><span>Lv${S.lv}</span></div>`; });
+  await fade(()=>{ battleEl.hidden = false; $('bInfo').classList.add('danger'); $('bInfo').innerHTML = `<div class="row"><span>${esc(b.name)}</span></div><div class="row"><span class="warn">${WARN_ICON}キケン！ 近づかないで</span></div>`; battleEl.classList.add('alarm'); $('pInfo').hidden = true; $('pInfo').innerHTML = `<div class="row"><span>ぼく</span><span>Lv${S.lv}</span></div>`; });
   await say(`ブーーン…！ ${b.name}だ！`);
   await say('スズメバチはとても危ない！\nさわがず、手でふりはらわず、しずかにその場をはなれよう…。');
   const first = !S.dex[id];
   if(first){ S.dex[id] = {n:0, best:0, watched:true}; hud(); }
   await say('そーっと、後ろに下がって にげた。ふう、あぶなかった…。' + (first ? `\n遠くから観察したので、昆虫図鑑に ${b.name} を記録した！` : ''));
-  await fade(()=>{ battleEl.hidden = true; scene = 'field'; S.min += 5; hud(); });
+  await fade(()=>{ battleEl.hidden = true; battleEl.classList.remove('alarm'); $('bInfo').classList.remove('danger'); $('pInfo').hidden = false; scene = 'field'; S.min += 5; hud(); });
 }
 async function battle(id){
   const b = BUGS[id], lv = b.lv + rint(0,2), k = 1 + 0.08*(lv - b.lv);
