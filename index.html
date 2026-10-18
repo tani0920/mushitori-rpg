@@ -403,12 +403,16 @@ const slotOf = m => m < 9*60 ? 'asa' : m < 17*60 ? 'hiru' : m < 19*60 ? 'yu' : '
 
 /* ---------- 装備 ---------- */
 const NETS = [
-  {name:'こども用あみ',   atk:4,  price:0},
-  {name:'竹のあみ',       atk:7,  price:500},
-  {name:'アルミのあみ',   atk:12, price:1500},
-  {name:'カーボンのあみ', atk:18, price:4000},
-  {name:'名人のあみ',     atk:26, price:10000},
+  {name:'こども用あみ',   atk:4,  price:0,     soft:{ko:.20, any:.03}},
+  {name:'竹のあみ',       atk:7,  price:500,   soft:{ko:.35, any:.05}},
+  {name:'アルミのあみ',   atk:12, price:1500,  soft:{ko:.50, any:.07}},
+  {name:'カーボンのあみ', atk:18, price:4000,  soft:{ko:.65, any:.09}},
+  {name:'名人のあみ',     atk:26, price:10000, soft:{ko:.80, any:.12}},
 ];
+/* 網の必殺技「ふんわりあみ」：虫をHP1でやさしくおさえこみ、虫は1ターンひるんで動けない。
+   ko＝たおしてしまう一撃のときに出る確率、any＝ふつうの一撃のときに出る確率。高いあみほど出やすい */
+const SOFT_NAME = 'ふんわりあみ';
+const softStars = n=> { const k = Math.round(NETS[n].soft.ko*5); return '★'.repeat(k) + '☆'.repeat(5-k); };
 const CAGES = [
   {name:'おかしの空き箱',   pow:.35, cap:5,  price:0},
   {name:'プラスチックかご', pow:.50, cap:8,  price:400},
@@ -1074,7 +1078,7 @@ async function sellMenu(){
   }
 }
 function gearDesc(kind, g, j){
-  if(kind==='net') return `あみのつよさ ${g.atk}（いまは ${NETS[S.net].atk}）`;
+  if(kind==='net') return `あみのつよさ ${g.atk}（いまは ${NETS[S.net].atk}）\n${SOFT_NAME}の出やすさ ${softStars(j)}（HP1でおさえこむ必殺技）`;
   if(kind==='cage') return `つかまえる力 ${Math.round(g.pow*100)}・${g.cap}ひきまで入る（いまは ${Math.round(CAGES[S.cage].pow*100)}・${CAGES[S.cage].cap}ひき）`;
   const a = Object.values(AREAS).filter(a=>a.shoe===j).map(a=>a.name).join('と');
   return a ? `${a}に行けるようになる` : '近所を歩けるくつ';
@@ -1205,12 +1209,19 @@ async function battle(id){
       if(Math.random() < b.spd*0.05){ await say(`ブンッ！ ${b.name}にあみをよけられた！`); }
       else {
         let d = patk()*(0.85 + Math.random()*0.3); const crit = Math.random() < 1/12; if(crit) d *= 1.6; d = Math.max(1, Math.round(d));
+        // 網の必殺技：たおしてしまいそうな一撃ほど出やすい（ルールA「たおしてゲット」のときは、たおす一撃では出ない）
+        const ko = d >= e.hp, so = NETS[S.net].soft;
+        if(e.hp > 1 && (ko ? S.rule!=='A' && Math.random() < so.ko : Math.random() < so.any)){
+          e.hp = 1; e.stun = 1; fx(bSprite,'hit',450); updateB(e);
+          await say(`ひっさつ！「${SOFT_NAME}」！\n${b.name}をやさしくおさえこんだ！ のこりHP1！\n（いまがつかまえるチャンス！）`);
+        } else {   // ふつうの一撃
         e.hp = Math.max(0, e.hp - d); fx(bSprite,'hit',450); updateB(e);
         await say((crit ? 'クリーンヒット！ ' : '') + `${b.name}に ${d} のダメージ！`);
         if(e.hp <= 0){
           if(S.rule==='A'){ await getBug(e); }
           else { await say(`${b.name}は弱って、どこかへ飛んでいってしまった…\n（HPを0にすると、つかまえられない）`); await gainExp(Math.round(expOf(e)/2)); }
           result = 'end';
+        }
         }
       }
     } else if(c===1){
@@ -1225,6 +1236,7 @@ async function battle(id){
     else { await say('そっと、その場をはなれた…'); result = 'end'; }
     if(result || !turn) continue;
     // 虫のターン
+    if(e.stun){ e.stun--; await say(`${b.name}はひるんでいて、動けない！`); continue; }
     const hpR = e.hp / e.maxhp;
     if(Math.random() < b.spd*0.025 + (hpR < .35 ? .06 : 0)){ await say(`${b.name}は飛んでにげてしまった！`); result = 'end'; break; }
     const d = Math.max(1, Math.round(e.atk*(0.8 + Math.random()*0.4)));
@@ -1298,6 +1310,7 @@ async function sumoRules(){
 async function sumoMenu(){
   S.sumo = S.sumo || {}; S.sumoDay = S.sumoDay || {};
   await say('広場の切りかぶの上で、近所の子どもたちが虫ずもうをしている！');
+  if(!S.sumoRuleSeen){ S.sumoRuleSeen = true; await say('ゆうた「虫ずもう、はじめて？ やり方をおしえてあげるね！」'); await sumoRules(); }
   while(true){
     const opts = RIVALS.map((r,i)=>{
       const won = S.sumo[r.key], locked = i>0 && !S.sumo[RIVALS[i-1].key], done = S.sumoDay[r.key]===S.day;
@@ -1306,16 +1319,17 @@ async function sumoMenu(){
         desc: locked ? '前の相手に勝つと、挑戦できるようになる' : `あいての虫：${BUGS[r.bug].name} Lv${r.lv}（${typeOf(BUGS[r.bug]).name}タイプ）` + (won ? '\n勝ったことがある。再戦は1日1回' : ''),
         disabled: locked || done};
     });
-    opts.push({label:'虫ずもうのルール', desc:'わざとタイプの説明'});
+    opts.unshift({label:'虫ずもうのルール', desc:'わざとタイプの説明'});   // いちばん上
     opts.push({label:'やめる'});
     // カーソルは「まだ勝っていない相手」→「今日たたかえる相手」の順で、えらべるところに合わせる
-    const can = opts.map((o,j)=>!o.disabled && j<RIVALS.length);
+    const can = RIVALS.map((r,j)=>!opts[j+1].disabled);
     let start = RIVALS.findIndex((r,j)=>can[j] && !S.sumo[r.key]);
     if(start<0) start = can.indexOf(true);
-    if(start<0) start = RIVALS.length + 1;
-    const c = await choose(opts, {title:'虫ずもう', start});
-    if(c===RIVALS.length){ await sumoRules(); continue; }
-    if(c<0 || c===RIVALS.length + 1) return;
+    start = start<0 ? RIVALS.length + 1 : start + 1;   // 先頭はルールなので +1
+    const c0 = await choose(opts, {title:'虫ずもう', start});
+    if(c0===0){ await sumoRules(); continue; }
+    if(c0<0 || c0===RIVALS.length + 1) return;
+    const c = c0 - 1;
     if(!S.box.length){ await say('虫かごに虫がいないと、虫ずもうに出られない…。'); return; }
     const m = await choose(S.box.map(it=>({label:`${BUGS[it.id].name} Lv${it.lv}`, desc:fstat(fighter(it.id, it.lv, true))})), {title:'どの虫で勝負する？'});
     if(m<0) continue;
