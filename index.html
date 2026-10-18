@@ -237,7 +237,7 @@ body.touch #dexDetail dl{font-size:14px}
     <canvas id="cv" width="320" height="240"></canvas>
     <div id="titleScr" class="ov">
       <div class="sun"></div>
-      <div class="t1">夏休み 14日間の</div>
+      <div class="t1">夏休み さいごの14日間</div>
       <div class="t2">むなかた<br>虫とり日記</div>
       <div class="t3">宗像じゅうの虫をつかまえて、図鑑を完成させよう</div>
     </div>
@@ -284,7 +284,8 @@ body.touch #dexDetail dl{font-size:14px}
 /* =========================================================
    設定（ここをいじるとバランス調整できる）
    ========================================================= */
-const DAYS = 14;                 // 夏休みの日数
+const DAYS = 14;                 // 虫とりの日数（8/13〜8/26。8/27から二学期）
+const START_DATE = [2026, 7, 13]; // 1日目の日付（年, 月-1, 日）＝ 8月13日
 const START_MIN = 6*60;          // 1日のはじまり 6:00
 const END_MIN = 21*60;           // 夜9時で強制帰宅
 const STEP_MIN = 2;              // 1歩で進む時間（分）
@@ -565,7 +566,7 @@ const stars = n=> '★'.repeat(n) + '☆'.repeat(5-n);
 const esc = s=> String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const fmt = s=> esc(s).replace(/\n/g,'<br>');
 const wait = ms=> new Promise(r=>setTimeout(r,ms));
-function dateStr(day=S.day){ const d = new Date(2026, 6, 20+day); return `${d.getMonth()+1}月${d.getDate()}日（${'日月火水木金土'[d.getDay()]}）`; }
+function dateStr(day=S.day){ const d = new Date(START_DATE[0], START_DATE[1], START_DATE[2] + day - 1); return `${d.getMonth()+1}月${d.getDate()}日（${'日月火水木金土'[d.getDay()]}）`; }
 const hhmm = (m=S.min)=> `${Math.floor(m/60)}:${String(m%60).padStart(2,'0')}`;
 const sellPrice = it=> Math.round(BUGS[it.id].price * (1 + (it.lv - BUGS[it.id].lv)*0.1));
 const dexCount = ()=> Object.keys(S.dex).length;
@@ -799,7 +800,7 @@ async function sleep(faint){
   await fade(()=>{ S.day++; S.min = START_MIN; S.hp = maxHp(); S.area = 'town'; S.x = 3; S.y = 5; S.dir = 'D'; S.warned = false; hud(); });
   save();
   const left = DAYS - S.day + 1;
-  const tip = left===1 ? '今日が夏休み最後の日だ！' : left<=3 ? `夏休みもあと${left}日…！` : ['今日もいい天気だ！','セミが朝から元気に鳴いている。','ラジオ体操に行ってきた！','朝ごはんをしっかり食べた！'][S.day%4];
+  const tip = left===1 ? '今日が夏休み最後の日だ！ 明日から二学期…。' : left<=3 ? `二学期まで、あと${left}日…！` : S.day<=4 ? ['お盆で、親せきのおじさんたちが遊びに来ている。','お盆なので、お墓まいりに行ってきた。','お盆の夜は、町内でぼんおどりがあるらしい。'][S.day%3] : ['今日もいい天気だ！','セミが朝から元気に鳴いている。','ラジオ体操に行ってきた！','朝ごはんをしっかり食べた！'][S.day%4];
   await say(`${dateStr()} の朝。\n${faint ? 'ゆっくり休んだら元気になった。' : ''}${tip}`);
 }
 
@@ -1162,9 +1163,10 @@ async function titleScreen(){
 async function intro(){
   const touch = matchMedia('(hover:none),(pointer:coarse)').matches;
   await talk(
-    `${dateStr()}。今日から夏休みだ！`,
-    'お母さん「虫とりもいいけど、夜9時までには帰ってくるのよ。\nはい、おこづかい300円。」',
-    `夏休みは ${dateStr(DAYS)} までの ${DAYS}日間。\n宗像じゅうの虫をつかまえて、昆虫図鑑を完成させよう！`,
+    `${dateStr()}。いよいよ虫とりの日がやってきた！`,
+    '7月21日に夏休みがはじまってから、がんばって宿題をほとんど終わらせた。\nのこりの夏休みは、虫とりに全力だ！',
+    'お母さん「宿題がんばったわね。でも夜9時までには帰ってくるのよ。\nはい、おこづかい300円。」',
+    `${dateStr(DAYS+1)}からは二学期がはじまる。\n${dateStr(DAYS)}までの${DAYS}日間で、宗像じゅうの虫をつかまえて昆虫図鑑を完成させよう！`,
     'つかまえた虫は、家のとなりの「虫具店」で売れる。\nお金をためて、いいあみ・虫かご・くつを買おう！',
     '本物の虫を見つけたら、メニューの「本物の虫を撮る」で写真を見せてね。\nおこづかいや、お店では買えないアイテムがもらえるよ！',
     touch ? '【そうさ】十字キー：いどう　A：けってい　B/メニュー：メニュー\n草むらを歩くと虫が出てくるよ。下の出口から町の外へ！'
@@ -1183,7 +1185,7 @@ async function ending(){
   const ids = Object.keys(BUGS), n = dexCount();
   const best = ids.filter(id=>S.dex[id]).sort((a,b)=>BUGS[b].rank - BUGS[a].rank || BUGS[b].price - BUGS[a].price)[0];
   $('endIn').innerHTML = `<h2>夏休み、おしまい！</h2>
-    <div class="win"><div>${dateStr(DAYS)}までの ${DAYS}日間、おつかれさま！</div><br>
+    <div class="win"><div>${dateStr(1)}から${dateStr(DAYS)}までの ${DAYS}日間、おつかれさま！<br>明日から二学期。自由研究の発表がたのしみだ！</div><br>
     <div>昆虫図鑑：${n} / ${ids.length} しゅるい</div><div>つかまえた数：のべ ${S.caughtTotal} ひき</div><div>レベル：${S.lv}</div><div>のこったお金：${S.money}円</div>
     ${best ? `<br><div>いちばんすごい虫：</div><div style="display:flex;align-items:center;gap:10px"><img alt="" src="${spriteURL(best)}"><span>${esc(BUGS[best].name)}　${stars(BUGS[best].rank)}</span></div>` : ''}
     <br><div>あなたの称号は…</div><div class="ttl">「${titleFor(n, ids.length)}」</div></div>
@@ -1207,7 +1209,7 @@ function start(data){
     else if(demo==='menu') run(fieldMenu);
     else if(demo==='items'){ Object.assign(S.items, {jueki:2, note:1}); S.goldwing = true; run(itemMenu); }
     else if(demo==='shop') run(()=>buyGear('cage'));
-    else run(()=>say('7月21日（火）。今日から夏休みだ！'));
+    else run(()=>say(`${dateStr()}。いよいよ虫とりの日がやってきた！`));
     return; }
   run(titleScreen);
 }
