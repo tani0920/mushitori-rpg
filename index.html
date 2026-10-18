@@ -261,6 +261,28 @@ body.touch #dexGrid{grid-template-columns:repeat(auto-fill,minmax(72px,1fr))}
 body.touch #dexGrid .c{font-size:12px}
 body.touch #dexDetail{font-size:15px}
 body.touch #dexDetail dl{font-size:14px}
+/* ===== スマホ横向き ===== */
+body.touch.land #screen .ov{font-size:clamp(13px,4vmin,20px)}
+body.touch.land .dpad{--c:clamp(46px,12vh,64px)}
+body.touch.land .ab{--b:clamp(56px,15vh,76px);gap:8px}
+body.touch.land #pad{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 8px)}
+body.touch.land #msg{min-height:4.4em;max-height:38%;bottom:8px}
+body.touch.land #menu{max-height:calc(100% - var(--hudH) - 4.4em - 26px)}
+body.touch.land #menu.side,body.touch.land #menu.map{max-height:calc(100% - var(--hudH) - 14px)}
+body.touch.land #menu li{padding-top:.12em;padding-bottom:.12em}
+body.touch.land #menu.cmd{bottom:calc(4.4em + 18px)}
+body.touch.land .binfo{font-size:.75em}
+body.touch.land #bInfo{left:calc(var(--sideL) + 8px)}
+body.touch.land #bWrap{top:calc(var(--hudH) + 2em);width:min(30vh,34%)}
+body.touch.land #battle.vs #bWrap{left:calc(var(--sideL) + 6%);top:calc(var(--hudH) + 4.2em);width:min(26vh,20%)}
+body.touch.land #battle.vs #mWrap{right:calc(var(--sideR) + 6%);top:calc(var(--hudH) + 5.6em);width:min(26vh,20%)}
+body.touch.land #battle.vs .vsmark{top:calc(var(--hudH) + 6em)}
+body.touch.land #titleScr{padding-top:calc(env(safe-area-inset-top,0px) + 3%);justify-content:flex-start}
+body.touch.land #titleScr .t1{font-size:clamp(13px,4vh,20px)}
+body.touch.land #titleScr .logo{width:auto;height:min(32vh,170px);margin:.1em 0}
+body.touch.land #titleScr .t3{font-size:clamp(11px,3.4vh,16px)}
+body.touch.land #titleScr .t4{font-size:clamp(9px,2.8vh,13px);max-width:min(60%,34em);margin-top:.4em}
+body.touch.land #menu.title{top:auto;bottom:10px}
 #keys{color:var(--mute);font-size:12px;text-align:center}
 #keys b{color:var(--ink);font-weight:400;border:1px solid #f7f1df55;border-radius:3px;padding:0 4px;margin:0 2px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -767,7 +789,9 @@ function layout(){
   if(!TOUCH){ if(cv.width!==320){ cv.width = 320; cv.height = 240; ctx.imageSmoothingEnabled = false; } return; }
   const r = screenEl.getBoundingClientRect(); if(!r.width || !r.height) return;
   const land = r.width > r.height;
-  const s = Math.max(1, Math.min(r.width/(11*TS), r.height/(9*TS), 3.6));   // 横11マス・縦9マス以上は見える大きさ
+  document.body.classList.toggle('land', land);
+  const s = land ? Math.max(1, Math.min(r.width/(15*TS), r.height/(11*TS), 3.6))    // 横向き：縦11マス見える
+                 : Math.max(1, Math.min(r.width/(11*TS), r.height/(9*TS), 3.6));   // 縦向き：横11マス見える
   const w = Math.round(r.width/s), h = Math.round(r.height/s);
   if(cv.width!==w || cv.height!==h){ cv.width = w; cv.height = h; ctx.imageSmoothingEnabled = false; }
   const padEl = $('pad'), dp = padEl.querySelector('.dpad').getBoundingClientRect(), ab = padEl.querySelector('.ab').getBoundingClientRect();
