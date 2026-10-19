@@ -5,3 +5,8 @@ img/bg/
 img/field/
 img/player/
 img/ending/
+# 公開しない作業用ファイル（OneDriveにだけ置く）
+企画メモ.md
+ChatGPT画像プロンプト.md
+sns/
+tools/
