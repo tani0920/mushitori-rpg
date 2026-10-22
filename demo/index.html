@@ -390,6 +390,9 @@ body.touch #bWrap{top:calc(var(--hudH) + 4.8em);width:min(84%,44vh)}
 body.touch #battle.vs #bWrap{top:calc(var(--hudH) + 5em);width:min(50%,30vh)}
 body.touch #battle.vs #mWrap{top:calc(var(--hudH) + 5em + min(26%,24vh));width:min(50%,30vh)}
 /* 戦闘中のウィンドウは半透明（背景と虫が見えるように）。文字には影をつけて読みやすく */
+/* 会話とメニューの枠は少しすきとおらせて、うしろのフィールドがうっすら見えるように。タイトルの「はじめから」はもっとうすく */
+#msg,#menu{background:rgba(20,40,74,.8);box-shadow:0 0 0 2px rgba(20,40,74,.8);text-shadow:0 1px 2px #0009}
+#menu.title{background:rgba(20,40,74,.5);box-shadow:0 0 0 2px rgba(20,40,74,.5);text-shadow:0 1px 2px #000,0 0 4px #000}
 #battle .binfo{background:rgba(20,40,74,.62);box-shadow:none}
 #battle:not([hidden]) ~ #msg{background:rgba(20,40,74,.5);box-shadow:none;text-shadow:0 1px 2px #000,0 0 4px #000}
 #battle:not([hidden]) ~ #menu{background:rgba(20,40,74,.68);box-shadow:none;text-shadow:0 1px 2px #000}
@@ -529,7 +532,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-0009';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-0015';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -542,6 +545,7 @@ const CHANGELOG = [
     'スマホ・タブレットで、ずかん・写真・説明の「とじる」ボタンがいつも右下に出るようにした',
     'メニューを整理して、ルール・ふりがな・タイトルにもどるを「オプション」にまとめた',
     'モンシロチョウ・ナツアカネ・ショウリョウバッタ・トノサマバッタの絵を新しくした',
+    '会話とメニューの枠を少しすきとおらせて、うしろの絵が見えるようにした',
     'エンディングの点数の画面で、画面の向きを変えると上にもどれなくなる不具合を直した',
     'スタンプラリーで、まだ出会っていない虫の名前を「？？？」にふせるようにした',
     'ミアレカブトのずかんの説明を読みやすくした',
