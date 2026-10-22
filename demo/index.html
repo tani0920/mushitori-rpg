@@ -235,9 +235,15 @@ body.touch #titleScr .credit{left:auto;right:max(12px,env(safe-area-inset-right,
 body.touch.land #titleScr .tside{position:absolute;left:max(12px,env(safe-area-inset-left,0px));top:calc(env(safe-area-inset-top,0px) + 8px);display:flex;flex-direction:column;align-items:flex-start;gap:.4em}
 body.touch.land #titleScr .tbtns,body.touch.land #titleScr .vrow{flex-direction:column;align-items:flex-start;margin:0;gap:.4em}
 body.touch.land #titleScr .tbtn{font-size:clamp(11px,3.2vmin,15px);padding:.25em .9em}
+/* スマホたて画面：「プライバシーについて」は左上のすみ（右上のクレジットと向かい合わせ） */
+body.touch:not(.land) #titleScr #btnPriv{position:absolute;left:max(10px,env(safe-area-inset-left,0px));top:calc(env(safe-area-inset-top,0px) + 4px);font-size:clamp(10px,2.6vmin,13px);padding:.15em .7em}
 #titleScr .vrow{display:flex;gap:.5em;justify-content:center;flex-wrap:wrap;margin-top:.5em}
 #titleScr .verbtn{font-family:var(--f-pixel);font-size:clamp(9px,1.9cqw,13px);letter-spacing:.04em;color:#fff;background:#14284a99;border:1px solid #f7f1dfaa;border-radius:999px;padding:.2em .8em;cursor:pointer;text-shadow:1px 1px 0 #000}
 body.touch #titleScr .verbtn{font-size:clamp(11px,3vmin,15px)}
+#infoPanel h3{margin:.8em 0 .2em;font-weight:400;font-size:17px;color:#7a4a1a;border-bottom:1px solid var(--paper-line)}
+#infoPanel ul{margin:.2em 0;padding-left:1.3em}
+#infoPanel .gaoff{display:flex;align-items:center;gap:.5em;background:#fffaf0;border:2px solid var(--paper-line);border-radius:6px;padding:8px 12px;cursor:pointer}
+#infoPanel .gaoff input{width:22px;height:22px;flex:none}
 #infoPanel .chlog h3{margin:.6em 0 .2em;font-weight:400;font-size:17px;color:#7a4a1a;border-bottom:1px solid var(--paper-line)}
 #infoPanel .chlog h3 small{color:#7a6a4a;font-size:12px;margin-left:.6em}
 #infoPanel .chlog ul{margin:0;padding-left:1.3em}
@@ -457,7 +463,7 @@ body.touch.land #menu.title{top:auto;bottom:10px;left:50%;right:auto;transform:t
       <div class="t4">※このゲームに出てくる場所と虫の組み合わせはゲーム用のもので、実際にその場所にいる虫とはかぎりません。</div>
       <div class="credit">Game Director: Ryohei Taniguchi</div>
       <div class="tside"><div class="tbtns"><button type="button" class="tbtn" id="btnInstall">アプリにする方法</button><button type="button" class="tbtn" id="btnShare">友だちに教える</button></div>
-      <div class="vrow"><button type="button" class="verbtn" id="btnVer"><span class="gver"></span>　こうしん情報 ▸</button><button type="button" class="verbtn" id="btnFuri">ふりがな：ふつう</button></div></div>
+      <div class="vrow"><button type="button" class="verbtn" id="btnVer"><span class="gver"></span>　こうしん情報 ▸</button><button type="button" class="verbtn" id="btnFuri">ふりがな：ふつう</button><button type="button" class="verbtn" id="btnPriv">プライバシーについて</button></div></div>
     </div>
     <div id="battle" class="ov" hidden>
       <div id="bInfo" class="binfo win"></div>
@@ -532,7 +538,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-0015';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-0032';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -546,6 +552,7 @@ const CHANGELOG = [
     'メニューを整理して、ルール・ふりがな・タイトルにもどるを「オプション」にまとめた',
     'モンシロチョウ・ナツアカネ・ショウリョウバッタ・トノサマバッタの絵を新しくした',
     '会話とメニューの枠を少しすきとおらせて、うしろの絵が見えるようにした',
+    '「プライバシーについて」を追加した（タイトルとオプション）。遊ばれ方を知るためのアクセス解析を入れた（名前・写真・位置は送らない）',
     'エンディングの点数の画面で、画面の向きを変えると上にもどれなくなる不具合を直した',
     'スタンプラリーで、まだ出会っていない虫の名前を「？？？」にふせるようにした',
     'ミアレカブトのずかんの説明を読みやすくした',
@@ -559,6 +566,27 @@ document.querySelectorAll('.gver').forEach(e=> e.textContent = 'ver ' + GAME_VER
 
 /* 新しい版が公開されていたら知らせる（ホーム画面のアプリは古いページを覚えたままになりやすいので）
    アプリを開いたときと、ほかのアプリからもどってきたときに version.json を見にいく */
+/* アクセス解析（Google アナリティクス）：本番だけで動く。デモと手元の確認では動かない。「計測しない」にした端末では動かない
+   送るのは「ゲームのどこまで進んだか」などだけ。名前・写真・位置情報・スタンプの場所は送らない */
+const GA_ID = 'G-35Q20P88F6';
+const CONTACT_URL = '';   // お問い合わせ用の Google フォーム（決まったら入れる）
+const GA_OFF_KEY = 'munakata-analytics-off';
+const gaOff = ()=>{ try{ return localStorage.getItem(GA_OFF_KEY) === '1'; }catch(e){ return false; } };
+const GA_ON = !window.DEMO && location.hostname === 'tani0920.github.io' && !gaOff();
+window['ga-disable-' + GA_ID] = !GA_ON;
+if(GA_ON){
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = function(){ dataLayer.push(arguments); };
+  gtag('js', new Date());
+  gtag('config', GA_ID, {allow_google_signals:false, allow_ad_personalization_signals:false});
+  const g = document.createElement('script'); g.async = true; g.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID; document.head.appendChild(g);
+}
+function track(name, params){ try{ if(GA_ON && !gaOff()) gtag('event', name, Object.assign({game_ver:GAME_VER}, params||{})); }catch(e){} }
+function setGaOff(off){
+  try{ off ? localStorage.setItem(GA_OFF_KEY, '1') : localStorage.removeItem(GA_OFF_KEY); }catch(e){}
+  window['ga-disable-' + GA_ID] = off || !GA_ON;
+}
+
 let updShown = false;
 async function checkUpdate(){
   if(BUILD === 'dev' || updShown) return;
@@ -1339,6 +1367,7 @@ async function home(){
 }
 async function sleep(faint){
   if(S.day >= DAYS){ await ending(); return; }
+  track('day_start', {day: S.day + 1});
   await fade(()=>{ S.day++; S.min = START_MIN; S.hp = maxHp(); S.area = 'town'; S.x = 3; S.y = 5; S.dir = 'D'; S.warned = false; hud(); });
   save();
   const left = DAYS - S.day + 1;
@@ -1363,11 +1392,12 @@ async function fieldMenu(){
 /* オプション：ルール・ふりがな・タイトルにもどる */
 async function optionMenu(){
   while(true){
-    const c = await choose(['ルール',`ふりがな：${furiMode ? 'たくさん' : 'ふつう'}`,'タイトルにもどる','もどる'], {title:'オプション', cls:'side'});
-    if(c<0 || c===3) return;
+    const c = await choose(['ルール',`ふりがな：${furiMode ? 'たくさん' : 'ふつう'}`,'プライバシーについて','タイトルにもどる','もどる'], {title:'オプション', cls:'side'});
+    if(c<0 || c===4) return;
+    if(c===2){ await showPrivacy(); continue; }
     if(c===0) await ruleMenu();
     if(c===1){ setFuri(!furiMode); await say(furiMode ? 'ふりがなを「たくさん」にしました。\n小学3年生からならう漢字にも、ふりがなが付きます。' : 'ふりがなを「ふつう」にしました。\n小学5年生からならう漢字に、ふりがなが付きます。'); }
-    if(c===2){
+    if(c===3){
       const y = await choose(['はい','いいえ'], {msg:'本当にタイトルにもどりますか？\n（セーブしていないところまでの進み具合は消えます）', cls:'side', start:1});
       if(y===0){ await fade(()=>{ mv = null; }); await titleScreen(); return 'title'; }
     }
@@ -1802,6 +1832,7 @@ async function sumoBattle(r, it){
   if(result==='win'){
     await say(`${r.short}「${r.win}」`);
     const money = first ? r.money : Math.round(r.money/4); S.money += money;
+    track('sumo_win', {rival:r.short, first:first ? 1 : 0});
     let msg = `虫ずもうに勝った！ 賞金 ${dg(money)} をもらった！`;
     if(first){
       if(r.item==='champ'){ S.sumoChamp = true; msg += `\n「虫ずもうチャンピオン」になった！（自由研究 +${SUMO_CHAMP_PT}点）`; }
@@ -2002,6 +2033,7 @@ async function handlePhoto(file){
   }
   // ごほうび
   const C = PHOTO_CATS[cat], first = !photos.cats[cat], gifts = [];
+  track('photo_reward', {category:cat});
   const money = C.money * (first ? 2 : 1); S.money += money; gifts.push(`どんぐり ${dg(money)}${first ? '（はじめてボーナス2倍！）' : ''}`);
   if(C.item && (first || Math.random() < .35)){ const it = PHOTO_ITEMS.find(t=>t.key===C.item); S.items[C.item] = (S.items[C.item]||0) + 1; gifts.push(`${it.name}（${it.desc}）`); }
   if(cat==='kabuto' && !S.goldwing){ S.goldwing = true; gifts.push('金色のはね！ 大島の伝説の虫「ミアレカブト」が出やすくなった…！'); }
@@ -2065,11 +2097,13 @@ function installHTML(){
     <p class="note">※iPhone・iPadでは、Safariで遊んだセーブデータと、ホーム画面のアプリのセーブデータは別々になります。はじめからアプリで遊ぶのがおすすめです。</p>`;
 }
 async function showInstall(){
+  track('open_install');
   const p = openPanel('アプリにする方法', installHTML());
   const b = $('doInstall'); if(b) b.onclick = async ()=>{ installEvt.prompt(); await installEvt.userChoice.catch(()=>{}); installEvt = null; b.textContent = 'ありがとう！'; b.disabled = true; };
   await p;
 }
 async function showShare(){
+  track('open_share');
   const enc = encodeURIComponent(GAME_URL);
   const html = `<p>このゲームのURLを、友だちやおうちの人に送ろう！</p>
     <div class="acts">${navigator.share ? '<button type="button" class="btn" id="doShare">共有する</button>' : ''}
@@ -2094,7 +2128,32 @@ $('btnInstall').onclick = e=>{ e.stopPropagation(); showInstall(); };
 $('btnShare').onclick = e=>{ e.stopPropagation(); showShare(); };
 $('btnVer').onclick = e=>{ e.stopPropagation(); showChangelog(); };
 $('btnFuri').onclick = e=>{ e.stopPropagation(); setFuri(!furiMode); };
+$('btnPriv').onclick = e=>{ e.stopPropagation(); showPrivacy(); };
 furiLabel();
+function showPrivacy(){
+  const p = openPanel('プライバシーについて', `
+    <h3>こどものみんなへ</h3>
+    <ul><li>このゲームは、名前・写真・いる場所を<b>どこにも送りません</b>。</li>
+      <li>虫の写真やスタンプラリーの記録は、<b>この端末の中にだけ</b>のこります。</li>
+      <li>「何人くらいが遊んでいるか」を知るために、遊んだ回数などを<b>だれのものかわからない形</b>で数えています。</li>
+      <li>わからないことがあったら、おうちの人に見てもらってね。</li></ul>
+    <h3>保護者の方へ</h3>
+    <p><b>1. 集めている情報</b><br>利用状況を知るために、Google LLC の「Google アナリティクス」を使っています。送信するのは次の情報です。</p>
+    <ul><li>ページを開いた回数、端末の種類（スマホ・タブレット・PC）、ブラウザ、おおよその地域（市区町村程度）、どこから来たか（SNSなど）</li>
+      <li>ゲーム内の進み具合（ゲームの開始、進んだ日数、エンディングの種類と点数、虫ずもうの勝敗、写真機能を使った回数など）</li></ul>
+    <p><b>2. 送らない情報</b></p>
+    <ul><li>名前、メールアドレスなどの個人情報</li>
+      <li>カメラで撮った写真（端末の中でだけ判定し、外部へ送りません）</li>
+      <li>位置情報（スタンプラリーの判定は端末の中でだけ行い、緯度・経度やスタンプの場所は保存も送信もしません）</li></ul>
+    <p><b>3. Cookie について</b><br>Google アナリティクスは Cookie などを使って情報を集めます。集めたデータは Google のポリシーに沿って管理されます。広告のための情報（Google シグナル）は使っていません。<br>
+      <a href="https://policies.google.com/technologies/partner-sites?hl=ja" target="_blank" rel="noopener">Google のサービスを使うサイトやアプリでの Google によるデータ使用</a></p>
+    <label class="gaoff"><input type="checkbox" id="gaOffChk" ${gaOff() ? 'checked' : ''}><span>この端末では計測しない</span></label>
+    <p class="note">${window.DEMO ? '※デモ版では、もともと計測していません。' : 'チェックを入れると、この端末からは何も送らなくなります。'}</p>
+    <p><b>4. セーブデータ</b><br>ゲームの記録は、お使いの端末のブラウザの中（localStorage）にだけ保存されます。</p>
+    <p><b>5. お問い合わせ</b><br>Game Director: Ryohei Taniguchi<br>${CONTACT_URL ? `<a href="${CONTACT_URL}" target="_blank" rel="noopener">お問い合わせフォーム</a>` : 'お問い合わせフォーム（じゅんび中）'}</p>`);
+  const c = $('gaOffChk'); if(c) c.onchange = ()=> setGaOff(c.checked);
+  return p;
+}
 function showChangelog(){
   return openPanel('こうしん情報', `<p>いま遊んでいるのは <b>ver ${GAME_VER}</b>${window.DEMO ? '（デモ版）' : ''} です。<br><small>公開番号 ${esc(BUILD)}</small></p>
     <p class="note">新しいバージョンが出ているのに古い番号のままのときは、ページを開きなおしてね。</p>
@@ -2115,6 +2174,7 @@ async function titleScreen(){
   if(carry) opts.push({label:`引きつぎではじめる（小学${grade(carry.round)}年生の夏）`});
   const c = await choose(opts, {cls:'title', cancel:false, start: has ? 1 : carry ? 2 : 0});
   $('titleScr').hidden = true;
+  track('game_start', {mode: c===1 ? 'continue' : c===2 ? 'carry' : 'new'});
   if(c===1){ try{ S = loadState(loadRaw()); }catch(e){ S = newState(); } scene = 'field'; hud(); await say(`${dateStr()} ${hhmm()}\nつづきから はじめます。`); }
   else if(c===2){ S = newState(); Object.assign(S, {round:carry.round, lv:carry.lv, exp:carry.exp, net:carry.net, cage:carry.cage, shoes:carry.shoes,
       items:Object.assign(newState().items, carry.items), money:carry.money + 300, goldwing:carry.goldwing, ticket:!!carry.ticket || carry.shoes >= 3});
@@ -2218,6 +2278,7 @@ function endingStory(e, r){
 async function ending(){
   scene = 'end';
   const r = research(), e = endingOf(r), lines = endingStory(e, r);
+  track('game_ending', {ending:e.key, score:r.total, species:r.species, round:S.round||1});
   const el = $('endIn'); $('endScr').hidden = false;
   const next = ()=> new Promise(res=>{ uiHandler = k=>{ if(k==='A'){ uiHandler = null; res(); } }; const b = $('endBtn'); if(b) b.onclick = ()=>{ uiHandler = null; res(); }; });
   // おはなし（エンディングのイラストがあれば上に出す。伝説エンディングは、新聞の場面から2枚目）
