@@ -236,7 +236,9 @@ body.touch.land #titleScr .tside{position:absolute;left:max(12px,env(safe-area-i
 body.touch.land #titleScr .tbtns,body.touch.land #titleScr .vrow{flex-direction:column;align-items:flex-start;margin:0;gap:.4em}
 body.touch.land #titleScr .tbtn{font-size:clamp(11px,3.2vmin,15px);padding:.25em .9em}
 /* スマホたて画面：「プライバシーについて」は左上のすみ（右上のクレジットと向かい合わせ） */
-body.touch:not(.land) #titleScr #btnPriv{position:absolute;left:max(10px,env(safe-area-inset-left,0px));top:calc(env(safe-area-inset-top,0px) + 4px);font-size:clamp(10px,2.6vmin,13px);padding:.15em .7em}
+body.touch:not(.land) #titleScr #btnPriv{position:absolute;left:max(10px,env(safe-area-inset-left,0px));top:calc(env(safe-area-inset-top,0px) + 30px);font-size:clamp(10px,2.6vmin,13px);padding:.15em .7em;background:#14284ad9}
+/* iPhone は画面のいちばん上（時計のあたり）に自動で暗いぼかしをかけるので、たて画面ではクレジットもその下まで下げる */
+body.touch:not(.land) #titleScr .credit{top:calc(env(safe-area-inset-top,0px) + 34px)}
 #titleScr .vrow{display:flex;gap:.5em;justify-content:center;flex-wrap:wrap;margin-top:.5em}
 #titleScr .verbtn{font-family:var(--f-pixel);font-size:clamp(9px,1.9cqw,13px);letter-spacing:.04em;color:#fff;background:#14284a99;border:1px solid #f7f1dfaa;border-radius:999px;padding:.2em .8em;cursor:pointer;text-shadow:1px 1px 0 #000}
 body.touch #titleScr .verbtn{font-size:clamp(11px,3vmin,15px)}
@@ -538,7 +540,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-0059';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-0102';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
