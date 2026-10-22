@@ -542,7 +542,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-0144';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-0150';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -697,7 +697,8 @@ const SE = {
   faint:  [['t', 0, 784, .12, .4], ['t', 0, 659, .12, .4], ['t', 0, 523, .12, .4], ['t', 0, 392, .3, .4]],
 };
 function se(name){
-  if(!sndPref.se || !actx || actx.state !== 'running') return;
+  if(!sndPref.se || !actx || actx.state === 'closed') return;
+  if(actx.state !== 'running') actx.resume().catch(()=>{});
   let t = actx.currentTime + .01;
   for(const s of SE[name] || []){
     if(s[0] === 'r'){ t += s[1]; continue; }
@@ -776,9 +777,14 @@ function bgmUpdate(){
 }
 setInterval(bgmUpdate, 250);
 let aStale = false;
+function audioRebuild(){ bgmStop(); try{ actx.close(); }catch(e){} actx = null; ambOut = null; ambBusy = {}; audioInit(); actx.resume().then(bgmUpdate).catch(()=>{}); }
 function audioUnlock(){
-  if(aStale && actx){ bgmStop(); try{ actx.close(); }catch(e){} actx = null; ambOut = null; ambBusy = {}; }
-  aStale = false;
+  if(aStale && actx){   // 待ち受けなどから戻ったあと：まず起こしてみて、0.5秒たっても動かないときだけ作りなおす
+    aStale = false; const c = actx;
+    c.resume().then(bgmUpdate).catch(()=>{});
+    setTimeout(()=>{ if(actx === c && c.state !== 'running') audioRebuild(); }, 500);
+    return;
+  }
   if(!audioInit()) return;
   if(actx.state !== 'running') actx.resume().then(bgmUpdate).catch(()=>{});
 }
@@ -2363,7 +2369,7 @@ function showPrivacy(){
   return p;
 }
 function showChangelog(){
-  return openPanel('こうしん情報', `<p>いま遊んでいるのは <b>ver ${GAME_VER}</b>${window.DEMO ? '（デモ版）' : ''} です。<br><small>公開番号 ${esc(BUILD)}</small></p>
+  return openPanel('こうしん情報', `<p>いま遊んでいるのは <b>ver ${GAME_VER}</b>${window.DEMO ? '（デモ版）' : ''} です。<br><small>公開番号 ${esc(BUILD)}　／　音：${actx ? esc(actx.state) : 'まだ'}・BGM ${sndPref.bgm ? 'ON' : 'OFF'}・効果音 ${sndPref.se ? 'ON' : 'OFF'}</small></p>
     <p class="note">新しいバージョンが出ているのに古い番号のままのときは、ページを開きなおしてね。</p>
     <div class="chlog">${CHANGELOG.map((c,i)=>`<h3>ver ${esc(c.v)}${i===0 ? '<span class="now">いまのバージョン</span>' : ''}<small>${esc(c.date)}</small></h3><ul>${c.items.map(t=>`<li>${esc(t)}</li>`).join('')}</ul>`).join('')}</div>`);
 }
