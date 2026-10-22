@@ -542,7 +542,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-0841';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-0855';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -557,7 +557,7 @@ const CHANGELOG = [
     'モンシロチョウ・ナツアカネ・ショウリョウバッタ・トノサマバッタの絵を新しくした',
     '会話とメニューの枠を少しすきとおらせて、うしろの絵が見えるようにした',
     '「プライバシーについて」を追加した（タイトルとオプション）。遊ばれ方を知るためのアクセス解析を入れた（名前・写真・位置は送らない）',
-    'ファミコンみたいな音のBGMと効果音を入れた（オプションでON/OFF）。時間帯で虫の声がかわる（朝は小鳥、昼はセミ、夕方はヒグラシ、夜はスズムシとコオロギ）。朝はスキップするような曲、昼はその続きで少しゆっくりした曲、タイトルは虫の声だけ。ねるときは子守歌、朝は遠くでニワトリが鳴く。虫と出会うと、ドキドキする心臓の音が聞こえる。ミアレカブトと出会うと、みあれ祭の太鼓と笛が鳴る',
+    'ファミコンみたいな音のBGMと効果音を入れた（オプションでON/OFF）。時間帯で虫の声がかわる（朝は小鳥、昼はセミ、夕方はヒグラシ、夜はスズムシとコオロギ）。朝はスキップするような曲、昼はその続きで少しゆっくりした曲、タイトルは虫の声だけ。ねるときは子守歌、朝は遠くでニワトリが鳴く。エンディングは、夏休みあけの学校の明るい曲（伝説の虫とり王は、みあれ祭の太鼓と笛）。虫と出会うと、ドキドキする心臓の音が聞こえる。ミアレカブトと出会うと、みあれ祭の太鼓と笛が鳴る',
     'バトルのコマンドを、左に「あみをふる・つかまえる」、右に「どうぐ・にげる」のならびにした',
     'スマホのたて画面で、タイトルの上のほうと、遊んでいるときの日付・時間を見やすくした',
     'エンディングの点数の画面で、画面の向きを変えると上にもどれなくなる不具合を直した',
@@ -605,6 +605,19 @@ SONGS.battle_kin = Object.assign({}, SONGS.battle, {duty:[.25, .125, .5],
   env:Object.assign({}, SONGS.battle.env, {p3:[.03, .8, .2]}), vol:Object.assign({}, SONGS.battle.vol, {p1:.04, p2:.02, p3:.035, noi:0, tai:.2}),
   p3:'74:4 77:4 79:8 81:4 79:4 77:8 79:4 81:4 84:8 81:4 79:4 77:4 79:4 77:4 74:4 77:8 79:4 77:4 74:8 76:4 77:4 76:4 74:4 69:16',
   tai:Array(8).fill('k:2 .:2 .:2 k:1 k:1 k:2 .:2 d:2 .:2').join(' ')});   // ドン・ドドン・カッ
+/* エンディング：ふつうの5つは「夏休みあけの学校」（ズン・チャではずむ明るい曲）、伝説の虫とり王はみあれ祭の太鼓と笛を明るい調で */
+SONGS.end_gakko = {bpm:112, duty:[.25, .125], len:128,   // ド ファ ソ ド ラm ファ ソ ド
+  env:{p1:[.003, .3, .1], p2:[.003, 0, .07], tri:[.003, 0, .12]}, vol:{p1:.06, p2:.025, tri:.2, noi:.025, tai:.14},
+  p1:'72:2 76:2 79:4 76:2 79:2 84:4 81:4 77:2 81:2 84:4 81:4 79:2 77:2 76:2 74:2 71:4 74:4 76:4 72:4 72:4 0:4 76:2 72:2 76:2 81:2 79:4 76:4 77:2 76:2 77:2 81:2 84:4 81:4 79:2 81:2 79:2 77:2 76:2 74:2 71:4 72:4 76:4 84:4 0:4',
+  p2:[[64,67],[65,69],[62,67],[64,67],[64,69],[65,69],[62,71],[64,67]].map(([a,b])=>`0:2 ${a}:2 0:2 ${b}:2 0:2 ${a}:2 0:2 ${b}:2`).join(' '),
+  tri:[[48,55],[41,48],[43,50],[48,55],[45,52],[41,48],[43,50],[48,55]].map(([a,b])=>`${a}:2 0:2 ${b}:2 0:2 ${a}:2 0:2 ${b}:2 0:2`).join(' '),
+  noi:Array(16).fill('.:2 h:2 s:2 h:2').join(' '), tai:Array(16).fill('k:4 .:4').join(' ')};
+SONGS.end_legend = {bpm:92, duty:[.5, .125], len:128,   // レ ソ ラ レ
+  env:{p1:[.03, .8, .2], p2:[.3, .8, .3], tri:[.005, 0, .18]}, vol:{p1:.05, p2:.025, tri:.22, noi:.03, tai:.18},
+  p1:'74:4 76:4 78:8 81:4 78:4 76:8 79:4 81:4 83:8 81:4 79:4 78:4 76:4 76:4 78:4 81:8 83:4 81:4 78:4 76:4 78:4 76:4 74:8 69:4 74:4 74:8',
+  p2:'66:32 71:32 73:32 66:32',
+  tri:[[38,45],[43,50],[45,52],[38,45]].map(([a,b])=>Array(4).fill(`${a}:2 0:2 ${b}:2 0:2`).join(' ')).join(' '),
+  noi:Array(64).fill('.:1 h:1').join(' '), tai:Array(8).fill('k:2 .:2 .:2 k:1 k:1 k:2 .:2 d:2 .:2').join(' ')};
 const SND_KEY = 'munakata-sound-v1';
 const sndPref = (()=>{ try{ return Object.assign({bgm:true, se:true}, JSON.parse(localStorage.getItem(SND_KEY)) || {}); }catch(e){ return {bgm:true, se:true}; } })();
 const saveSnd = ()=>{ try{ localStorage.setItem(SND_KEY, JSON.stringify(sndPref)); }catch(e){} };
@@ -829,6 +842,7 @@ const AMB_SET = {
   hiru:  {semi:[.35, .1], semi2:[.25, .075], semi3:[.15, .055], furin:[.03, .04]},   // 夏の昼：セミが曲に勝つくらい、何匹も重なって鳴く（そのぶん昼は全体を小さめにする → sceneVol）
   yu:    {higurashi:[.10, .045], furin:[.04, .04]},
   yoru:  {suzumushi:[.14, .04], korogi:[.12, .035]},
+  end:   {},   // エンディングは曲だけ（虫の音はなし）
 };
 AMB.semi2 = AMB.semi; AMB.semi3 = AMB.semi;   // べつのセミ（同じ鳴き方で、高さだけ毎回ちがう）
 let ambOut = null, ambBusy = {};
@@ -846,14 +860,16 @@ setInterval(ambTick, 400);
 /* 場面に合わせて曲を切りかえる */
 function ambSlot(){
   const sc = typeof scene !== 'undefined' ? scene : 'title';
-  return sc === 'title' || sc === 'end' ? 'title' : (typeof S !== 'undefined' && S ? slotOf(S.min) : 'hiru');
+  return sc === 'title' ? 'title' : sc === 'end' ? 'end' : (typeof S !== 'undefined' && S ? slotOf(S.min) : 'hiru');
 }
 const sceneVol = ()=> ambSlot() === 'hiru' ? .7 : 1;   // 昼はセミがにぎやかなので、曲も虫の音も少し小さく
+let endKey = null;   // いまのエンディング（伝説の虫とり王だけ曲がちがう）
 let sleeping = false;   // ねているあいだは曲を止めて、虫の音だけにする
 function bgmWant(){
   const sc = typeof scene !== 'undefined' ? scene : 'title', slot = ambSlot();
   if(sleeping) return 'mushi';
-  if(sc === 'title' || sc === 'end') return 'mushi';   // タイトルは、あえて曲なしで虫の音だけ
+  if(sc === 'title') return 'mushi';   // タイトルは、あえて曲なしで虫の音だけ
+  if(sc === 'end') return endKey === 'legend' ? 'end_legend' : 'end_gakko';
   if(sc === 'battle') return battleEl.classList.contains('vs') ? 'sumo' : battleId === 'kinkabuto' ? 'battle_kin' : 'battle';   // ミアレカブトは、みあれ祭の太鼓と笛が入る
   return slot === 'asa' ? 'field_asa' : slot === 'hiru' ? 'field_hiru' : 'field';   // 朝は短い音でスキップする曲、昼はその続きで少しゆっくり、夕方・夜は長い音でしっとり
 }
@@ -2589,7 +2605,7 @@ function endingStory(e, r){
 }
 async function ending(){
   scene = 'end';
-  const r = research(), e = endingOf(r), lines = endingStory(e, r);
+  const r = research(), e = endingOf(r), lines = endingStory(e, r); endKey = e.key;
   track('game_ending', {ending:e.key, score:r.total, species:r.species, round:S.round||1});
   const el = $('endIn'); $('endScr').hidden = false;
   const next = ()=> new Promise(res=>{ uiHandler = k=>{ if(k==='A'){ uiHandler = null; res(); } }; const b = $('endBtn'); if(b) b.onclick = ()=>{ uiHandler = null; res(); }; });
