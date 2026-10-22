@@ -538,7 +538,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-0032';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-0038';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -569,7 +569,7 @@ document.querySelectorAll('.gver').forEach(e=> e.textContent = 'ver ' + GAME_VER
 /* アクセス解析（Google アナリティクス）：本番だけで動く。デモと手元の確認では動かない。「計測しない」にした端末では動かない
    送るのは「ゲームのどこまで進んだか」などだけ。名前・写真・位置情報・スタンプの場所は送らない */
 const GA_ID = 'G-35Q20P88F6';
-const CONTACT_URL = '';   // お問い合わせ用の Google フォーム（決まったら入れる）
+const CONTACT_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSe_zcg7xhwYmuiL0ZI5Jf-wYDQlA8dgGuMUL83l-c8jO5b14g/viewform';   // お問い合わせ用の Google フォーム
 const GA_OFF_KEY = 'munakata-analytics-off';
 const gaOff = ()=>{ try{ return localStorage.getItem(GA_OFF_KEY) === '1'; }catch(e){ return false; } };
 const GA_ON = !window.DEMO && location.hostname === 'tani0920.github.io' && !gaOff();
