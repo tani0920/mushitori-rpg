@@ -66,6 +66,7 @@ header small{color:var(--mute);font-size:12px}
 .bar i{display:block;height:100%;background:var(--hp)}
 .bar i.low{background:var(--hp-low)}
 #hud .money{color:var(--sun)}
+.acorn{display:inline-block;width:1em;height:1.12em;vertical-align:-.2em;margin-right:.1em}
 #hud .time{display:inline-flex;align-items:center;gap:.3em}
 #hud .clock{width:1.9em;height:1.9em;flex:none;filter:drop-shadow(0 1px 1px #0008)}
 #hud .hrow{display:contents}
@@ -523,6 +524,8 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 const GAME_VER = '0.2.1';
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
+    'お金を「どんぐり」にかえた（宗像で自然をしらべた子がもらえる、子どものための地域のお金）',
+    '虫具店で虫を「売る」のをやめて、「とどける」とお礼にどんぐりがもらえるようにした',
     'タイトル画面にバージョンと「更新情報」を出すようにした',
     '操作をかんたんに：「メニュー」ボタンをなくして、Bボタンでメニュー・キャンセルにした',
     'スマホのたて画面で、図鑑の「とじる」ボタンがいつも右下に出るようにした',
@@ -596,7 +599,7 @@ const ENC = {'"':.14, ',':.035, 'f':.08, 's':.03};
 /* ---------- 虫データ ----------
    shape: ドット絵のかたち / c:[メイン色, サブ色, アクセント, はね]
    lv,hp,atk: 基本ステータス / spd: すばやさ(0-5) 高いほど避ける・逃げる
-   catch: つかまえやすさ補正 / price: 売値 / time: 出る時間帯 / w: 出やすさ */
+   catch: つかまえやすさ補正 / price: とどけたときのお礼（どんぐり） / time: 出る時間帯 / w: 出やすさ */
 const BUGS = {
   monshiro:   {name:'モンシロチョウ',   shape:'butterfly', c:['#ffffff','#3a3a3a','#2a2a2a','#f6f6ee'], rank:1, lv:1,  hp:8,   atk:1,  spd:4, catch:1.2,  price:20,   time:['asa','hiru'],          w:5,
                desc:'畑や田んぼのまわりでよく見る白いチョウ。ひらひら飛んで、意外とつかまえにくい。'},
@@ -912,7 +915,18 @@ const cap   = ()=> CAGES[S.cage].cap;
 const clamp = (v,a,b)=> Math.max(a, Math.min(b, v));
 const rint  = (a,b)=> a + Math.floor(Math.random()*(b-a+1));
 const stars = n=> '★'.repeat(n) + '☆'.repeat(5-n);
-const esc = s=> String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+/* お金は「どんぐり」（宗像で自然をしらべた子がもらえる、子どものための地域のお金）。表示はドット絵のどんぐりマーク＋数字
+   文章の中では dg(数) と書く。esc() を通すとマークの絵になる */
+const ACORN = (()=>{
+  const px = ['....s...', '.cccccc.', 'cCcCcCcc', '.cccccc.', '.nnnnnn.', '.nhnnnnn'.slice(0,8), '.nhnnnn.', '..nnnn..', '...nn...'];
+  const col = {s:'#7a4a1c', c:'#9a5e28', C:'#c8894a', n:'#e8a040', h:'#ffe0a0'};
+  let r = '';
+  px.forEach((row,y)=>[...row].forEach((ch,x)=>{ if(col[ch]) r += `<rect x="${x}" y="${y}" width="1" height="1" fill="${col[ch]}"/>`; }));
+  return `<svg class="acorn" viewBox="0 0 8 9" shape-rendering="crispEdges" role="img" aria-label="どんぐり">${r}</svg>`;
+})();
+const DG = '\uE000';
+const dg = n=> DG + n;
+const esc = s=> String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])).replace(/\uE000/g, ACORN);
 const fmt = s=> esc(s).replace(/\n/g,'<br>');
 const wait = ms=> new Promise(r=>setTimeout(r,ms));
 function dateStr(day=S.day){ const d = new Date(START_DATE[0] + (S.round||1) - 1, START_DATE[1], START_DATE[2] + day - 1); return `${d.getMonth()+1}月${d.getDate()}日（${'日月火水木金土'[d.getDay()]}）`; }
@@ -1016,7 +1030,7 @@ function hud(){
   if(scene==='title'){ hudEl.innerHTML = ''; return; }
   const r = S.hp / maxHp();
   hudEl.innerHTML = `<div class="hrow"><span class="date">${dateStr()}</span><span class="day">${S.day}/${DAYS}日目</span><span class="time">${clockSVG()}${hhmm()} ${SLOT_NAMES[slotOf(S.min)]}</span></div>`+
-    `<div class="hrow"><span class="place">${esc(AREAS[S.area].name)}</span><span class="money">${S.money}円</span><span>図鑑 ${dexCount()}/${Object.keys(BUGS).length}</span></div>`+
+    `<div class="hrow"><span class="place">${esc(AREAS[S.area].name)}</span><span class="money">${esc(dg(S.money))}</span><span>図鑑 ${dexCount()}/${Object.keys(BUGS).length}</span></div>`+
     `<div class="hrow"><span class="lv">Lv${S.lv}</span><span class="hp">HP <span class="bar"><i class="${r<.3?'low':''}" style="width:${r*100}%"></i></span>${S.hp}/${maxHp()}</span></div>`;
 }
 
@@ -1216,9 +1230,9 @@ async function worldMap(){
   const id = ids[c], A = AREAS[id];
   if(A.ticket && !S.ticket){
     const y = await choose(['買う','やめる'], {cls:'side', start:0,
-      msg:`神湊の渡船ターミナル。大島行きのフェリーには「${TICKET.name}」が必要だ。\n${ticketPrice()}円で買いますか？${photos.stamps?.oshima ? '（大島のスタンプで半額！）' : ''}（いま ${S.money}円）`});
+      msg:`神湊の渡船ターミナル。大島行きのフェリーには「${TICKET.name}」が必要だ。\n${dg(ticketPrice())}で買いますか？${photos.stamps?.oshima ? '（大島のスタンプで半額！）' : ''}（いま ${dg(S.money)}）`});
     if(y!==0){ S.y -= 1; S.dir = 'U'; return; }
-    if(S.money < ticketPrice()){ await say('お金が足りない…。虫を売ってお金をためよう。'); S.y -= 1; S.dir = 'U'; return; }
+    if(S.money < ticketPrice()){ await say('どんぐりが足りない…。虫具店に虫をとどけて、どんぐりをためよう。'); S.y -= 1; S.dir = 'U'; return; }
     S.money -= ticketPrice(); S.ticket = true; hud();
     await say(`${TICKET.name}を手に入れた！\nこれで、いつでも大島へわたれる。（だいじなもの）`);
   }
@@ -1265,7 +1279,7 @@ async function fieldMenu(){
 async function boxMenu(){
   while(true){
     if(!S.box.length){ await say('虫かごはからっぽだ。'); return; }
-    const c = await choose(S.box.map(it=>({label:`${BUGS[it.id].name} Lv${it.lv}`, note:`${sellPrice(it)}円`})), {title:`虫かご ${S.box.length}/${cap()}`});
+    const c = await choose(S.box.map(it=>({label:`${BUGS[it.id].name} Lv${it.lv}`, note:dg(sellPrice(it))})), {title:`虫かご ${S.box.length}/${cap()}`});
     if(c<0) return;
     const it = S.box[c];
     const y = await choose(['にがす','やめる'], {msg:`${BUGS[it.id].name}（Lv${it.lv}）をどうする？`, cls:'side'});
@@ -1314,9 +1328,16 @@ async function giveGift(){
 }
 async function shopMain(){
   if(hasGift()) await giveGift();
+  if(!S.dgIntro){   // はじめて来たとき、どんぐりのしくみを説明する
+    await talk(['虫具店のおじさん「いらっしゃい！ はじめて見る顔だね。」', 'ojisan'],
+      ['「うちでは、しらべた虫をとどけてくれた子に、お礼に『どんぐり』をわたしているんだ。」', 'ojisan'],
+      ['「どんぐりは、宗像で虫や自然をしらべた子がもらえる、子どものための地域のお金さ。\nあみや虫かご、くつと交換できるよ。」', 'ojisan'],
+      ['「とどけてくれた虫は、記録をとったら、おじさんが元の場所にかえしておくから安心しな。」', 'ojisan']);
+    S.dgIntro = true; save();
+  }
   let greet = '虫具店のおじさん「いらっしゃい！ 今日はなんの用だい？」';
   while(true){
-    const c = await choose(['虫を売る','あみを買う','虫かごを買う','くつを買う','どうぐを買う','店を出る'], {title:`むなかた虫具店　${S.money}円`, msg:greet});
+    const c = await choose(['虫をとどける','あみを買う','虫かごを買う','くつを買う','どうぐを買う','店を出る'], {title:`むなかた虫具店　${dg(S.money)}`, msg:greet});
     greet = '「ほかに用はあるかい？」';
     if(c<0 || c===5){ await say('「まいど！ 熱中症に気をつけるんだよ。」'); S.dir = 'D'; return; }
     if(c===0) await sellMenu();
@@ -1328,17 +1349,17 @@ async function shopMain(){
 }
 async function sellMenu(){
   while(true){
-    if(!S.box.length){ await say('「売れる虫がいないね。また持ってきておくれ。」'); return; }
+    if(!S.box.length){ await say('「とどけてくれる虫がいないね。また持ってきておくれ。」'); return; }
     const sum = S.box.reduce((s,it)=>s + sellPrice(it), 0);
-    const opts = [{label:'ぜんぶ売る', note:`${sum}円`}, ...S.box.map(it=>({label:`${BUGS[it.id].name} Lv${it.lv}`, note:`${sellPrice(it)}円`}))];
-    const c = await choose(opts, {title:`虫を売る　${S.money}円`, msg:'「どの虫を売ってくれるんだい？」\n（売っても図鑑の記録は消えません）'});
+    const opts = [{label:'ぜんぶとどける', note:dg(sum)}, ...S.box.map(it=>({label:`${BUGS[it.id].name} Lv${it.lv}`, note:dg(sellPrice(it))}))];
+    const c = await choose(opts, {title:`虫をとどける　${dg(S.money)}`, msg:'「どの虫をとどけてくれるんだい？」\n（とどけても図鑑の記録は消えません）'});
     if(c<0) return;
     if(c===0){
-      const y = await choose(['売る','やめる'], {msg:`ぜんぶで ${sum}円 だよ。売るかい？`, cls:'side'});
-      if(y===0){ S.money += sum; S.box = []; hud(); await say(`${sum}円 もらった！`); }
+      const y = await choose(['とどける','やめる'], {msg:`ぜんぶで お礼は ${dg(sum)} だよ。とどけてくれるかい？`, cls:'side'});
+      if(y===0){ S.money += sum; S.box = []; hud(); await say(`お礼に ${dg(sum)} もらった！`); }
     } else {
       const it = S.box[c-1], p = sellPrice(it); S.box.splice(c-1,1); S.money += p; hud();
-      await say(`${BUGS[it.id].name}を ${p}円 で売った！`);
+      await say(`${BUGS[it.id].name}をとどけて、お礼に ${dg(p)} もらった！`);
     }
   }
 }
@@ -1351,12 +1372,12 @@ function gearDesc(kind, g, j){
 async function buyGear(kind){
   const L = {net:NETS, cage:CAGES, shoes:SHOES}[kind], label = {net:'あみ', cage:'虫かご', shoes:'くつ'}[kind];
   while(true){
-    const opts = L.map((g,j)=>({label:g.name, note: j===S[kind] ? 'もってる' : j<S[kind] ? '―' : `${g.price}円`, desc:gearDesc(kind,g,j), disabled: j<=S[kind]}));
-    const c = await choose(opts, {title:`${label}を買う　${S.money}円`, msg: kind==='shoes' ? '「いいくつがあれば、遠くの場所にも行けるよ。大島へは、神湊でフェリーの乗船チケットを買うんだよ。」' : '「いい道具をそろえると、強い虫もつかまえやすくなるよ。」'});
+    const opts = L.map((g,j)=>({label:g.name, note: j===S[kind] ? 'もってる' : j<S[kind] ? '―' : dg(g.price), desc:gearDesc(kind,g,j), disabled: j<=S[kind]}));
+    const c = await choose(opts, {title:`${label}を買う　${dg(S.money)}`, msg: kind==='shoes' ? '「いいくつがあれば、遠くの場所にも行けるよ。大島へは、神湊でフェリーの乗船チケットを買うんだよ。」' : '「いい道具をそろえると、強い虫もつかまえやすくなるよ。」'});
     if(c<0) return;
     const g = L[c];
-    if(S.money < g.price){ await say('お金が足りない…'); continue; }
-    const y = await choose(['買う','やめる'], {msg:`${g.name}は ${g.price}円 だよ。買うかい？`, cls:'side'});
+    if(S.money < g.price){ await say('どんぐりが足りない…'); continue; }
+    const y = await choose(['買う','やめる'], {msg:`${g.name}は ${dg(g.price)} だよ。買うかい？`, cls:'side'});
     if(y!==0) continue;
     S.money -= g.price; S[kind] = c; hud();
     let extra = '';
@@ -1366,10 +1387,10 @@ async function buyGear(kind){
 }
 async function buyItems(){
   while(true){
-    const c = await choose(ITEMS.map(t=>({label:`${t.name}（${S.items[t.key]}こ）`, note:`${t.price}円`, desc:t.desc})), {title:`どうぐを買う　${S.money}円`, msg:'「どれにする？」'});
+    const c = await choose(ITEMS.map(t=>({label:`${t.name}（${S.items[t.key]}こ）`, note:dg(t.price), desc:t.desc})), {title:`どうぐを買う　${dg(S.money)}`, msg:'「どれにする？」'});
     if(c<0) return;
     const t = ITEMS[c];
-    if(S.money < t.price){ await say('お金が足りない…'); continue; }
+    if(S.money < t.price){ await say('どんぐりが足りない…'); continue; }
     S.money -= t.price; S.items[t.key]++; hud();
   }
 }
@@ -1503,7 +1524,7 @@ async function battle(id){
         }
       }
     } else if(c===1){
-      if(S.box.length >= cap()){ await say('虫かごがいっぱいだ！\n虫具店で売るか、メニューからにがしてあげよう。'); turn = false; }
+      if(S.box.length >= cap()){ await say('虫かごがいっぱいだ！\n虫具店にとどけるか、メニューからにがしてあげよう。'); turn = false; }
       else {
         const p = catchRate(e); fx($('netfx'),'go',900); await wait(700);
         await say('えいっ！ あみをかぶせた！');
@@ -1593,7 +1614,7 @@ async function sumoMenu(){
     const opts = RIVALS.map((r,i)=>{
       const won = S.sumo[r.key], locked = i>0 && !S.sumo[RIVALS[i-1].key], done = S.sumoDay[r.key]===S.day;
       return {label: locked ? '？？？' : r.name,
-        note: locked ? '' : done ? '今日はおわり' : won ? `再戦 ${Math.round(r.money/4)}円` : `賞金 ${r.money}円`,
+        note: locked ? '' : done ? '今日はおわり' : won ? `再戦 ${dg(Math.round(r.money/4))}` : `賞金 ${dg(r.money)}`,
         desc: locked ? '前の相手に勝つと、挑戦できるようになる' : `あいての虫：${BUGS[r.bug].name} Lv${r.lv}（${typeOf(BUGS[r.bug]).name}タイプ）` + (won ? '\n勝ったことがある。再戦は1日1回' : ''),
         disabled: locked || done};
     });
@@ -1683,7 +1704,7 @@ async function sumoBattle(r, it){
   if(result==='win'){
     await say(`${r.short}「${r.win}」`);
     const money = first ? r.money : Math.round(r.money/4); S.money += money;
-    let msg = `虫ずもうに勝った！ 賞金 ${money}円 をもらった！`;
+    let msg = `虫ずもうに勝った！ 賞金 ${dg(money)} をもらった！`;
     if(first){
       if(r.item==='champ'){ S.sumoChamp = true; msg += `\n「虫ずもうチャンピオン」になった！（自由研究 +${SUMO_CHAMP_PT}点）`; }
       else { const t = [...ITEMS, ...PHOTO_ITEMS].find(t=>t.key===r.item); S.items[r.item] = (S.items[r.item]||0) + 1; msg += `\nさらに ${t.name} をもらった！`; }
@@ -1713,7 +1734,7 @@ function openDex(){
         return `<div class="c ${j===i?'sel':''}" data-j="${j}"><img alt="" src="${spriteURL(id, !got)}"><span class="no">No.${String(j+1).padStart(2,'0')}</span><br>${got||seen ? esc(BUGS[id].name) : '？？？'}</div>`; }).join('');
       const id = ids[i], b = BUGS[id], got = S.dex[id], seen = S.seen[id];
       det.innerHTML = `<div class="hd"><img alt="" src="${spriteURL(id, !got)}"><div><div>No.${String(i+1).padStart(2,'0')}</div><h3>${got||seen ? esc(b.name) : '？？？'}</h3><div class="stars">${got ? `<span class="rl">レア度</span> ${stars(b.rank)}` : ''}</div></div></div>`+
-        (got ? `<p>${fmt(b.desc)}</p>${INFO[id] ? `<h4>${id==='kinkabuto' ? '言いつたえのデータ' : '本物の虫のデータ'}</h4><dl class="real"><dt>なかま</dt><dd>${esc(INFO[id].ord)}</dd><dt>大きさ</dt><dd>${esc(INFO[id].size)}</dd><dt>日本でいる場所</dt><dd>${esc(INFO[id].range)}</dd><dt>見られる時期</dt><dd>${esc(INFO[id].season)}</dd><dt>飼いかた</dt><dd>${esc(INFO[id].care)}</dd></dl>` : ''}<h4>ゲームのきろく</h4><dl><dt>ゲームで出る場所</dt><dd>${esc(where(id))}</dd><dt>時間</dt><dd>${b.time.map(t=>SLOT_NAMES[t]).join('・')}</dd>${got.watched ? '<dt>きろく</dt><dd>遠くから観察した（危ないのでつかまえない）</dd>' : `<dt>つかまえた数</dt><dd>${got.n}ひき</dd><dt>さいこうLv</dt><dd>${got.best}</dd><dt>売り値のめやす</dt><dd>${b.price}円</dd>`}</dl><p class="note">※ゲームで出る場所と時間はゲーム用です。実際にその場所にいるとはかぎりません。本物の虫のデータ（大きさ・時期など）はおおよその目安です。</p>`
+        (got ? `<p>${fmt(b.desc)}</p>${INFO[id] ? `<h4>${id==='kinkabuto' ? '言いつたえのデータ' : '本物の虫のデータ'}</h4><dl class="real"><dt>なかま</dt><dd>${esc(INFO[id].ord)}</dd><dt>大きさ</dt><dd>${esc(INFO[id].size)}</dd><dt>日本でいる場所</dt><dd>${esc(INFO[id].range)}</dd><dt>見られる時期</dt><dd>${esc(INFO[id].season)}</dd><dt>飼いかた</dt><dd>${esc(INFO[id].care)}</dd></dl>` : ''}<h4>ゲームのきろく</h4><dl><dt>ゲームで出る場所</dt><dd>${esc(where(id))}</dd><dt>時間</dt><dd>${b.time.map(t=>SLOT_NAMES[t]).join('・')}</dd>${got.watched ? '<dt>きろく</dt><dd>遠くから観察した（危ないのでつかまえない）</dd>' : `<dt>つかまえた数</dt><dd>${got.n}ひき</dd><dt>さいこうLv</dt><dd>${got.best}</dd><dt>とどけたときのお礼</dt><dd>${esc(dg(b.price))}</dd>`}</dl><p class="note">※ゲームで出る場所と時間はゲーム用です。実際にその場所にいるとはかぎりません。本物の虫のデータ（大きさ・時期など）はおおよその目安です。</p>`
              : seen ? `<p>見かけたけど、まだつかまえていない。</p>` : `<p>まだ見たことがない虫。</p>`) +
         (()=>{ const r = realPhotoFor(b.shape); return r && r[1].img ? `<div class="real"><div>本物の${esc(PHOTO_CATS[r[0]].name)}の写真</div><img alt="" src="${r[1].img}"></div>` : ''; })();
       grid.querySelector('.sel')?.scrollIntoView({block:'nearest'});
@@ -1883,7 +1904,7 @@ async function handlePhoto(file){
   }
   // ごほうび
   const C = PHOTO_CATS[cat], first = !photos.cats[cat], gifts = [];
-  const money = C.money * (first ? 2 : 1); S.money += money; gifts.push(`おこづかい ${money}円${first ? '（はじめてボーナス2倍！）' : ''}`);
+  const money = C.money * (first ? 2 : 1); S.money += money; gifts.push(`どんぐり ${dg(money)}${first ? '（はじめてボーナス2倍！）' : ''}`);
   if(C.item && (first || Math.random() < .35)){ const it = PHOTO_ITEMS.find(t=>t.key===C.item); S.items[C.item] = (S.items[C.item]||0) + 1; gifts.push(`${it.name}（${it.desc}）`); }
   if(cat==='kabuto' && !S.goldwing){ S.goldwing = true; gifts.push('金色のはね！ 大島の伝説の虫「ミアレカブト」が出やすくなった…！'); }
   if(C.shapes.length){ C.shapes.forEach(s=>S.link[s] = S.day + 1); gifts.push(`ゲームの中で${C.name}が出やすくなった（明日まで）`); }
@@ -2005,7 +2026,7 @@ async function introCarry(c){
   await talk(
     [`${dateStr()}。小学${grade()}年生の夏休み、今年も虫とりの日がやってきた！`, 'boku'],
     `去年の自由研究は「${c.lastAward}」（${c.lastScore}点）。\n自己ベストは ${c.best}点。今年はもっとすごい昆虫図鑑をつくるぞ！`,
-    `去年の道具は、ちゃんとしまってある。\nLv${S.lv}・${NETS[S.net].name}・${CAGES[S.cage].name}・${SHOES[S.shoes].name}\nお金 ${S.money}円（おこづかい300円をふくむ）`,
+    `去年の道具は、ちゃんとしまってある。\nLv${S.lv}・${NETS[S.net].name}・${CAGES[S.cage].name}・${SHOES[S.shoes].name}\nどんぐり ${dg(S.money)}（子ども会からの ${dg(300)} をふくむ）`,
     `図鑑は新しいノートでいちからつくりなおし。\n${dateStr(DAYS)}までの${DAYS}日間、がんばろう！`
   );
 }
@@ -2014,12 +2035,13 @@ async function intro(){
   await talk(
     [`${dateStr()}。いよいよ虫とりの日がやってきた！`, 'boku'],
     ['7月21日に夏休みがはじまってから、がんばって宿題をほとんど終わらせた。\nのこりの夏休みは、虫とりに全力だ！', 'boku'],
-    'お母さん「宿題がんばったわね。でも夜9時までには帰ってくるのよ。\nはい、おこづかい300円。」',
+    'お母さん「宿題がんばったわね。でも夜9時までには帰ってくるのよ。\nそれから、子ども会から「どんぐり」がとどいてたわよ。」',
+    `どんぐりを ${dg(300)} もらった！\n「どんぐり」は、宗像で自然をしらべた子がもらえる、子どものための地域のお金だ。`,
     `${dateStr(DAYS+1)}からは二学期がはじまる。\n${dateStr(DAYS)}までの${DAYS}日間で、宗像じゅうの虫をつかまえて昆虫図鑑を完成させよう！`,
     '自由研究は「昆虫図鑑づくり」！\nたくさんの虫、めずらしい虫をのせるほど、二学期の発表で注目されるぞ。',
-    '町の広場の切りかぶでは、近所の子どもたちが「虫ずもう」をしているらしい。\nつかまえた虫で勝負して、賞金をかせごう！（子どもに話しかけるとはじまる）',
-    'つかまえた虫は、家のとなりの「虫具店」で売れる。\nお金をためて、いいあみ・虫かご・くつを買おう！',
-    '本物の虫を見つけたら、メニューの「本物の虫を撮る」で写真を見せてね。\nおこづかいや、お店では買えないアイテムがもらえるよ！',
+    '町の広場の切りかぶでは、近所の子どもたちが「虫ずもう」をしているらしい。\nつかまえた虫で勝負して、賞金のどんぐりをかせごう！（子どもに話しかけるとはじまる）',
+    'つかまえた虫を家のとなりの「虫具店」にとどけると、お礼にどんぐりがもらえる。\nどんぐりをためて、いいあみ・虫かご・くつを買おう！',
+    '本物の虫を見つけたら、メニューの「本物の虫を撮る」で写真を見せてね。\nどんぐりや、お店では買えないアイテムがもらえるよ！',
     touch ? '【そうさ】十字キー：いどう　A：けってい　B：メニュー・キャンセル\n草むらを歩くと虫が出てくるよ。下の出口から町の外へ！'
           : '【そうさ】やじるしキー：いどう　Z：けってい　X：メニュー・キャンセル\n草むらを歩くと虫が出てくるよ。下の出口から町の外へ！'
   );
@@ -2140,7 +2162,7 @@ async function ending(){
       <div>次の夏休み（小学${grade(carry.round)}年生）に、引きつげるもの：</div>
       <ul><li>レベル ${S.lv}</li><li>${esc(NETS[S.net].name)}・${esc(CAGES[S.cage].name)}・${esc(SHOES[S.shoes].name)}</li>
         <li>どうぐ（スポーツドリンク${S.items.drink}・虫みつ${S.items.mitsu}・樹液トラップ${S.items.jueki||0}・観察ノート${S.items.note||0}${S.goldwing ? '・金色のはね' : ''}${S.ticket ? '・乗船チケット' : ''}）</li>
-        <li>お金 ${carry.money}円${boxValue ? `（虫かごにのこった${S.box.length}ひきを売った${boxValue}円をふくむ）` : ''}</li></ul>
+        <li>どんぐり ${esc(dg(carry.money))}${boxValue ? `（虫かごにのこった${S.box.length}ひきをとどけたお礼 ${esc(dg(boxValue))} をふくむ）` : ''}</li></ul>
       <div class="lbl">タイトルの「引きつぎではじめる」から遊べます。図鑑はいちからつくりなおしです。</div>
       ${e.key==='poor' ? '<div class="lbl" style="margin-top:.4em">……虫具店のおじさんが、なにか気にかけてくれているみたい。</div>' : ''}
     </div>
