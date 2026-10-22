@@ -542,7 +542,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-0329';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-0349';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -557,7 +557,7 @@ const CHANGELOG = [
     'モンシロチョウ・ナツアカネ・ショウリョウバッタ・トノサマバッタの絵を新しくした',
     '会話とメニューの枠を少しすきとおらせて、うしろの絵が見えるようにした',
     '「プライバシーについて」を追加した（タイトルとオプション）。遊ばれ方を知るためのアクセス解析を入れた（名前・写真・位置は送らない）',
-    'ファミコンみたいな音のBGMと効果音を入れた（オプションでON/OFF）。時間帯で虫の声がかわる（朝は小鳥、昼はセミ、夕方はヒグラシ、夜はスズムシとコオロギ）。朝はスキップするような曲、昼はその続きで少しゆっくりした曲、タイトルは虫の声だけ。虫と出会うと、ドキドキする心臓の音が聞こえる',
+    'ファミコンみたいな音のBGMと効果音を入れた（オプションでON/OFF）。時間帯で虫の声がかわる（朝は小鳥、昼はセミ、夕方はヒグラシ、夜はスズムシとコオロギ）。朝はスキップするような曲、昼はその続きで少しゆっくりした曲、タイトルは虫の声だけ。ねるときは子守歌、朝は遠くでニワトリが鳴く。虫と出会うと、ドキドキする心臓の音が聞こえる',
     'バトルのコマンドを、左に「あみをふる・つかまえる」、右に「どうぐ・にげる」のならびにした',
     'スマホのたて画面で、タイトルの上のほうと、遊んでいるときの日付・時間を見やすくした',
     'エンディングの点数の画面で、画面の向きを変えると上にもどれなくなる不具合を直した',
@@ -735,6 +735,48 @@ function se(name){
     t += s[3];
   }
 }
+/* ねる（子守歌）と、朝のニワトリ（遠くでコケコッコー）。ほかの効果音と同じく「効果音」のON/OFFにしたがう */
+function seReady(){
+  if(!sndPref.se || !actx || actx.state === 'closed') return false;
+  if(actx.state !== 'running') actx.resume().catch(()=>{});
+  return true;
+}
+function seSleep(){   // ド ラ ソ ファー ソ ミ ファー（約3秒）
+  if(!seReady()) return;
+  const t = actx.currentTime + .08;
+  try{
+    let at = t; for(const [n, d] of [[72,.32],[69,.32],[67,.32],[65,.64],[67,.32],[64,.32],[65,1.3]]){ aTone(aSe, .125, mhz(n), at, d * .95, .1, null, [.04, .6, .3]); at += d; }
+    aTone(aSe, 'tri', mhz(53), t, 1.9, .14, null, [.1, .8, .5]); aTone(aSe, 'tri', mhz(48), t + 1.92, 1.9, .12, null, [.1, .8, 1]);
+  }catch(e){ seErr = String(e && e.message || e).slice(0, 60); }
+}
+function seCrow(delay){   // 矩形波2つを少しずらして重ね、のどのふるえを足す。遠くで鳴くように高い音をけずって、うすい山びこ
+  if(!seReady()) return;
+  try{
+    const t = actx.currentTime + delay, out = actx.createGain(), lp = actx.createBiquadFilter(), dl = actx.createDelay(1), fb = actx.createGain();
+    out.gain.value = .5; lp.type = 'lowpass'; lp.frequency.value = 1600; lp.connect(out); out.connect(aSe);
+    dl.delayTime.value = .32; fb.gain.value = .25; out.connect(dl); dl.connect(fb); fb.connect(dl); fb.connect(aSe);
+    setTimeout(()=>{ fb.gain.value = 0; out.disconnect(); fb.disconnect(); }, (delay + 4) * 1000);   // 山びこを止める
+    const SY = [   // [はじまり, 長さ, 音の高さの動き [時刻の割合, Hz]...]
+      [0,   .09, [[0, 520], [1, 640]]],                          // コ
+      [.13, .09, [[0, 700], [1, 760]]],                          // ケ
+      [.26, .12, [[0, 640], [1, 840]]],                          // コッ
+      [.44, .8,  [[0, 820], [.18, 990], [.6, 930], [1, 620]]],   // コー
+    ];
+    for(const [st, len, pts] of SY){
+      const a = t + st, g = actx.createGain(); g.connect(lp);
+      g.gain.setValueAtTime(0, a); g.gain.linearRampToValueAtTime(.16, a + .015);
+      g.gain.setValueAtTime(.16, a + len * .75); g.gain.linearRampToValueAtTime(0, a + len);
+      for(const [w, det] of [[.25, 1], [.125, 1.008]]){
+        const o = actx.createOscillator(); o.setPeriodicWave(aWaves[w]);
+        o.frequency.setValueAtTime(pts[0][1] * det, a);
+        for(const [k, f] of pts.slice(1)) o.frequency.linearRampToValueAtTime(f * det, a + len * k);
+        o.connect(g); o.start(a); o.stop(a + len + .02);
+      }
+      const l = actx.createOscillator(), lg = actx.createGain();
+      l.frequency.value = 38; lg.gain.value = .035; l.connect(lg); lg.connect(g.gain); l.start(a); l.stop(a + len);
+    }
+  }catch(e){ seErr = String(e && e.message || e).slice(0, 60); }
+}
 /* 虫の音（時間帯で変わる）と風鈴。曲の音量（BGM）といっしょにON/OFFする */
 function ambLfo(g, rate, depth, t, end){   // 音量をふるわせる（虫の羽の音）
   const l = actx.createOscillator(), lg = actx.createGain();
@@ -802,8 +844,10 @@ function ambSlot(){
   return sc === 'title' || sc === 'end' ? 'title' : (typeof S !== 'undefined' && S ? slotOf(S.min) : 'hiru');
 }
 const sceneVol = ()=> ambSlot() === 'hiru' ? .7 : 1;   // 昼はセミがにぎやかなので、曲も虫の音も少し小さく
+let sleeping = false;   // ねているあいだは曲を止めて、虫の音だけにする
 function bgmWant(){
   const sc = typeof scene !== 'undefined' ? scene : 'title', slot = ambSlot();
+  if(sleeping) return 'mushi';
   if(sc === 'title' || sc === 'end') return 'mushi';   // タイトルは、あえて曲なしで虫の音だけ
   if(sc === 'battle') return battleEl.classList.contains('vs') ? 'sumo' : 'battle';
   return slot === 'asa' ? 'field_asa' : slot === 'hiru' ? 'field_hiru' : 'field';   // 朝は短い音でスキップする曲、昼はその続きで少しゆっくり、夕方・夜は長い音でしっとり
@@ -1616,7 +1660,12 @@ async function home(){
 async function sleep(faint){
   if(S.day >= DAYS){ await ending(); return; }
   track('day_start', {day: S.day + 1});
-  await fade(()=>{ S.day++; S.min = START_MIN; S.hp = maxHp(); S.area = 'town'; S.x = 3; S.y = 5; S.dir = 'D'; S.warned = false; hud(); });
+  // 子守歌を聴きながら暗いまま少し待ち、朝になったら遠くでニワトリが鳴く
+  sleeping = true; bgmUpdate(); seSleep();
+  $('fade').classList.add('on'); await wait(sndPref.se ? 3500 : 600);
+  S.day++; S.min = START_MIN; S.hp = maxHp(); S.area = 'town'; S.x = 3; S.y = 5; S.dir = 'D'; S.warned = false; hud();
+  sleeping = false; bgmUpdate(); seCrow(1.2);
+  await wait(80); $('fade').classList.remove('on'); await wait(200);
   save();
   const left = DAYS - S.day + 1;
   const tip = left===1 ? '今日が夏休み最後の日だ！ 明日から二学期…。' : left<=3 ? `二学期まで、あと${left}日…！` : S.day<=4 ? ['おぼんで、親せきのおじさんたちが遊びに来ている。','おぼんなので、お墓まいりに行ってきた。','おぼんの夜は、町内でぼんおどりがあるらしい。'][S.day%3] : ['今日もいい天気だ！','セミが朝から元気に鳴いている。','ラジオ体操に行ってきた！','朝ごはんをしっかり食べた！'][S.day%4];
