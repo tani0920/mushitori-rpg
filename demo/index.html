@@ -355,7 +355,9 @@ body.touch #hud{position:absolute;top:0;left:0;right:0;z-index:2;pointer-events:
 body.touch #hud:empty{display:none!important}   /* タイトル画面では上の黒いグラデーションを出さない */
 body.touch #hud .bar{width:min(34vw,180px);height:.6em}
 /* スマホ縦・iPad：3行で大きく */
-body.touch:not(.land) #hud{display:flex;flex-direction:column;gap:2px;font-size:clamp(15px,4.2vmin,24px);line-height:1.35;padding-bottom:14px;background:linear-gradient(#000d 70%,#0000)}
+body.touch:not(.land) #hud{display:flex;flex-direction:column;gap:2px;font-size:clamp(15px,4.2vmin,24px);line-height:1.35;padding-bottom:14px;
+  padding-top:calc(env(safe-area-inset-top,0px) * 1.5 + 5px);   /* iPhone は時計のあたりに暗いぼかしがかかるので、日付の行をその下まで下げる（ノッチのない画面ではそのまま） */
+  background:linear-gradient(#000d 70%,#0000)}
 body.touch:not(.land) #hud .hrow{display:flex;gap:0 .8em;align-items:center;flex-wrap:wrap}
 body.touch:not(.land) #hud .date{font-weight:700}
 body.touch:not(.land) #hud .place{font-size:1.05em}
@@ -540,7 +542,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-0102';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-0106';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -1147,12 +1149,14 @@ function clockSVG(m=S.min){
     hand(ha, 9.5, 3.2, night ? '#f7f1df' : '#2b2118') + hand(ma, 14, 2, night ? '#f7f1df' : '#2b2118') + `<circle cx="20" cy="20" r="2" fill="#c8402e"/></svg>`;
 }
 function hud(){
-  hudEl.hidden = scene==='title';   // タイトル画面では上の情報欄（黒いグラデーション）ごと消す
-  if(scene==='title'){ hudEl.innerHTML = ''; return; }
+  const hide = scene==='title', changed = hudEl.hidden !== hide;
+  hudEl.hidden = hide;   // タイトル画面では上の情報欄（黒いグラデーション）ごと消す
+  if(hide){ hudEl.innerHTML = ''; if(changed) layout(); return; }
   const r = S.hp / maxHp();
   hudEl.innerHTML = `<div class="hrow"><span class="date">${dateStr()}</span><span class="day">${S.day}/${DAYS}日目</span><span class="time">${clockSVG()}${hhmm()} ${SLOT_NAMES[slotOf(S.min)]}</span></div>`+
     `<div class="hrow"><span class="place">${esc(AREAS[S.area].name)}</span><span class="money">${esc(dg(S.money))}</span><span>ずかん ${dexCount()}/${Object.keys(BUGS).length}</span></div>`+
     `<div class="hrow"><span class="lv">Lv${S.lv}</span><span class="hp">HP <span class="bar"><i class="${r<.3?'low':''}" style="width:${r*100}%"></i></span>${S.hp}/${maxHp()}</span></div>`;
+  if(changed) layout();   // 出したとき、高さをはかりなおしてメニューなどの位置を合わせる
 }
 
 /* =========================================================
