@@ -542,7 +542,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-0834';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-0841';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -557,7 +557,7 @@ const CHANGELOG = [
     'モンシロチョウ・ナツアカネ・ショウリョウバッタ・トノサマバッタの絵を新しくした',
     '会話とメニューの枠を少しすきとおらせて、うしろの絵が見えるようにした',
     '「プライバシーについて」を追加した（タイトルとオプション）。遊ばれ方を知るためのアクセス解析を入れた（名前・写真・位置は送らない）',
-    'ファミコンみたいな音のBGMと効果音を入れた（オプションでON/OFF）。時間帯で虫の声がかわる（朝は小鳥、昼はセミ、夕方はヒグラシ、夜はスズムシとコオロギ）。朝はスキップするような曲、昼はその続きで少しゆっくりした曲、タイトルは、ミアレカブトの曲から太鼓をぬいた曲。ねるときは子守歌、朝は遠くでニワトリが鳴く。虫と出会うと、ドキドキする心臓の音が聞こえる。ミアレカブトと出会うと、みあれ祭の太鼓と笛が鳴る',
+    'ファミコンみたいな音のBGMと効果音を入れた（オプションでON/OFF）。時間帯で虫の声がかわる（朝は小鳥、昼はセミ、夕方はヒグラシ、夜はスズムシとコオロギ）。朝はスキップするような曲、昼はその続きで少しゆっくりした曲、タイトルは虫の声だけ。ねるときは子守歌、朝は遠くでニワトリが鳴く。虫と出会うと、ドキドキする心臓の音が聞こえる。ミアレカブトと出会うと、みあれ祭の太鼓と笛が鳴る',
     'バトルのコマンドを、左に「あみをふる・つかまえる」、右に「どうぐ・にげる」のならびにした',
     'スマホのたて画面で、タイトルの上のほうと、遊んでいるときの日付・時間を見やすくした',
     'エンディングの点数の画面で、画面の向きを変えると上にもどれなくなる不具合を直した',
@@ -605,7 +605,6 @@ SONGS.battle_kin = Object.assign({}, SONGS.battle, {duty:[.25, .125, .5],
   env:Object.assign({}, SONGS.battle.env, {p3:[.03, .8, .2]}), vol:Object.assign({}, SONGS.battle.vol, {p1:.04, p2:.02, p3:.035, noi:0, tai:.2}),
   p3:'74:4 77:4 79:8 81:4 79:4 77:8 79:4 81:4 84:8 81:4 79:4 77:4 79:4 77:4 74:4 77:8 79:4 77:4 74:8 76:4 77:4 76:4 74:4 69:16',
   tai:Array(8).fill('k:2 .:2 .:2 k:1 k:1 k:2 .:2 d:2 .:2').join(' ')});   // ドン・ドドン・カッ
-SONGS.title_kin = Object.assign({}, SONGS.battle_kin, {tai:null});   // タイトル：ミアレカブトの曲から、太鼓をぬいたもの
 const SND_KEY = 'munakata-sound-v1';
 const sndPref = (()=>{ try{ return Object.assign({bgm:true, se:true}, JSON.parse(localStorage.getItem(SND_KEY)) || {}); }catch(e){ return {bgm:true, se:true}; } })();
 const saveSnd = ()=>{ try{ localStorage.setItem(SND_KEY, JSON.stringify(sndPref)); }catch(e){} };
@@ -854,8 +853,7 @@ let sleeping = false;   // ねているあいだは曲を止めて、虫の音�
 function bgmWant(){
   const sc = typeof scene !== 'undefined' ? scene : 'title', slot = ambSlot();
   if(sleeping) return 'mushi';
-  if(sc === 'title') return 'title_kin';   // タイトルは、ミアレカブトの曲（太鼓なし）
-  if(sc === 'end') return 'mushi';         // エンディングは、曲なしで虫の音だけ
+  if(sc === 'title' || sc === 'end') return 'mushi';   // タイトルは、あえて曲なしで虫の音だけ
   if(sc === 'battle') return battleEl.classList.contains('vs') ? 'sumo' : battleId === 'kinkabuto' ? 'battle_kin' : 'battle';   // ミアレカブトは、みあれ祭の太鼓と笛が入る
   return slot === 'asa' ? 'field_asa' : slot === 'hiru' ? 'field_hiru' : 'field';   // 朝は短い音でスキップする曲、昼はその続きで少しゆっくり、夕方・夜は長い音でしっとり
 }
