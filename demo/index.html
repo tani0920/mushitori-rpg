@@ -542,7 +542,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-0349';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-0830';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -557,7 +557,7 @@ const CHANGELOG = [
     'モンシロチョウ・ナツアカネ・ショウリョウバッタ・トノサマバッタの絵を新しくした',
     '会話とメニューの枠を少しすきとおらせて、うしろの絵が見えるようにした',
     '「プライバシーについて」を追加した（タイトルとオプション）。遊ばれ方を知るためのアクセス解析を入れた（名前・写真・位置は送らない）',
-    'ファミコンみたいな音のBGMと効果音を入れた（オプションでON/OFF）。時間帯で虫の声がかわる（朝は小鳥、昼はセミ、夕方はヒグラシ、夜はスズムシとコオロギ）。朝はスキップするような曲、昼はその続きで少しゆっくりした曲、タイトルは虫の声だけ。ねるときは子守歌、朝は遠くでニワトリが鳴く。虫と出会うと、ドキドキする心臓の音が聞こえる',
+    'ファミコンみたいな音のBGMと効果音を入れた（オプションでON/OFF）。時間帯で虫の声がかわる（朝は小鳥、昼はセミ、夕方はヒグラシ、夜はスズムシとコオロギ）。朝はスキップするような曲、昼はその続きで少しゆっくりした曲、タイトルは虫の声だけ。ねるときは子守歌、朝は遠くでニワトリが鳴く。虫と出会うと、ドキドキする心臓の音が聞こえる。ミアレカブトと出会うと、みあれ祭の太鼓と笛が鳴る',
     'バトルのコマンドを、左に「あみをふる・つかまえる」、右に「どうぐ・にげる」のならびにした',
     'スマホのたて画面で、タイトルの上のほうと、遊んでいるときの日付・時間を見やすくした',
     'エンディングの点数の画面で、画面の向きを変えると上にもどれなくなる不具合を直した',
@@ -600,6 +600,11 @@ function setGaOff(off){
    ========================================================= */
 const SONGS = {"title":{"bpm":66,"duty":[0.125,0.125],"env":{"p1":[0.03,0.5,0.6],"p2":[0.25,0.7,0.3],"tri":[0.4,1,0.2]},"vol":{"p1":0.07,"p2":0.045,"tri":0.2,"noi":0},"len":128,"p1":"0:8 72:8 69:16 0:8 71:8 67:16 0:8 69:4 65:4 69:16 0:8 67:4 71:4 64:16","p2":"65:4 69:4 72:4 76:4 72:4 69:4 72:4 69:4 64:4 67:4 71:4 74:4 71:4 67:4 71:4 67:4 62:4 65:4 69:4 72:4 69:4 65:4 69:4 65:4 60:4 64:4 67:4 71:4 67:4 64:4 67:4 64:4","tri":"41:32 40:32 38:32 36:32","noi":".:128"},"field":{"bpm":60,"duty":[0.125,0.125],"env":{"p1":[0.03,0.5,0.6],"p2":[0.35,0.8,0.3],"tri":[0.5,1,0.2]},"vol":{"p1":0,"p2":0.04,"tri":0.17,"noi":0},"len":128,"p1":"0:128","p2":"60:4 67:4 64:4 71:4 67:4 64:4 60:4 67:4 57:4 64:4 60:4 67:4 64:4 60:4 57:4 64:4 65:4 72:4 69:4 76:4 72:4 69:4 65:4 72:4 55:4 62:4 60:4 67:4 62:4 60:4 55:4 62:4","tri":"36:32 33:32 41:32 31:32","noi":".:128"},"battle":{"bpm":88,"duty":[0.25,0.125],"env":{"p1":[0.003,0,0.12],"p2":[0.3,0.8,0.3],"tri":[0.005,0,0.18]},"vol":{"p1":0.07,"p2":0.03,"tri":0.24,"noi":0.04},"len":128,"p1":"0:4 81:1 0:3 77:1 0:7 0:8 74:1 0:3 76:1 0:3 0:4 81:1 0:3 77:1 0:7 0:8 74:1 0:3 72:1 0:3 0:4 82:1 0:3 77:1 0:7 0:8 74:1 0:3 72:1 0:3 0:4 81:1 0:3 76:1 0:7 0:8 73:1 0:3 76:1 0:3","p2":"62:32 60:32 58:32 57:32","tri":"50:2 0:6 57:2 0:6 50:2 0:6 57:2 0:6 50:2 0:6 57:2 0:6 50:2 0:6 57:2 0:6 46:2 0:6 53:2 0:6 46:2 0:6 53:2 0:6 45:2 0:6 52:2 0:6 45:2 0:6 52:2 0:6","noi":".:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1"},"field_asa":{"bpm":96,"duty":[0.25,0.125],"env":{"p1":[0.003,0,0.09],"p2":[0.003,0,0.06],"tri":[0.003,0,0.1]},"vol":{"p1":0.045,"p2":0.028,"tri":0.17,"noi":0.012},"len":128,"p1":"74:3 71:1 74:3 76:1 74:4 71:4 72:3 76:1 79:3 76:1 72:4 0:4 71:3 74:1 79:3 74:1 71:4 67:4 69:3 71:1 72:3 74:1 76:4 74:4 74:3 71:1 74:3 76:1 79:4 76:4 76:3 72:1 76:3 79:1 81:4 79:4 78:3 76:1 74:3 72:1 71:2 72:2 74:4 79:4 0:2 67:2 79:4 0:4","p2":"0:2 71:2 0:2 74:2 0:2 71:2 0:2 74:2 0:2 72:2 0:2 76:2 0:2 72:2 0:2 76:2 0:2 71:2 0:2 74:2 0:2 71:2 0:2 74:2 0:2 69:2 0:2 74:2 0:2 69:2 0:2 74:2 0:2 71:2 0:2 74:2 0:2 71:2 0:2 74:2 0:2 72:2 0:2 76:2 0:2 72:2 0:2 76:2 0:2 69:2 0:2 74:2 0:2 69:2 0:2 74:2 0:2 71:2 0:2 74:2 0:2 71:2 0:2 74:2","tri":"43:2 0:2 50:2 0:2 43:2 0:2 50:2 0:2 48:2 0:2 43:2 0:2 48:2 0:2 43:2 0:2 43:2 0:2 50:2 0:2 43:2 0:2 50:2 0:2 50:2 0:2 45:2 0:2 50:2 0:2 45:2 0:2 43:2 0:2 50:2 0:2 43:2 0:2 50:2 0:2 48:2 0:2 43:2 0:2 48:2 0:2 43:2 0:2 50:2 0:2 45:2 0:2 50:2 0:2 45:2 0:2 43:2 0:2 50:2 0:2 43:2 0:2 50:2 0:2","noi":".:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1"},"field_hiru":{"bpm":86,"duty":[0.125,0.125],"env":{"p1":[0.004,0.2,0.12],"p2":[0.003,0,0.06],"tri":[0.003,0,0.12]},"vol":{"p1":0.045,"p2":0.025,"tri":0.18,"noi":0},"len":128,"p1":"74:3 71:1 74:3 76:1 74:4 71:4 72:3 76:1 79:3 76:1 72:4 0:4 71:3 74:1 79:3 74:1 71:4 67:4 69:3 71:1 72:3 74:1 76:4 74:4 74:3 71:1 74:3 76:1 79:4 76:4 76:3 72:1 76:3 79:1 81:4 79:4 78:3 76:1 74:3 72:1 71:2 72:2 74:4 79:4 0:2 67:2 79:4 0:4","p2":"0:2 71:2 0:2 74:2 0:2 71:2 0:2 74:2 0:2 72:2 0:2 76:2 0:2 72:2 0:2 76:2 0:2 71:2 0:2 74:2 0:2 71:2 0:2 74:2 0:2 69:2 0:2 74:2 0:2 69:2 0:2 74:2 0:2 71:2 0:2 74:2 0:2 71:2 0:2 74:2 0:2 72:2 0:2 76:2 0:2 72:2 0:2 76:2 0:2 69:2 0:2 74:2 0:2 69:2 0:2 74:2 0:2 71:2 0:2 74:2 0:2 71:2 0:2 74:2","tri":"43:2 0:2 50:2 0:2 43:2 0:2 50:2 0:2 48:2 0:2 43:2 0:2 48:2 0:2 43:2 0:2 43:2 0:2 50:2 0:2 43:2 0:2 50:2 0:2 50:2 0:2 45:2 0:2 50:2 0:2 45:2 0:2 43:2 0:2 50:2 0:2 43:2 0:2 50:2 0:2 48:2 0:2 43:2 0:2 48:2 0:2 43:2 0:2 50:2 0:2 45:2 0:2 50:2 0:2 45:2 0:2 43:2 0:2 50:2 0:2 43:2 0:2 50:2 0:2","noi":".:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1 .:3 h:1"}};
 SONGS.sumo = SONGS.battle;
+/* ミアレカブトのバトル：ふつうのバトル曲に、みあれ祭の太鼓（tai）と笛のメロディ（p3）を足す */
+SONGS.battle_kin = Object.assign({}, SONGS.battle, {duty:[.25, .125, .5],
+  env:Object.assign({}, SONGS.battle.env, {p3:[.03, .8, .2]}), vol:Object.assign({}, SONGS.battle.vol, {p1:.04, p2:.02, p3:.035, noi:0, tai:.2}),
+  p3:'74:4 77:4 79:8 81:4 79:4 77:8 79:4 81:4 84:8 81:4 79:4 77:4 79:4 77:4 74:4 77:8 79:4 77:4 74:8 76:4 77:4 76:4 74:4 69:16',
+  tai:Array(8).fill('k:2 .:2 .:2 k:1 k:1 k:2 .:2 d:2 .:2').join(' ')});   // ドン・ドドン・カッ
 const SND_KEY = 'munakata-sound-v1';
 const sndPref = (()=>{ try{ return Object.assign({bgm:true, se:true}, JSON.parse(localStorage.getItem(SND_KEY)) || {}); }catch(e){ return {bgm:true, se:true}; } })();
 const saveSnd = ()=>{ try{ localStorage.setItem(SND_KEY, JSON.stringify(sndPref)); }catch(e){} };
@@ -677,8 +682,8 @@ function bgmPlay(name, vol, heart){   // name が SONGS にないとき（'mushi
   if(!sg) return;
   const g = bgmGain, step = 60 / sg.bpm / 4, ev = [];
   const VOL = sg.vol, ENV = sg.env || {};
-  for(const ch of ['p1','p2','tri','noi']){
-    let t = 0;
+  for(const ch of ['p1','p2','p3','tri','noi','tai']){
+    if(!sg[ch]) continue; let t = 0;
     for(const tk of sg[ch].split(' ')){ const [n, d] = tk.split(':'); const dd = +d;
       if(n !== '0' && n !== '.' && VOL[ch]) ev.push({t, d:dd, ch, n}); t += dd; }
   }
@@ -690,8 +695,8 @@ function bgmPlay(name, vol, heart){   // name が SONGS にないとき（'mushi
     while(true){
       const e = ev[i], at = base + e.t * step; if(at > until) break;
       if(at > actx.currentTime - .02){
-        if(e.ch === 'noi') aHit(g, e.n, at, VOL.noi);
-        else aTone(g, e.ch === 'tri' ? 'tri' : sg.duty[e.ch === 'p1' ? 0 : 1], mhz(+e.n), at, e.d * step * .97, VOL[e.ch], null, ENV[e.ch]);
+        if(e.ch === 'noi' || e.ch === 'tai') aHit(g, e.n, at, VOL[e.ch], e.ch === 'tai' ? .22 : 0);
+        else aTone(g, e.ch === 'tri' ? 'tri' : sg.duty[{p1:0, p2:1, p3:2}[e.ch]], mhz(+e.n), at, e.d * step * .97, VOL[e.ch], null, ENV[e.ch]);
       }
       if(++i >= ev.length){ i = 0; base += sg.len * step; }
     }
@@ -849,7 +854,7 @@ function bgmWant(){
   const sc = typeof scene !== 'undefined' ? scene : 'title', slot = ambSlot();
   if(sleeping) return 'mushi';
   if(sc === 'title' || sc === 'end') return 'mushi';   // タイトルは、あえて曲なしで虫の音だけ
-  if(sc === 'battle') return battleEl.classList.contains('vs') ? 'sumo' : 'battle';
+  if(sc === 'battle') return battleEl.classList.contains('vs') ? 'sumo' : battleId === 'kinkabuto' ? 'battle_kin' : 'battle';   // ミアレカブトは、みあれ祭の太鼓と笛が入る
   return slot === 'asa' ? 'field_asa' : slot === 'hiru' ? 'field_hiru' : 'field';   // 朝は短い音でスキップする曲、昼はその続きで少しゆっくり、夕方・夜は長い音でしっとり
 }
 function bgmUpdate(){
@@ -858,7 +863,7 @@ function bgmUpdate(){
   if(!want){ bgmStop(); return; }
   const vol = sceneVol();
   if(want === 'sumo') bgmPlay('sumo', vol);   // すもうは今までどおりのバトル曲（心臓の音なし）
-  else bgmPlay(want, vol, want === 'battle');
+  else bgmPlay(want, vol, want === 'battle' || want === 'battle_kin');
   if(bgmGain && Math.abs(bgmGain.gain.value - vol) > .01){ bgmGain.gain.setTargetAtTime(vol, actx.currentTime, .5); if(ambOut) ambOut.gain.setTargetAtTime(vol, actx.currentTime, .5); }
 }
 setInterval(bgmUpdate, 250);
@@ -1829,6 +1834,7 @@ async function buyItems(){
    バトル
    ========================================================= */
 const battleEl = $('battle'), bSprite = $('bSprite');
+let battleId = null;   // いま出会っている虫（曲を選ぶのに使う）
 function catchRate(e){
   const lvDiff = S.lv - e.lv, hpR = e.hp / e.maxhp;
   const hpWeight = clamp(1 - lvDiff*0.05, 0.3, 1.1);           // レベルが高いほどHPの影響が小さくなる
@@ -1910,7 +1916,7 @@ const WARN_ICON = '<svg class="warnicon" viewBox="0 0 16 16" aria-hidden="true">
 async function dangerEncounter(id){
   const b = BUGS[id], slot = slotOf(S.min);
   battleEl.className = 'ov bg-' + AREAS[S.area].style + (slot==='yoru' ? ' night' : slot==='yu' ? ' dusk' : ''); battleBg(AREAS[S.area].style);
-  bSprite.src = spriteURL(id); scene = 'battle';
+  bSprite.src = spriteURL(id); battleId = id; scene = 'battle';
   if(!imgOK[id] && imgReady[id]) imgReady[id].then(()=>{ if(scene==='battle') bSprite.src = spriteURL(id); });
   await fade(()=>{ battleEl.hidden = false; $('bInfo').classList.add('danger'); $('bInfo').innerHTML = `<div class="row"><span>${esc(b.name)}</span></div><div class="row"><span class="warn">${WARN_ICON}キケン！ 近づかないで</span></div>`; battleEl.classList.add('alarm'); $('pInfo').hidden = true; $('pInfo').innerHTML = `<div class="row"><span>ぼく</span><span>Lv${S.lv}</span></div>`; });
   await say(`ブーーン…！ ${b.name}だ！`);
@@ -1927,7 +1933,7 @@ async function battle(id){
   if(b.danger) return dangerEncounter(id);   // スズメバチは戦わずに逃げる
   const slot = slotOf(S.min);
   battleEl.className = 'ov bg-' + AREAS[S.area].style + (slot==='yoru' ? ' night' : slot==='yu' ? ' dusk' : ''); battleBg(AREAS[S.area].style);
-  bSprite.src = spriteURL(id); scene = 'battle';
+  bSprite.src = spriteURL(id); battleId = id; scene = 'battle';
   if(!imgOK[id] && imgReady[id]) imgReady[id].then(()=>{ if(scene==='battle') bSprite.src = spriteURL(id); });
   await fade(()=>{ battleEl.hidden = false; updateB(e); });
   se('encount');
