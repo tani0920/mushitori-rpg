@@ -542,7 +542,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-0115';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-0128';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -557,7 +557,7 @@ const CHANGELOG = [
     'モンシロチョウ・ナツアカネ・ショウリョウバッタ・トノサマバッタの絵を新しくした',
     '会話とメニューの枠を少しすきとおらせて、うしろの絵が見えるようにした',
     '「プライバシーについて」を追加した（タイトルとオプション）。遊ばれ方を知るためのアクセス解析を入れた（名前・写真・位置は送らない）',
-    'ファミコンみたいな音のBGMと効果音を入れた（オプションでON/OFF）',
+    'ファミコンみたいな音のBGMと効果音を入れた（オプションでON/OFF）。時間帯で虫の声がかわる（朝は小鳥、昼はセミ、夕方はヒグラシ、夜はスズムシとコオロギ）',
     'スマホのたて画面で、タイトルの上のほうと、遊んでいるときの日付・時間を見やすくした',
     'エンディングの点数の画面で、画面の向きを変えると上にもどれなくなる不具合を直した',
     'スタンプラリーで、まだ出会っていない虫の名前を「？？？」にふせるようにした',
@@ -597,7 +597,7 @@ function setGaOff(off){
    音（ファミコン風）：矩形波2つ・三角波・ノイズをブラウザの中で鳴らす。音のファイルは使わない
    iPhone は画面を一度さわるまで音を出せないので、最初のタップで準備する。マナーモードのときは鳴らさない（ambient）
    ========================================================= */
-const SONGS = {"title":{"bpm":104,"duty":[0.25,0.125],"len":128,"p1":"76:4 79:4 84:6 83:2 81:4 79:4 76:8 77:4 81:4 79:4 76:4 74:12 0:4 76:4 79:4 84:6 86:2 88:4 86:4 84:4 81:4 79:4 76:4 74:4 76:2 74:2 72:12 0:4","p2":"60:2 64:2 67:2 64:2 60:2 64:2 67:2 64:2 69:2 72:2 76:2 72:2 69:2 72:2 76:2 72:2 65:2 69:2 72:2 69:2 65:2 69:2 72:2 69:2 67:2 71:2 74:2 71:2 67:2 71:2 74:2 71:2 60:2 64:2 67:2 64:2 60:2 64:2 67:2 64:2 69:2 72:2 76:2 72:2 69:2 72:2 76:2 72:2 65:2 69:2 72:2 69:2 65:2 69:2 72:2 69:2 67:2 71:2 74:2 71:2 67:2 71:2 74:2 71:2","tri":"48:4 55:4 48:4 55:4 57:4 64:4 57:4 64:4 53:4 60:4 53:4 60:4 55:4 62:4 55:4 62:4 48:4 55:4 48:4 55:4 57:4 64:4 57:4 64:4 53:4 60:4 53:4 60:4 55:4 62:4 55:4 62:4","noi":"k:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 k:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 k:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 k:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 k:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 k:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 k:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 k:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 k:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 k:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 k:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 k:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 k:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 k:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 k:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 k:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1"},"field":{"bpm":132,"duty":[0.5,0.25],"len":128,"p1":"67:2 71:2 74:4 71:2 74:2 79:4 78:4 76:4 74:8 72:2 76:2 79:4 76:2 72:2 69:4 71:4 69:4 67:4 69:4 67:2 71:2 74:4 71:2 74:2 79:4 81:4 79:4 78:4 76:4 74:2 76:2 78:4 81:4 78:4 79:8 0:4 74:4","p2":"67:2 0:2 74:2 0:2 71:2 0:2 74:2 0:2 62:2 0:2 69:2 0:2 66:2 0:2 69:2 0:2 60:2 0:2 67:2 0:2 64:2 0:2 67:2 0:2 64:2 0:2 71:2 0:2 67:2 0:2 71:2 0:2 67:2 0:2 74:2 0:2 71:2 0:2 74:2 0:2 62:2 0:2 69:2 0:2 66:2 0:2 69:2 0:2 62:2 0:2 69:2 0:2 66:2 0:2 69:2 0:2 67:2 0:2 74:2 0:2 71:2 0:2 74:2 0:2","tri":"55:4 62:4 67:4 62:4 50:4 57:4 62:4 57:4 48:4 55:4 60:4 55:4 52:4 59:4 64:4 59:4 55:4 62:4 67:4 62:4 50:4 57:4 62:4 57:4 50:4 57:4 62:4 57:4 55:4 62:4 67:4 62:4","noi":"k:1 .:1 h:1 .:1 s:1 .:1 h:1 .:1 k:1 .:1 h:1 .:1 s:1 .:1 h:1 .:1 k:1 .:1 h:1 .:1 s:1 .:1 h:1 .:1 k:1 .:1 h:1 .:1 s:1 .:1 h:1 .:1 k:1 .:1 h:1 .:1 s:1 .:1 h:1 .:1 k:1 .:1 h:1 .:1 s:1 .:1 h:1 .:1 k:1 .:1 h:1 .:1 s:1 .:1 h:1 .:1 k:1 .:1 h:1 .:1 s:1 .:1 h:1 .:1 k:1 .:1 h:1 .:1 s:1 .:1 h:1 .:1 k:1 .:1 h:1 .:1 s:1 .:1 h:1 .:1 k:1 .:1 h:1 .:1 s:1 .:1 h:1 .:1 k:1 .:1 h:1 .:1 s:1 .:1 h:1 .:1 k:1 .:1 h:1 .:1 s:1 .:1 h:1 .:1 k:1 .:1 h:1 .:1 s:1 .:1 h:1 .:1 k:1 .:1 h:1 .:1 s:1 .:1 h:1 .:1 k:1 .:1 h:1 .:1 s:1 .:1 h:1 .:1"},"battle":{"bpm":160,"duty":[0.25,0.125],"len":128,"p1":"69:2 72:2 76:2 81:2 79:2 76:2 72:2 76:2 77:4 76:2 74:2 72:4 69:4 67:2 71:2 74:2 79:2 77:2 74:2 71:2 74:2 76:6 74:2 72:2 71:2 68:4 69:2 72:2 76:2 81:2 83:2 81:2 79:2 76:2 77:2 81:2 84:4 83:2 81:2 77:4 79:2 77:2 76:2 74:2 71:4 74:4 76:8 80:4 83:4","p2":"69:1 72:1 76:1 72:1 69:1 72:1 76:1 72:1 69:1 72:1 76:1 72:1 69:1 72:1 76:1 72:1 65:1 69:1 72:1 69:1 65:1 69:1 72:1 69:1 65:1 69:1 72:1 69:1 65:1 69:1 72:1 69:1 67:1 71:1 74:1 71:1 67:1 71:1 74:1 71:1 67:1 71:1 74:1 71:1 67:1 71:1 74:1 71:1 64:1 68:1 71:1 68:1 64:1 68:1 71:1 68:1 64:1 68:1 71:1 68:1 64:1 68:1 71:1 68:1 69:1 72:1 76:1 72:1 69:1 72:1 76:1 72:1 69:1 72:1 76:1 72:1 69:1 72:1 76:1 72:1 65:1 69:1 72:1 69:1 65:1 69:1 72:1 69:1 65:1 69:1 72:1 69:1 65:1 69:1 72:1 69:1 67:1 71:1 74:1 71:1 67:1 71:1 74:1 71:1 67:1 71:1 74:1 71:1 67:1 71:1 74:1 71:1 64:1 68:1 71:1 68:1 64:1 68:1 71:1 68:1 64:1 68:1 71:1 68:1 64:1 68:1 71:1 68:1","tri":"45:2 57:2 45:2 57:2 45:2 57:2 45:2 57:2 41:2 53:2 41:2 53:2 41:2 53:2 41:2 53:2 43:2 55:2 43:2 55:2 43:2 55:2 43:2 55:2 40:2 52:2 40:2 52:2 40:2 52:2 40:2 52:2 45:2 57:2 45:2 57:2 45:2 57:2 45:2 57:2 41:2 53:2 41:2 53:2 41:2 53:2 41:2 53:2 43:2 55:2 43:2 55:2 43:2 55:2 43:2 55:2 40:2 52:2 40:2 52:2 40:2 52:2 40:2 52:2","noi":"k:1 .:1 h:1 .:1 s:1 .:1 h:1 .:1 k:1 .:1 k:1 .:1 s:1 .:1 h:1 h:1 k:1 .:1 h:1 .:1 s:1 .:1 h:1 .:1 k:1 .:1 k:1 .:1 s:1 .:1 h:1 h:1 k:1 .:1 h:1 .:1 s:1 .:1 h:1 .:1 k:1 .:1 k:1 .:1 s:1 .:1 h:1 h:1 k:1 .:1 h:1 .:1 s:1 .:1 h:1 .:1 k:1 .:1 k:1 .:1 s:1 .:1 h:1 h:1 k:1 .:1 h:1 .:1 s:1 .:1 h:1 .:1 k:1 .:1 k:1 .:1 s:1 .:1 h:1 h:1 k:1 .:1 h:1 .:1 s:1 .:1 h:1 .:1 k:1 .:1 k:1 .:1 s:1 .:1 h:1 h:1 k:1 .:1 h:1 .:1 s:1 .:1 h:1 .:1 k:1 .:1 k:1 .:1 s:1 .:1 h:1 h:1 k:1 .:1 h:1 .:1 s:1 .:1 h:1 .:1 k:1 .:1 k:1 .:1 s:1 .:1 h:1 h:1"}};
+const SONGS = {"title":{"bpm":66,"duty":[0.125,0.125],"env":{"p1":[0.03,0.5,0.6],"p2":[0.25,0.7,0.3],"tri":[0.4,1,0.2]},"vol":{"p1":0.07,"p2":0.045,"tri":0.2,"noi":0},"len":128,"p1":"0:8 72:8 69:16 0:8 71:8 67:16 0:8 69:4 65:4 69:16 0:8 67:4 71:4 64:16","p2":"65:4 69:4 72:4 76:4 72:4 69:4 72:4 69:4 64:4 67:4 71:4 74:4 71:4 67:4 71:4 67:4 62:4 65:4 69:4 72:4 69:4 65:4 69:4 65:4 60:4 64:4 67:4 71:4 67:4 64:4 67:4 64:4","tri":"41:32 40:32 38:32 36:32","noi":".:128"},"field":{"bpm":60,"duty":[0.125,0.125],"env":{"p1":[0.03,0.5,0.6],"p2":[0.35,0.8,0.3],"tri":[0.5,1,0.2]},"vol":{"p1":0,"p2":0.04,"tri":0.17,"noi":0},"len":128,"p1":"0:128","p2":"60:4 67:4 64:4 71:4 67:4 64:4 60:4 67:4 57:4 64:4 60:4 67:4 64:4 60:4 57:4 64:4 65:4 72:4 69:4 76:4 72:4 69:4 65:4 72:4 55:4 62:4 60:4 67:4 62:4 60:4 55:4 62:4","tri":"36:32 33:32 41:32 31:32","noi":".:128"},"battle":{"bpm":88,"duty":[0.25,0.125],"env":{"p1":[0.003,0,0.12],"p2":[0.3,0.8,0.3],"tri":[0.005,0,0.18]},"vol":{"p1":0.07,"p2":0.03,"tri":0.24,"noi":0.04},"len":128,"p1":"0:4 81:1 0:3 77:1 0:7 0:8 74:1 0:3 76:1 0:3 0:4 81:1 0:3 77:1 0:7 0:8 74:1 0:3 72:1 0:3 0:4 82:1 0:3 77:1 0:7 0:8 74:1 0:3 72:1 0:3 0:4 81:1 0:3 76:1 0:7 0:8 73:1 0:3 76:1 0:3","p2":"62:32 60:32 58:32 57:32","tri":"50:2 0:6 57:2 0:6 50:2 0:6 57:2 0:6 50:2 0:6 57:2 0:6 50:2 0:6 57:2 0:6 46:2 0:6 53:2 0:6 46:2 0:6 53:2 0:6 45:2 0:6 52:2 0:6 45:2 0:6 52:2 0:6","noi":".:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1"}};
 const SND_KEY = 'munakata-sound-v1';
 const sndPref = (()=>{ try{ return Object.assign({bgm:true, se:true}, JSON.parse(localStorage.getItem(SND_KEY)) || {}); }catch(e){ return {bgm:true, se:true}; } })();
 const saveSnd = ()=>{ try{ localStorage.setItem(SND_KEY, JSON.stringify(sndPref)); }catch(e){} };
@@ -608,7 +608,7 @@ function audioInit(){
   const AC = window.AudioContext || window.webkitAudioContext; if(!AC) return null;
   actx = new AC();
   aMaster = actx.createGain(); aMaster.gain.value = .55; aMaster.connect(actx.destination);
-  aBgm = actx.createGain(); aBgm.gain.value = .5; aBgm.connect(aMaster);
+  aBgm = actx.createGain(); aBgm.gain.value = .32; aBgm.connect(aMaster);
   aSe = actx.createGain(); aSe.gain.value = .7; aSe.connect(aMaster);
   for(const d of [.125, .25, .5]){   // 矩形波（デューティ比 12.5%・25%・50%）
     const N = 40, re = new Float32Array(N), im = new Float32Array(N);
@@ -621,14 +621,15 @@ function audioInit(){
   return actx;
 }
 const mhz = m=> 440 * Math.pow(2, (m - 69) / 12);
-function aTone(dest, wave, f, t, dur, vol, f2){
+function aTone(dest, wave, f, t, dur, vol, f2, env){   // env = [立ち上がりの秒数, のこる音量の割合, 減るまでの秒数]
+  const [a, sus, dec] = env || [.005, wave === 'tri' ? 1 : .65, .09];
   const o = actx.createOscillator(), g = actx.createGain();
   if(wave === 'tri') o.type = 'triangle'; else o.setPeriodicWave(aWaves[wave]);
   o.frequency.setValueAtTime(f, t); if(f2) o.frequency.exponentialRampToValueAtTime(f2, t + dur);
-  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .005);
-  if(wave !== 'tri') g.gain.linearRampToValueAtTime(vol * .65, t + Math.min(.09, dur * .5));
-  g.gain.setValueAtTime(wave === 'tri' ? vol : vol * .65, Math.max(t + .01, t + dur * .85));
-  g.gain.linearRampToValueAtTime(0, t + dur);
+  const at = Math.min(a, dur * .5), dt = Math.min(dec, Math.max(.01, dur - at));
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + at);
+  g.gain.linearRampToValueAtTime(Math.max(vol * sus, .0001), t + at + dt);
+  if(sus > 0){ g.gain.setValueAtTime(vol * sus, Math.max(t + at + dt, t + dur * .85)); g.gain.linearRampToValueAtTime(0, t + dur); }
   o.connect(g); g.connect(dest); o.start(t); o.stop(t + dur + .02);
 }
 function aHit(dest, kind, t, vol, dur){
@@ -645,17 +646,18 @@ function bgmStop(){
   if(bgmTimer){ clearInterval(bgmTimer); bgmTimer = null; }
   if(bgmGain && actx){ const g = bgmGain; g.gain.setTargetAtTime(0, actx.currentTime, .05); setTimeout(()=>g.disconnect(), 400); }
   bgmGain = null; bgmNow = null;
+  if(ambOut && actx){ const a = ambOut; a.gain.setTargetAtTime(0, actx.currentTime, .1); setTimeout(()=>a.disconnect(), 600); ambOut = null; ambBusy = {}; }
 }
 function bgmPlay(name){
   if(bgmNow === name) return;
   bgmStop(); const sg = SONGS[name]; if(!sg || !actx) return;
   bgmNow = name; bgmGain = actx.createGain(); bgmGain.connect(aBgm);
   const g = bgmGain, step = 60 / sg.bpm / 4, ev = [];
-  const VOL = {p1:.2, p2:.09, tri:.32, noi:.13};
+  const VOL = sg.vol, ENV = sg.env || {};
   for(const ch of ['p1','p2','tri','noi']){
     let t = 0;
     for(const tk of sg[ch].split(' ')){ const [n, d] = tk.split(':'); const dd = +d;
-      if(n !== '0' && n !== '.') ev.push({t, d:dd, ch, n}); t += dd; }
+      if(n !== '0' && n !== '.' && VOL[ch]) ev.push({t, d:dd, ch, n}); t += dd; }
   }
   ev.sort((a,b)=>a.t - b.t);
   let i = 0, base = actx.currentTime + .08;
@@ -666,7 +668,7 @@ function bgmPlay(name){
       const e = ev[i], at = base + e.t * step; if(at > until) break;
       if(at > actx.currentTime - .02){
         if(e.ch === 'noi') aHit(g, e.n, at, VOL.noi);
-        else aTone(g, e.ch === 'tri' ? 'tri' : sg.duty[e.ch === 'p1' ? 0 : 1], mhz(+e.n), at, e.d * step * .95, VOL[e.ch]);
+        else aTone(g, e.ch === 'tri' ? 'tri' : sg.duty[e.ch === 'p1' ? 0 : 1], mhz(+e.n), at, e.d * step * .97, VOL[e.ch], null, ENV[e.ch]);
       }
       if(++i >= ev.length){ i = 0; base += sg.len * step; }
     }
@@ -702,6 +704,68 @@ function se(name){
     aTone(aSe, s[0] === 't' ? 'tri' : s[1], s[2], t, s[3], s[4], s[5]); t += s[3];
   }
 }
+/* 虫の音（時間帯で変わる）と風鈴。曲の音量（BGM）といっしょにON/OFFする */
+function ambLfo(g, rate, depth, t, end){   // 音量をふるわせる（虫の羽の音）
+  const l = actx.createOscillator(), lg = actx.createGain();
+  l.frequency.value = rate; lg.gain.value = depth; l.connect(lg); lg.connect(g.gain); l.start(t); l.stop(end);
+}
+const AMB = {
+  semi(t, v){   // セミ（ジーーー）：ノイズを羽の速さでふるわせる
+    const len = 2.5 + Math.random()*3, s = actx.createBufferSource(), f = actx.createBiquadFilter(), g = actx.createGain();
+    s.buffer = aNoise; s.loop = true; f.type = 'bandpass'; f.frequency.value = 4200 + Math.random()*1200; f.Q.value = 3;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + 1); g.gain.setValueAtTime(v, t + len - 1.2); g.gain.linearRampToValueAtTime(0, t + len);
+    ambLfo(g, 35 + Math.random()*15, v * .6, t, t + len);
+    s.connect(f); f.connect(g); g.connect(ambOut); s.start(t); s.stop(t + len + .05); return len;
+  },
+  higurashi(t, v){   // ヒグラシ（カナカナカナ…）：高い音を少しずつ下げながらくり返す
+    const n = 14 + Math.floor(Math.random()*8), f0 = 4300 + Math.random()*300;
+    for(let i=0;i<n;i++){ const k = i / n; aTone(ambOut, .5, f0 * (1 - k*.12), t + i*.11, .07, v * (1 - k*.7), null, [.004, .6, .03]); }
+    return n * .11;
+  },
+  suzumushi(t, v){   // スズムシ（リーン）
+    const f = 4000 + Math.random()*300; let len = 0;
+    for(let i=0;i<2 + Math.floor(Math.random()*2);i++){ const s = t + i*.75, g = actx.createGain(); g.connect(ambOut);
+      aTone(g, .5, f, s, .45, v, null, [.03, .8, .1]); ambLfo(g, 22, .5, s, s + .5); len = i*.75 + .5; }
+    return len;
+  },
+  korogi(t, v){   // コオロギ（コロコロ）
+    const f = 3300 + Math.random()*300, n = 5 + Math.floor(Math.random()*4);
+    for(let i=0;i<n;i++) aTone(ambOut, .5, f, t + i*.055, .03, v, null, [.003, .5, .02]);
+    return n * .055;
+  },
+  tori(t, v){   // 朝の小鳥（チュンチュン）
+    const n = 2 + Math.floor(Math.random()*2);
+    for(let i=0;i<n;i++) aTone(ambOut, .25, 3200 + Math.random()*600, t + i*.16, .07, v, 4600, [.005, .4, .04]);
+    return n * .16;
+  },
+  furin(t, v){   // 風鈴（チリン）
+    const P = [84, 86, 88, 91, 93, 96], n = 1 + Math.floor(Math.random()*3);
+    for(let i=0;i<n;i++) aTone(ambOut, .125, mhz(P[Math.floor(Math.random()*P.length)]), t + i*(.12 + Math.random()*.2), 1.6, v, null, [.003, 0, 1.4]);
+    return 1.8;
+  },
+};
+// 時間帯ごとの「どの音が、どのくらいの割合で鳴るか」と大きさ
+const AMB_SET = {
+  title: {semi:[.10, .05], furin:[.05, .05]},
+  asa:   {tori:[.10, .05], semi:[.04, .035], furin:[.05, .045]},
+  hiru:  {semi:[.16, .06], furin:[.04, .045]},
+  yu:    {higurashi:[.10, .045], furin:[.04, .04]},
+  yoru:  {suzumushi:[.14, .04], korogi:[.12, .035]},
+};
+let ambOut = null, ambBusy = {};
+function ambTick(){
+  if(!actx || actx.state !== 'running' || !sndPref.bgm || document.hidden || !bgmNow) return;
+  if(!ambOut){ ambOut = actx.createGain(); ambOut.connect(aBgm); }
+  const sc = typeof scene !== 'undefined' ? scene : 'title';
+  const set = AMB_SET[sc === 'title' || sc === 'end' ? 'title' : (typeof S !== 'undefined' && S ? slotOf(S.min) : 'hiru')];
+  const quiet = sc === 'battle' ? .6 : 1, now = actx.currentTime;
+  for(const k in set){
+    if((ambBusy[k] || 0) > now) continue;
+    const [p, v] = set[k];
+    if(Math.random() < p * quiet){ const t = now + Math.random()*.3; ambBusy[k] = t + AMB[k](t, v * quiet) + .5 + Math.random()*1.5; }
+  }
+}
+setInterval(ambTick, 400);
 /* 場面に合わせて曲を切りかえる */
 const BGM_OF = {title:'title', field:'field', battle:'battle', end:'title'};
 function bgmUpdate(){
