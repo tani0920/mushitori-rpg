@@ -542,7 +542,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-0243';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-0249';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -641,7 +641,7 @@ function aTone(dest, wave, f, t, dur, vol, f2, env){   // env = [立ち上がり
 function aHit(dest, kind, t, vol, dur, att){   // att = 立ち上がりの秒数（草や風のように、ふわっと始める）
   const s = actx.createBufferSource(), f = actx.createBiquadFilter(), g = actx.createGain();
   s.buffer = aNoise;
-  const k = {k:['lowpass', 180, .14], s:['bandpass', 1800, .1], h:['highpass', 7000, .035], x:['bandpass', 1200, .25], w:['highpass', 2500, .14], f:['bandpass', 2600, .12, .8], a:['bandpass', 1400, .25, .5]}[kind];   // f = 草がカサッ、a = あみがふわっ
+  const k = {k:['lowpass', 180, .14], s:['bandpass', 1800, .1], h:['highpass', 7000, .035], x:['bandpass', 1200, .25], w:['highpass', 2500, .14], f:['bandpass', 2600, .12, .8], d:['lowpass', 500, .08], a:['bandpass', 1400, .25, .5]}[kind];   // f = 草がカサッ、a = あみがふわっ
   f.type = k[0]; f.frequency.value = k[1]; if(k[3]) f.Q.value = k[3]; const d = dur || k[2];
   if(att){ const ta = t + Math.min(att, d * .6); g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(vol, ta); g.gain.exponentialRampToValueAtTime(.001, Math.max(ta + .01, t + d)); }
   else { g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + d); }
@@ -655,8 +655,9 @@ function heartPlay(dest){
   heartTimer = setInterval(()=>{
     while(next < actx.currentTime + .25){
       const bpm = 66 + Math.min(1, (next - t0) / 45) * 34;
-      aTone(dest, 'tri', 110, next, .12, .16, 55, [.004, 0, .1]); aHit(dest, 'k', next, .1, .09);            // とくん
-      aTone(dest, 'tri', 98, next + .17, .1, .1, 50, [.004, 0, .08]); aHit(dest, 'k', next + .17, .06, .07);  // とくん（2つ目は小さく）
+      // スマホのスピーカーは低すぎる音が出ないので、少し高めの音から下げて「どくっ」と聞こえるようにする
+      aTone(dest, 'tri', 200, next, .13, .42, 80, [.004, 0, .11]); aHit(dest, 'd', next, .22, .08);            // とくん
+      aTone(dest, 'tri', 180, next + .18, .11, .28, 72, [.004, 0, .09]); aHit(dest, 'd', next + .18, .14, .07);  // とくん（2つ目は小さく）
       next += 60 / bpm;
     }
   }, 60);
@@ -778,7 +779,7 @@ const AMB = {
 const AMB_SET = {
   title: {semi:[.10, .05], furin:[.05, .05]},
   asa:   {tori:[.10, .05], semi:[.04, .035], furin:[.05, .045]},
-  hiru:  {semi:[.45, .16], semi2:[.35, .12], semi3:[.25, .09], furin:[.03, .04]},   // 夏の昼：セミが曲に勝つくらい、何匹も重なって鳴く（そのぶん昼は全体を小さめにする → sceneVol）
+  hiru:  {semi:[.35, .1], semi2:[.25, .075], semi3:[.15, .055], furin:[.03, .04]},   // 夏の昼：セミが曲に勝つくらい、何匹も重なって鳴く（そのぶん昼は全体を小さめにする → sceneVol）
   yu:    {higurashi:[.10, .045], furin:[.04, .04]},
   yoru:  {suzumushi:[.14, .04], korogi:[.12, .035]},
 };
