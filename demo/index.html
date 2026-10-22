@@ -41,7 +41,7 @@ if(DEMO){
   --sun:#f4b63c;        /* ひまわり */
   --hp:#5ccf6a;
   --hp-low:#e8553e;
-  --paper:#f3ead2;      /* 図鑑の紙 */
+  --paper:#f3ead2;      /* ずかんの紙 */
   --paper-ink:#2c2418;
   --paper-line:#d8c9a3;
   --mute:#a9bba9;
@@ -66,9 +66,9 @@ header small{color:var(--mute);font-size:12px}
 .bar i{display:block;height:100%;background:var(--hp)}
 .bar i.low{background:var(--hp-low)}
 #hud .money{color:var(--sun)}
+ruby.fr rt{font-size:.5em;letter-spacing:0;font-weight:400;opacity:.9}
 .updBar{position:fixed;left:12px;right:12px;margin:0 auto;width:fit-content;top:calc(env(safe-area-inset-top,0px) + 6px);z-index:10000;display:flex;align-items:center;justify-content:center;gap:.6em;white-space:nowrap;background:#14284af0;color:#fff;border:2px solid var(--sun);border-radius:10px;padding:.4em .5em .4em .9em;box-shadow:0 4px 12px #0008;font-size:13px}
 .updBar button{font:inherit;background:var(--sun);color:#1b130c;border:0;border-radius:6px;padding:.35em .8em;cursor:pointer;white-space:nowrap}
-.acorn{display:inline-block;width:1em;height:1.12em;vertical-align:-.2em;margin-right:.1em}
 #hud .time{display:inline-flex;align-items:center;gap:.3em}
 #hud .clock{width:1.9em;height:1.9em;flex:none;filter:drop-shadow(0 1px 1px #0008)}
 #hud .hrow{display:contents}
@@ -176,7 +176,7 @@ body.touch.land #msg .face{width:3.6em;height:3.6em}
 .binfo .gauge{color:var(--sun);letter-spacing:.1em}
 .binfo .lbl{color:var(--mute);font-size:.85em;white-space:nowrap}
 
-/* 図鑑・エンディング（画面全体） */
+/* ずかん・エンディング（画面全体） */
 .full{position:fixed;inset:0;z-index:100;overflow-y:auto;
   padding:max(12px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
 #dex{background:var(--paper);color:var(--paper-ink)}
@@ -230,8 +230,9 @@ body:not(.touch) #titleScr .tbtns{margin-top:.4em}
 .demoBadge{position:fixed;right:env(safe-area-inset-right,0px);bottom:env(safe-area-inset-bottom,0px);z-index:9999;background:#c0392b;color:#fff;font-family:var(--f-pixel);font-size:10px;letter-spacing:.1em;padding:1px 7px;border-radius:6px 0 0 0;opacity:.85;pointer-events:none}
 #titleScr .credit{position:absolute;right:.8em;top:.6em;font-family:var(--f-pixel);font-size:clamp(9px,1.9cqw,13px);letter-spacing:.06em;color:#fff;opacity:.92;text-shadow:1px 1px 0 #000,0 0 3px #000;pointer-events:none}
 body.touch #titleScr .credit{left:auto;right:max(12px,env(safe-area-inset-right,0px));bottom:auto;top:calc(env(safe-area-inset-top,0px) + 8px);font-size:clamp(10px,2.8vmin,14px)}
-/* タイトルのバージョン（ボタンの下）：押すと更新情報 */
-#titleScr .verbtn{margin-top:.5em;font-family:var(--f-pixel);font-size:clamp(9px,1.9cqw,13px);letter-spacing:.04em;color:#fff;background:#14284a99;border:1px solid #f7f1dfaa;border-radius:999px;padding:.2em .8em;cursor:pointer;text-shadow:1px 1px 0 #000}
+/* タイトルのバージョン（ボタンの下）：押すとこうしん情報 */
+#titleScr .vrow{display:flex;gap:.5em;justify-content:center;flex-wrap:wrap;margin-top:.5em}
+#titleScr .verbtn{font-family:var(--f-pixel);font-size:clamp(9px,1.9cqw,13px);letter-spacing:.04em;color:#fff;background:#14284a99;border:1px solid #f7f1dfaa;border-radius:999px;padding:.2em .8em;cursor:pointer;text-shadow:1px 1px 0 #000}
 body.touch #titleScr .verbtn{font-size:clamp(11px,3vmin,15px)}
 #infoPanel .chlog h3{margin:.6em 0 .2em;font-weight:400;font-size:17px;color:#7a4a1a;border-bottom:1px solid var(--paper-line)}
 #infoPanel .chlog h3 small{color:#7a6a4a;font-size:12px;margin-left:.6em}
@@ -445,11 +446,11 @@ body.touch.land #menu.title{top:auto;bottom:10px;left:50%;right:auto;transform:t
       <div class="t1">夏休み さいごの14日間</div>
       <div class="t2">むなかた<br>虫とり日記</div>
       <img class="logo" alt="むなかた 虫とり日記" hidden>
-      <div class="t3">宗像じゅうの虫をつかまえて、図鑑を完成させよう</div>
+      <div class="t3">宗像じゅうの虫をつかまえて、ずかんを完成させよう</div>
       <div class="t4">※このゲームに出てくる場所と虫の組み合わせはゲーム用のもので、実際にその場所にいる虫とはかぎりません。</div>
       <div class="credit">Game Director: Ryohei Taniguchi</div>
       <div class="tbtns"><button type="button" class="tbtn" id="btnInstall">アプリにする方法</button><button type="button" class="tbtn" id="btnShare">友だちに教える</button></div>
-      <button type="button" class="verbtn" id="btnVer"><span class="gver"></span>　更新情報 ▸</button>
+      <div class="vrow"><button type="button" class="verbtn" id="btnVer"><span class="gver"></span>　こうしん情報 ▸</button><button type="button" class="verbtn" id="btnFuri">ふりがな：ふつう</button></div>
     </div>
     <div id="battle" class="ov" hidden>
       <div id="bInfo" class="binfo win"></div>
@@ -471,24 +472,24 @@ body.touch.land #menu.title{top:auto;bottom:10px;left:50%;right:auto;transform:t
 
 <div id="dex" class="full" hidden>
   <div class="in">
-    <div class="top"><h2>昆虫図鑑</h2><span class="cnt" id="dexCnt"></span><button class="btn" id="dexClose">とじる</button></div>
+    <div class="top"><h2>こん虫ずかん</h2><span class="cnt" id="dexCnt"></span><button class="btn" id="dexClose">とじる</button></div>
     <div class="body"><div id="dexGrid"></div><div id="dexDetail"></div></div>
   </div>
 </div>
 <div id="cam" class="full" hidden>
   <div class="in">
-    <div class="top"><h2>本物の虫を撮る</h2><span class="cnt" id="camCnt"></span><button class="btn" id="camClose">とじる</button></div>
-    <p class="lead">外で見つけた本物の虫を撮ると、ゲームでごほうびがもらえるよ！（1日5まいまで）<br>
-      <small>写真はこの端末の中だけでAIが判定します。どこにも送られません。</small></p>
+    <div class="top"><h2>本物の虫をとる</h2><span class="cnt" id="camCnt"></span><button class="btn" id="camClose">とじる</button></div>
+    <p class="lead">外で見つけた本物の虫をとると、ゲームでごほうびがもらえるよ！（1日5まいまで）<br>
+      <small>写真はこのたんまつの中だけでAIが判定します。どこにも送られません。</small></p>
     <div class="camBtns">
-      <label class="btn">カメラで撮る<input id="camIn" class="vh" type="file" accept="image/*" capture="environment"></label>
+      <label class="btn">カメラでとる<input id="camIn" class="vh" type="file" accept="image/*" capture="environment"></label>
       <label class="btn">アルバムから選ぶ<input id="libIn" class="vh" type="file" accept="image/*"></label>
     </div>
     <div id="camResult"></div>
     <label class="geo"><input type="checkbox" id="geoOn"> いまいる場所で「スタンプ」ももらう（位置情報をつかう）</label>
-    <p class="lead"><small>位置情報は、この端末の中で「スタンプの場所の近くにいるか」を調べるだけです。いる場所の記録は、保存も送信もしません。</small></p>
+    <p class="lead"><small>位置情報は、このたんまつの中で「スタンプの場所の近くにいるか」を調べるだけです。いる場所の記録は、保存も送信もしません。</small></p>
     <h3>宗像 虫とりスタンプラリー <span id="stampCnt"></span></h3>
-    <p class="lead"><small>宗像大社・さつき松原・城山・大島などで本物の虫を撮ると、スタンプと特典がもらえるよ。<b>出かけるときは、かならずおうちの人といっしょに！</b></small></p>
+    <p class="lead"><small>宗像大社・さつき松原・城山・大島などで本物の虫をとると、スタンプと特典がもらえるよ。<b>出かけるときは、かならずおうちの人といっしょに！</b></small></p>
     <div id="stamps"></div>
     <h3>本物の虫アルバム <span id="albumCnt"></span></h3>
     <div id="album"></div>
@@ -514,33 +515,35 @@ const START_MIN = 6*60;          // 1日のはじまり 6:00
 const END_MIN = 21*60;           // 夜9時で強制帰宅
 const STEP_MIN = 2;              // 1歩で進む時間（分）
 const BATTLE_MIN = 10;           // 1回のバトルで進む時間（分）
-const FAINT_LOSE = 0.5;          // 熱中症で倒れたとき、虫かごからにげる割合
-const FAINT_ALL = 0.2;           // 熱中症で倒れたとき、虫が全部にげてしまう確率
+const FAINT_LOSE = 0.5;          // ねっちゅうしょうで倒れたとき、虫かごからにげる割合
+const FAINT_ALL = 0.2;           // ねっちゅうしょうで倒れたとき、虫が全部にげてしまう確率
 const USE_IMAGE_FILES = true;    // img/sprites/bugs/<id>.png があればそれを使う（tools/process_bugs.py で作る）
 const BUG_IMG_DIR = 'img/sprites/bugs/';
 const av = u=> u + (window.ASSET_VER ? '?v=' + window.ASSET_VER : '');   // 絵を差し替えたら古いキャッシュを使わない
 const KEY_PRE = window.DEMO ? 'demo-' : '';   // デモ版は本番のセーブにさわらない
 const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
-/* バージョンと更新情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きな更新は +0.1）。デモ版は次に出す番号で表示する */
+/* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261022-2314';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261022-2340';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
-    'お金を「どんぐり」にかえた（宗像で自然をしらべた子がもらえる、子どものための地域のお金）',
+    'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
     '虫具店で虫を「売る」のをやめて、「とどける」とお礼にどんぐりがもらえるようにした',
-    'タイトル画面にバージョンと「更新情報」を出すようにした',
+    'タイトル画面にバージョンと「こうしん情報」を出すようにした',
     '新しいバージョンが出たら「こうしんする」ボタンでお知らせするようにした',
+    'むずかしい漢字をひらがなにして、小学5年生からならう漢字にふりがなを付けた',
+    '「ふりがな：たくさん」にすると、小学3年生からならう漢字にもふりがなが付くようにした（タイトルとメニューで切りかえ）',
     '操作をかんたんに：「メニュー」ボタンをなくして、Bボタンでメニュー・キャンセルにした',
-    'スマホのたて画面で、図鑑の「とじる」ボタンがいつも右下に出るようにした',
+    'スマホのたて画面で、ずかんの「とじる」ボタンがいつも右下に出るようにした',
     'エンディングの点数の画面で、画面の向きを変えると上にもどれなくなる不具合を直した',
     'スタンプラリーで、まだ出会っていない虫の名前を「？？？」にふせるようにした',
-    'ミアレカブトの図鑑の説明を読みやすくした',
+    'ミアレカブトのずかんの説明を読みやすくした',
     'アプリのアイコンを作り直したときに、古いアイコンが残らないようにした']},
   {v:'0.2.0', date:'2026-10', items:[
     '虫31しゅるい・14日間の夏休み・6つのエンディング',
     '虫ずもう、本物の虫の写真でごほうび、宗像 虫とりスタンプラリー',
-    '図鑑に本物の虫のデータ（大きさ・すんでいる場所・飼いかた）を追加']},
+    'ずかんに本物の虫のデータ（大きさ・すんでいる場所・飼いかた）を追加']},
 ];
 document.querySelectorAll('.gver').forEach(e=> e.textContent = 'ver ' + GAME_VER + (window.DEMO ? ' デモ' : ''));
 
@@ -562,7 +565,7 @@ async function checkUpdate(){
 }
 checkUpdate();
 document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState === 'visible') checkUpdate(); });
-if(window.DEMO){ const b = document.createElement('div'); b.className = 'demoBadge'; b.textContent = 'デモ版'; document.body.appendChild(b); }
+if(window.DEMO){ const b = document.createElement('div'); b.className = 'demoBadge norb'; b.textContent = 'デモ版'; document.body.appendChild(b); }
 
 /* 時間帯 */
 const SLOT_NAMES = {asa:'朝', hiru:'昼', yu:'夕方', yoru:'夜'};
@@ -577,7 +580,7 @@ const NETS = [
   {name:'名人のあみ',     atk:26, price:10000, soft:{ko:.80, any:.12}},
 ];
 /* 網の必殺技「ふんわりあみ」：虫をHP1でやさしくおさえこみ、虫は1ターンひるんで動けない。
-   ko＝たおしてしまう一撃のときに出る確率、any＝ふつうの一撃のときに出る確率。高いあみほど出やすい */
+   ko＝たおしてしまういちげきのときに出る確率、any＝ふつうのいちげきのときに出る確率。高いあみほど出やすい */
 const SOFT_NAME = 'ふんわりあみ';
 const softStars = n=> { const k = Math.round(NETS[n].soft.ko*5); return '★'.repeat(k) + '☆'.repeat(5-k); };
 const CAGES = [
@@ -592,7 +595,7 @@ const SHOES = [
   {name:'スニーカー',     price:800},
   {name:'登山ぐつ',       price:3000},
 ];
-/* 大島へのフェリー：神湊の渡船ターミナルで買う「だいじなもの」（くつではない） */
+/* 大島へのフェリー：神湊のとせんターミナルで買う「だいじなもの」（くつではない） */
 const TICKET = {name:'乗船チケット（無期限）', price:6000};
 const ITEMS = [
   {key:'drink', name:'スポーツドリンク', price:80,  desc:'たいりょくを25回復'},
@@ -605,7 +608,7 @@ const AREAS = {
               intro:'家と虫具店がある町。'},
   tanbo:     {name:'赤間の田んぼ', style:'tanbo',     shoe:0, travel:20, bugs:['monshiro','shoryo','tonosama','natsuakane','kamakiri'],
               intro:'青々とした田んぼが広がっている。バッタやトンボがたくさんいそうだ。'},
-  kawara:    {name:'釣川の河原',   style:'kawara',    shoe:0, travel:30, bugs:['amenbo','shiokara','haguro','ginyanma','genji','shoryo','natsuakane'],
+  kawara:    {name:'釣川のかわら',   style:'kawara',    shoe:0, travel:30, bugs:['amenbo','shiokara','haguro','ginyanma','genji','shoryo','natsuakane'],
               intro:'釣川の水がきらきら光っている。夜にはホタルが飛ぶらしい。'},
   taisha:    {name:'宗像大社の森', style:'taisha',    shoe:1, travel:40, bugs:['abura','minmin','ageha','kokuwa','nokogiri','kabuto','tamamushi'],
               intro:'大きな木がしげる神社の森。朝と夜はクワガタやカブトムシのチャンス！'},
@@ -635,13 +638,13 @@ const BUGS = {
   kamakiri:   {name:'オオカマキリ',     shape:'mantis',    c:['#5aa040','#7cc050','#f8f040'],            rank:3, lv:8,  hp:32,  atk:6,  spd:1, catch:0.9,  price:150,  time:['hiru','yu'],           w:2,
                desc:'大きなカマで虫をつかまえるハンター。近づくとカマをふり上げておどかしてくる。'},
   amenbo:     {name:'アメンボ',         shape:'strider',   c:['#4a3a2a','#6a5a40','#222222'],            rank:1, lv:2,  hp:9,   atk:1,  spd:5, catch:1.1,  price:25,   time:['asa','hiru','yu'],     w:4,
-               desc:'水の上をスイスイすべる虫。足の細かい毛で水をはじいて浮いている。'},
+               desc:'水の上をスイスイすべる虫。足の細かい毛で水をはじいてういている。'},
   shiokara:   {name:'シオカラトンボ',   shape:'dragonfly', c:['#7a9ec8','#5a7aa8','#2a4a7a','#f0f4ff'], rank:1, lv:3,  hp:12,  atk:2,  spd:4, catch:1.0,  price:35,   time:['asa','hiru'],          w:5,
                desc:'水色の体のトンボ（オス）。メスは黄色っぽくて「ムギワラトンボ」とよばれる。'},
   haguro:     {name:'ハグロトンボ',     shape:'dragonfly', c:['#2a8a6a','#1a4a3a','#111111','#3a3a3a'], rank:2, lv:5,  hp:16,  atk:2,  spd:3, catch:1.0,  price:70,   time:['asa','hiru','yu'],     w:3,
                desc:'黒いはねをパタパタさせて、川辺の草にとまる。ひらひら飛ぶのでチョウにまちがえられる。'},
   ginyanma:   {name:'ギンヤンマ',       shape:'dragonfly', c:['#5ac04a','#4aa0d8','#2a6a2a','#e8f0ff'], rank:3, lv:9,  hp:30,  atk:5,  spd:5, catch:0.85, price:200,  time:['hiru','yu'],           w:2,
-               desc:'緑と水色の体の大きなトンボ。とても速くて、つかまえたら自慢できる。'},
+               desc:'緑と水色の体の大きなトンボ。とても速くて、つかまえたらじまんできる。'},
   genji:      {name:'ゲンジボタル',     shape:'firefly',   c:['#2a2a2a','#e04040','#e8ff60','#4a4a4a'], rank:3, lv:8,  hp:20,  atk:2,  spd:2, catch:1.0,  price:220,  time:['yoru'],                w:4,
                desc:'夜の釣川で光る、宗像の夏の宝もの。きれいな川にしかすめない。'},
   abura:      {name:'アブラゼミ',       shape:'cicada',    c:['#5a3a20','#3a2a1a','#2a2a2a','#9a6a3a'], rank:1, lv:4,  hp:14,  atk:3,  spd:2, catch:1.0,  price:30,   time:['asa','hiru','yu'],     w:5,
@@ -657,7 +660,7 @@ const BUGS = {
   kabuto:     {name:'カブトムシ',       shape:'beetle',    c:['#5a2a10','#3a1a08','#8a4a20'],            rank:3, lv:11, hp:44,  atk:9,  spd:1, catch:0.8,  price:300,  time:['asa','yoru'],          w:2,
                desc:'夏の虫の王様。オスの大きなツノで、ほかの虫を投げとばす。'},
   tamamushi:  {name:'タマムシ',         shape:'jewel',     c:['#2ab070','#c03a8a','#5ae0a0'],            rank:4, lv:14, hp:36,  atk:5,  spd:4, catch:0.6,  price:600,  time:['hiru'],                w:1,
-               desc:'虹色にかがやく体をもつ。むかしは宝ものとして大切にされた。'},
+               desc:'にじ色にかがやく体をもつ。むかしは宝ものとして大切にされた。'},
   kuma:       {name:'クマゼミ',         shape:'cicada',    c:['#151515','#333333','#c8a040','#eef2f2'], rank:2, lv:8,  hp:26,  atk:4,  spd:2, catch:0.95, price:90,   time:['asa','hiru'],          w:5,
                desc:'「シャンシャンシャン」と朝から大声で鳴く、日本最大級のセミ。'},
   tsukutsuku: {name:'ツクツクボウシ',   shape:'cicada',    c:['#3a5a3a','#222222','#88cc88','#eef2f2'], rank:2, lv:8,  hp:22,  atk:3,  spd:3, catch:0.9,  price:110,  time:['yu'],                  w:3,
@@ -673,7 +676,7 @@ const BUGS = {
   miyama:     {name:'ミヤマクワガタ',   shape:'stag',      c:['#6a4a28','#8a6a38','#c8a060'],            rank:4, lv:15, hp:58,  atk:11, spd:1, catch:0.7,  price:700,  time:['asa','yu','yoru'],     w:2,
                desc:'頭のでっぱりが特ちょうの、すずしい山にすむクワガタ。'},
   hirata:     {name:'ヒラタクワガタ',   shape:'stag',      c:['#141414','#242424','#4a4a4a'],            rank:4, lv:16, hp:62,  atk:12, spd:1, catch:0.65, price:800,  time:['yoru'],                w:2,
-               desc:'平たい体と太い大あごをもつ、パワー自慢のクワガタ。はさむ力はさいきょう級。'},
+               desc:'平たい体と太い大あごをもつ、パワーじまんのクワガタ。はさむ力はさいきょう級。'},
   oomurasaki: {name:'オオムラサキ',     shape:'butterfly', c:['#4a3a8a','#222222','#f0e060','#6a4ac0'], rank:4, lv:15, hp:44,  atk:6,  spd:4, catch:0.65, price:750,  time:['hiru'],                w:2,
                desc:'日本の国チョウ。オスのはねはむらさき色にかがやく。'},
   suzumebachi:{name:'オオスズメバチ',   shape:'bee',       c:['#e8a020','#222222','#e85020','#ddddc8'], rank:5, lv:20, hp:70,  atk:18, spd:3, catch:0.5,  price:1200, time:['hiru'],                w:1,
@@ -685,9 +688,9 @@ const BUGS = {
   ookuwa:     {name:'オオクワガタ',     shape:'stag',      c:['#111111','#1c1c1c','#3a3a3a'],            rank:5, lv:22, hp:90,  atk:16, spd:1, catch:0.45, price:2500, time:['yoru'],                w:1,
                desc:'クワガタの王様。とても用心深く、なかなか姿を見せない。'},
   kinkabuto:  {name:'ミアレカブト',     shape:'beetle',    c:['#e8c040','#c89820','#fff0a0'],            rank:5, lv:25, hp:110, atk:20, spd:2, catch:0.35, price:5000, time:['asa','yoru'],          w:0.4,
-               desc:'大島につたわる伝説の虫。みあれ祭の船団にみちびかれて現れるという、金色にかがやくカブトムシ。見た人には幸せがおとずれるらしい…。\n※ミアレカブトは、このゲームのための架空の昆虫です。'},
+               desc:'大島につたわる伝説の虫。みあれ祭の船団にみちびかれて現れるという、金色にかがやくカブトムシ。見た人には幸せがおとずれるらしい…。\n※ミアレカブトは、このゲームのためのかくうのこん虫です。'},
 };
-/* 本物の虫のデータ（図鑑用）：目・科／体長／日本の生息地／見られる時期（成虫）／飼いかた。数字はおおよその目安 */
+/* 本物の虫のデータ（ずかん用）：目・科／体長／日本の生息地／見られる時期（成虫）／飼いかた。数字はおおよその目安 */
 const INFO = {
   monshiro:   {ord:'チョウ目 シロチョウ科', size:'はねを広げて約5cm', range:'日本全国', season:'3〜11月',
                care:'幼虫（アオムシ）をキャベツの葉で育てると、さなぎ→チョウになるのを観察できる。チョウになったら外にはなそう。'},
@@ -716,11 +719,11 @@ const INFO = {
   ageha:      {ord:'チョウ目 アゲハチョウ科', size:'はねを広げて約8〜9cm', range:'日本全国', season:'3〜10月',
                care:'幼虫をミカンやサンショウの葉で育てると、チョウになるまで観察できる。'},
   kokuwa:     {ord:'コウチュウ目 クワガタムシ科', size:'オス約2〜5cm・メス約2〜3cm', range:'日本全国', season:'6〜9月',
-               care:'昆虫マットと昆虫ゼリー、とまり木を入れて1ぴきずつ。冬をこして2〜3年生きることもある。'},
+               care:'こん虫マットとこん虫ゼリー、とまり木を入れて1ぴきずつ。冬をこして2〜3年生きることもある。'},
   nokogiri:   {ord:'コウチュウ目 クワガタムシ科', size:'オス約3〜7.5cm・メス約2.5〜4cm', range:'日本全国', season:'7〜8月',
-               care:'昆虫マットと昆虫ゼリー、とまり木を入れる。けんかするのでオスは1ぴきずつ。'},
+               care:'こん虫マットとこん虫ゼリー、とまり木を入れる。けんかするのでオスは1ぴきずつ。'},
   kabuto:     {ord:'コウチュウ目 コガネムシ科', size:'オス約3〜8cm（ツノをふくむ）・メス約3〜5cm', range:'本州〜九州（北海道では外から入ったもの）', season:'7〜8月',
-               care:'昆虫マットを深めにしき、昆虫ゼリーととまり木を。オスとメスを飼うと、土の中に卵をうんで幼虫が育つ。'},
+               care:'こん虫マットを深めにしき、こん虫ゼリーととまり木を。オスとメスを飼うと、土の中に卵をうんで幼虫が育つ。'},
   tamamushi:  {ord:'コウチュウ目 タマムシ科', size:'約3〜4cm', range:'本州〜九州', season:'7〜8月',
                care:'エノキやケヤキの葉を食べる。飼うのはむずかしいので、木の高いところを飛ぶすがたを観察しよう。'},
   kuma:       {ord:'カメムシ目 セミ科', size:'はねの先まで約6〜7cm', range:'本州（関東より西）〜九州・沖縄', season:'7〜9月（午前中によく鳴く）',
@@ -728,7 +731,7 @@ const INFO = {
   tsukutsuku: {ord:'カメムシ目 セミ科', size:'はねの先まで約4.5cm', range:'北海道〜九州', season:'7〜10月（8月の終わりに多い）',
                care:'成虫を飼うのはむずかしい。鳴きはじめると、夏休みの終わりが近いサイン。'},
   usuba:      {ord:'トンボ目 トンボ科', size:'約5cm', range:'日本全国（毎年、南の国から飛んでくる）', season:'6〜10月',
-               care:'成虫を飼うのはむずかしい。お盆のころに群れで飛ぶので「精霊トンボ」ともよばれる。'},
+               care:'成虫を飼うのはむずかしい。おぼんのころに群れで飛ぶので「しょうりょうトンボ」ともよばれる。'},
   hanmyo:     {ord:'コウチュウ目 ハンミョウ科（オサムシ科とすることも）', size:'約2cm', range:'本州〜九州', season:'4〜10月',
                care:'小さな虫を食べる肉食。かわいた砂を入れたケースで、生きたエサをあたえる。'},
   oniyanma:   {ord:'トンボ目 オニヤンマ科', size:'約9〜11cm（日本でいちばん大きいトンボ）', range:'日本全国', season:'6〜10月',
@@ -736,7 +739,7 @@ const INFO = {
   higurashi:  {ord:'カメムシ目 セミ科', size:'はねの先まで約4〜5cm', range:'北海道南部〜九州', season:'6〜9月（朝と夕方に鳴く）',
                care:'成虫を飼うのはむずかしい。うす暗い林の中で、カナカナという声をさがそう。'},
   miyama:     {ord:'コウチュウ目 クワガタムシ科', size:'オス約3〜8cm・メス約2.5〜4.5cm', range:'北海道〜九州（九州では山に多い）', season:'7〜8月',
-               care:'暑さに弱いので、25℃より低いすずしい場所で飼う。昆虫マットとゼリー、とまり木を。'},
+               care:'暑さに弱いので、25℃より低いすずしい場所で飼う。こん虫マットとゼリー、とまり木を。'},
   hirata:     {ord:'コウチュウ目 クワガタムシ科', size:'オス約2〜7.5cm・メス約2〜4cm', range:'本州〜九州・沖縄', season:'6〜9月',
                care:'気があらく、はさむ力が強いので1ぴきずつ。じょうぶで、数年生きることもある。'},
   oomurasaki: {ord:'チョウ目 タテハチョウ科', size:'はねを広げてオス約10cm・メス約12cm', range:'北海道〜九州', season:'6〜8月',
@@ -748,7 +751,7 @@ const INFO = {
   ruriboshi:  {ord:'コウチュウ目 カミキリムシ科', size:'約1.8〜3cm', range:'北海道〜九州', season:'6〜9月',
                care:'かれたブナやクルミなどの木にあつまる。成虫は長くは生きないので、写真で記録しよう。'},
   ookuwa:     {ord:'コウチュウ目 クワガタムシ科', size:'オス約3〜7.7cm・メス約3〜4.5cm', range:'北海道〜九州（すんでいる場所はかぎられる）', season:'6〜8月（夜に活動）',
-               care:'じょうぶで数年生きる。昆虫マットとゼリーで1ぴきずつ。野生のものは数がへっていて、国のレッドリストにのっているので大切に。'},
+               care:'じょうぶで数年生きる。こん虫マットとゼリーで1ぴきずつ。野生のものは数がへっていて、国のレッドリストにのっているので大切に。'},
   kinkabuto:  {ord:'コウチュウ目 コガネムシ科（という言いつたえ）', size:'約9cm（伝説）', range:'宗像市 大島（伝説）', season:'夏の夜と朝（伝説）',
                care:'言いつたえでは、見つけたら大島の海と森にかえすと、幸せがおとずれるという…。'},
 };
@@ -938,18 +941,69 @@ const cap   = ()=> CAGES[S.cage].cap;
 const clamp = (v,a,b)=> Math.max(a, Math.min(b, v));
 const rint  = (a,b)=> a + Math.floor(Math.random()*(b-a+1));
 const stars = n=> '★'.repeat(n) + '☆'.repeat(5-n);
-/* お金は「どんぐり」（宗像で自然をしらべた子がもらえる、子どものための地域のお金）。表示はドット絵のどんぐりマーク＋数字
-   文章の中では dg(数) と書く。esc() を通すとマークの絵になる */
-const ACORN = (()=>{
-  const px = ['....s...', '.cccccc.', 'cCcCcCcc', '.cccccc.', '.nnnnnn.', '.nhnnnnn'.slice(0,8), '.nhnnnn.', '..nnnn..', '...nn...'];
-  const col = {s:'#7a4a1c', c:'#9a5e28', C:'#c8894a', n:'#e8a040', h:'#ffe0a0'};
-  let r = '';
-  px.forEach((row,y)=>[...row].forEach((ch,x)=>{ if(col[ch]) r += `<rect x="${x}" y="${y}" width="1" height="1" fill="${col[ch]}"/>`; }));
-  return `<svg class="acorn" viewBox="0 0 8 9" shape-rendering="crispEdges" role="img" aria-label="どんぐり">${r}</svg>`;
-})();
-const DG = '\uE000';
-const dg = n=> DG + n;
-const esc = s=> String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])).replace(/\uE000/g, ACORN);
+/* お金は「どんぐり」（町の「どんぐり銀行」がわたす、子どものための地域のお金）。数えかたは D（100D = どんぐり100こぶん）
+   文章の中では dg(数) と書く */
+const dg = n=> n + 'D';
+/* ふりがな：小学5年生以上でならう漢字と、むずかしい地名にはいつも付ける。
+   「ふりがな たくさん」にすると、小学3年生からならう漢字にも付ける。読みは学年別漢字配当表とゲームの文章から作った辞書（読み|学年）
+   画面に出た文字を自動で見て、辞書のことばに <ruby> を付ける */
+const RUBY = {"完成":"かんせい|4","場所":"ばしょ|3","実際":"じっさい|5","方法":"ほうほう|4","情報":"じょうほう|5","本物":"ほんもの|3","写真":"しゃしん|3","判定":"はんてい|5","送ら":"おくら|3","銀行":"ぎんこう|3","地域":"ちいき|6","具":"ぐ|3","お礼":"おれい|3","画面":"がめん|3","操作":"そうさ|6","向き":"むき|3","変える":"かえる|4","不具合":"ふぐあい|4","説明":"せつめい|4","残ら":"のこら|4","飼い":"かい|5","追加":"ついか|4","版":"ばん|5","箱":"ばこ|3","飼育":"しいく|5","登山":"とざん|3","乗船":"じょうせん|3","無":"む|4","期限":"きげん|5","回復":"かいふく|5","釣川":"つりかわ|7","飛ぶ":"とぶ|4","神社":"じんじゃ|3","松原":"まつばら|4","松林":"まつばやし|4","城山":"じょうやま|4","大島":"おおしま|3","神湊":"こうのみなと|7","畑":"はたけ|3","飛ん":"とん|4","意外と":"いがいと|3","王様":"おうさま|3","川辺":"かわべ|4","緑":"みどり|3","速く":"はやく|3","宝もの":"たからもの|6","九州":"きゅうしゅう|3","平地":"へいち|3","美しい":"うつくしい|3","卵":"たまご|6","樹液":"じゅえき|6","集まる":"あつまる|3","投げ":"なげ|3","最大":"さいだい|4","級":"きゅう|3","終わり":"おわり|3","群れ":"むれ|4","特":"とく|4","平たい":"ひらたい|3","世界":"せかい|3","危険":"きけん|6","観察":"かんさつ|4","角度":"かくど|3","宝石":"ほうせき|6","用心深く":"ようじんぶかく|3","姿":"すがた|6","伝説":"でんせつ|4","祭":"さい|3","船団":"せんだん|5","現れる":"あらわれる|5","幸せ":"しあわせ|3","約":"やく|4","全国":"ぜんこく|3","幼虫":"ようちゅう|6","葉":"は|3","育てる":"そだてる|3","本州":"ほんしゅう|3","沖縄":"おきなわ|4","成虫":"せいちゅう|4","飼う":"かう|5","共食い":"ともぐい|4","背":"せ|6","落ち":"おち|3","育て":"そだて|3","羽化":"うか|3","禁止":"きんし|5","集め":"あつめ|3","調べる":"しらべる|3","深め":"ふかめ|3","育つ":"そだつ|3","関東":"かんとう|4","砂":"すな|6","南部":"なんぶ|3","暗い":"くらい|3","暑":"あつ|3","低い":"ひくい|4","飼わ":"かわ|5","記録":"きろく|4","活動":"かつどう|3","飛びまわっ":"とびまわっ|4","針":"はり|6","玄界灘":"げんかいなだ|7","島":"しま|3","泳い":"およい|3","強制":"きょうせい|5","的":"てき|4","必要":"ひつよう|4","半額":"はんがく|5","着い":"つい|3","次":"つぎ|3","最後":"さいご|4","学期":"がっき|3","遊び":"あそび|3","墓":"はか|5","体操":"たいそう|6","進み":"すすみ|3","具合":"ぐあい|3","消え":"きえ|3","自由":"じゆう|3","研究":"けんきゅう|3","使う":"つかう|3","減らし":"へらし|5","去年":"きょねん|3","使っ":"つかっ|3","道具":"どうぐ|3","持っ":"もっ|3","立派":"りっぱ|6","自然":"しぜん|4","安心":"あんしん|3","必殺":"ひっさつ|5","技":"わざ|5","近所":"きんじょ|3","度":"ど|3","登録":"とうろく|4","開い":"ひらい|3","危ない":"あぶない|6","動け":"うごけ|3","勝ち":"かち|3","最強":"さいきょう|4","勝てる":"かてる|3","大将":"たいしょう|6","座":"ざ|6","参っ":"まいっ|4","相手":"あいて|3","音量":"おんりょう|4","動く":"うごく|3","受ける":"うける|3","倍":"ばい|3","量":"りょう|4","型":"がた|5","作戦":"さくせん|4","再戦":"さいせん|5","賞金":"しょうきん|5","勝つ":"かつ|3","勝っ":"かっ|3","勝負":"しょうぶ|3","時期":"じき|3","目安":"めやす|3","以上":"いじょう|4","境内":"けいだい|5","自転車":"じてんしゃ|3","位置":"いち|4","設定":"せってい|5","許可":"きょか|5","確かめ":"たしかめ|5","保存":"ほぞん|6","特典":"とくてん|4","調べ":"しらべ|3","準備":"じゅんび|5","もう一度":"もういちど|3","写る":"うつる|3","遊ん":"あそん|3","遊べ":"あそべ|3","開く":"ひらく|3","共有":"きょうゆう|4","便利":"べんり|4","全":"ぜん|3","開け":"あけ|3","別々":"べつべつ|4","遊ぶ":"あそぶ|3","送ろ":"おくろ|3","送る":"おくる|3","送っ":"おくっ|3","公開":"こうかい|3","番号":"ばんごう|3","開き":"ひらき|3","自己":"じこ|6","宿題":"しゅくだい|3","終わら":"おわら|3","全力":"ぜんりょく|3","発表":"はっぴょう|3","注目":"ちゅうもく|3","賞":"しょう|5","金賞":"きんしょう|5","代表":"だいひょう|3","銀賞":"ぎんしょう|5","銅賞":"どうしょう|5","努力":"どりょく|4","見習い":"みならい|3","向かっ":"むかっ|3","絶賛":"ぜっさん|5","集まっ":"あつまっ|3","全校":"ぜんこう|3","集会":"しゅうかい|3","記者":"きしゃ|3","取材":"しゅざい|4","大発見":"だいはっけん|3","館":"かん|3","上級生":"じょうきゅうせい|3","今度":"こんど|3","連れ":"つれ|4","者":"しゃ|3","感心":"かんしん|3","席":"せき|4","表紙":"ひょうし|3","夢中":"むちゅう|5"};
+const FURI_KEY = KEY_PRE + 'munakata-furigana-v1';
+let furiMode = (()=>{ try{ return localStorage.getItem(FURI_KEY) === '1'; }catch(e){ return false; } })();
+let rubyMap = {}, rubyRe = null;
+function buildRuby(){
+  const min = furiMode ? 3 : 5; rubyMap = {};
+  for(const w in RUBY){ const [rd, g] = RUBY[w].split('|'); if(+g >= min) rubyMap[w] = rd; }
+  const keys = Object.keys(rubyMap).sort((a,b)=>b.length - a.length);
+  rubyRe = keys.length ? new RegExp(keys.join('|'), 'g') : null;
+}
+const isKana = c=> /[\u3040-\u309f]/.test(c);
+function rubyNode(w){   // 送りがななど、ことばの前後のひらがなにはふりがなを付けない
+  const rd = rubyMap[w]; let pre = 0, suf = 0;
+  while(pre < w.length && isKana(w[pre]) && rd[pre] === w[pre]) pre++;
+  while(suf < w.length - pre && isKana(w[w.length-1-suf]) && rd[rd.length-1-suf] === w[w.length-1-suf]) suf++;
+  const f = document.createDocumentFragment();
+  if(pre) f.appendChild(document.createTextNode(w.slice(0, pre)));
+  const r = document.createElement('ruby'); r.className = 'fr';
+  r.appendChild(document.createTextNode(w.slice(pre, w.length - suf)));
+  const rt = document.createElement('rt'); rt.textContent = rd.slice(pre, rd.length - suf); r.appendChild(rt);
+  f.appendChild(r);
+  if(suf) f.appendChild(document.createTextNode(w.slice(w.length - suf)));
+  return f;
+}
+function rubifyText(t){
+  const p = t.parentNode;
+  if(!rubyRe || !p || p.nodeType !== 1 || p.closest('ruby,script,style,svg,textarea,title,.norb')) return;
+  const v = t.nodeValue; rubyRe.lastIndex = 0;
+  if(!rubyRe.test(v)) return;
+  rubyRe.lastIndex = 0;
+  const f = document.createDocumentFragment(); let last = 0, m;
+  while((m = rubyRe.exec(v))){
+    if(m.index > last) f.appendChild(document.createTextNode(v.slice(last, m.index)));
+    f.appendChild(rubyNode(m[0])); last = m.index + m[0].length;
+  }
+  if(last < v.length) f.appendChild(document.createTextNode(v.slice(last)));
+  p.replaceChild(f, t);
+}
+function rubify(root){
+  if(root.nodeType === 3){ rubifyText(root); return; }
+  if(root.nodeType !== 1) return;
+  const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), list = [];
+  while(w.nextNode()) list.push(w.currentNode);
+  list.forEach(rubifyText);
+}
+function setFuri(on){
+  furiMode = on; try{ on ? localStorage.setItem(FURI_KEY, '1') : localStorage.removeItem(FURI_KEY); }catch(e){}
+  document.querySelectorAll('ruby.fr').forEach(r=> r.replaceWith(document.createTextNode(r.firstChild.nodeValue)));
+  document.body.normalize(); buildRuby(); rubify(document.body); furiLabel();
+}
+const furiLabel = ()=>{ const b = document.getElementById('btnFuri'); if(b) b.textContent = 'ふりがな：' + (furiMode ? 'たくさん' : 'ふつう'); };
+buildRuby();
+new MutationObserver(ms=>{ for(const m of ms){ if(m.type === 'characterData') rubifyText(m.target); else m.addedNodes.forEach(rubify); } })
+  .observe(document.body, {childList:true, subtree:true, characterData:true});
+rubify(document.body);
+
+const esc = s=> String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const fmt = s=> esc(s).replace(/\n/g,'<br>');
 const wait = ms=> new Promise(r=>setTimeout(r,ms));
 function dateStr(day=S.day){ const d = new Date(START_DATE[0] + (S.round||1) - 1, START_DATE[1], START_DATE[2] + day - 1); return `${d.getMonth()+1}月${d.getDate()}日（${'日月火水木金土'[d.getDay()]}）`; }
@@ -1053,7 +1107,7 @@ function hud(){
   if(scene==='title'){ hudEl.innerHTML = ''; return; }
   const r = S.hp / maxHp();
   hudEl.innerHTML = `<div class="hrow"><span class="date">${dateStr()}</span><span class="day">${S.day}/${DAYS}日目</span><span class="time">${clockSVG()}${hhmm()} ${SLOT_NAMES[slotOf(S.min)]}</span></div>`+
-    `<div class="hrow"><span class="place">${esc(AREAS[S.area].name)}</span><span class="money">${esc(dg(S.money))}</span><span>図鑑 ${dexCount()}/${Object.keys(BUGS).length}</span></div>`+
+    `<div class="hrow"><span class="place">${esc(AREAS[S.area].name)}</span><span class="money">${esc(dg(S.money))}</span><span>ずかん ${dexCount()}/${Object.keys(BUGS).length}</span></div>`+
     `<div class="hrow"><span class="lv">Lv${S.lv}</span><span class="hp">HP <span class="bar"><i class="${r<.3?'low':''}" style="width:${r*100}%"></i></span>${S.hp}/${maxHp()}</span></div>`;
 }
 
@@ -1220,7 +1274,7 @@ function pickBug(){
   if(!list.length) return null;
   const wt = id=>{ const b = BUGS[id]; let w = b.w;
     if(S.trapDay===S.day && b.rank>=3) w *= 3;            // 樹液トラップ
-    if((S.link[b.shape]||0) >= S.day) w *= 2;             // 本物の虫を撮ったなかまが出やすい
+    if((S.link[b.shape]||0) >= S.day) w *= 2;             // 本物の虫をとったなかまが出やすい
     if(id==='kinkabuto' && S.goldwing) w *= 8;            // 金色のはね
     w *= stampBoost(id);                                  // 本物の場所でとったスタンプの特典
     return w; };
@@ -1231,7 +1285,7 @@ function pickBug(){
 async function checkFront(){
   const [dx,dy] = DIRS[S.dir], t = tileAt(S.x+dx, S.y+dy);
   const lines = {T:'大きな木だ。あまい樹液のにおいがする…', '~': S.area==='matsubara'||S.area==='oshima' ? '玄界灘の海だ。遠くに島が見える。' : '水がきれいだ。メダカが泳いでいる。',
-    H:'ぼくの家だ。', S:'虫具店。むなかたの虫とりキッズ御用達の店。', J:'宗像大社のおやしろだ。虫がたくさんとれますように…', o:'大きな石だ。下に虫がかくれているかも？'};
+    H:'ぼくの家だ。', S:'虫具店。むなかたの虫とりキッズごようたしの店。', J:'宗像大社のおやしろだ。虫がたくさんとれますように…', o:'大きな石だ。下に虫がかくれているかも？'};
   if(t==='K'){ await sumoMenu(); await checkTime(); return; }
   if(lines[t]) await say(lines[t]);
 }
@@ -1253,7 +1307,7 @@ async function worldMap(){
   const id = ids[c], A = AREAS[id];
   if(A.ticket && !S.ticket){
     const y = await choose(['買う','やめる'], {cls:'side', start:0,
-      msg:`神湊の渡船ターミナル。大島行きのフェリーには「${TICKET.name}」が必要だ。\n${dg(ticketPrice())}で買いますか？${photos.stamps?.oshima ? '（大島のスタンプで半額！）' : ''}（いま ${dg(S.money)}）`});
+      msg:`神湊のとせんターミナル。大島行きのフェリーには「${TICKET.name}」が必要だ。\n${dg(ticketPrice())}で買いますか？${photos.stamps?.oshima ? '（大島のスタンプで半額！）' : ''}（いま ${dg(S.money)}）`});
     if(y!==0){ S.y -= 1; S.dir = 'U'; return; }
     if(S.money < ticketPrice()){ await say('どんぐりが足りない…。虫具店に虫をとどけて、どんぐりをためよう。'); S.y -= 1; S.dir = 'U'; return; }
     S.money -= ticketPrice(); S.ticket = true; hud();
@@ -1276,16 +1330,17 @@ async function sleep(faint){
   await fade(()=>{ S.day++; S.min = START_MIN; S.hp = maxHp(); S.area = 'town'; S.x = 3; S.y = 5; S.dir = 'D'; S.warned = false; hud(); });
   save();
   const left = DAYS - S.day + 1;
-  const tip = left===1 ? '今日が夏休み最後の日だ！ 明日から二学期…。' : left<=3 ? `二学期まで、あと${left}日…！` : S.day<=4 ? ['お盆で、親せきのおじさんたちが遊びに来ている。','お盆なので、お墓まいりに行ってきた。','お盆の夜は、町内でぼんおどりがあるらしい。'][S.day%3] : ['今日もいい天気だ！','セミが朝から元気に鳴いている。','ラジオ体操に行ってきた！','朝ごはんをしっかり食べた！'][S.day%4];
+  const tip = left===1 ? '今日が夏休み最後の日だ！ 明日から二学期…。' : left<=3 ? `二学期まで、あと${left}日…！` : S.day<=4 ? ['おぼんで、親せきのおじさんたちが遊びに来ている。','おぼんなので、お墓まいりに行ってきた。','おぼんの夜は、町内でぼんおどりがあるらしい。'][S.day%3] : ['今日もいい天気だ！','セミが朝から元気に鳴いている。','ラジオ体操に行ってきた！','朝ごはんをしっかり食べた！'][S.day%4];
   await say(`${dateStr()} の朝。\n${faint ? 'ゆっくり休んだら元気になった。' : ''}${tip}`);
 }
 
 /* ---------- メニュー ---------- */
 async function fieldMenu(){
   while(true){
-    const c = await choose(['ずかん','虫かご','どうぐ','本物の虫を撮る','ステータス','ルール','セーブ','タイトルにもどる','とじる'], {title:'メニュー', cls:'side'});
-    if(c<0 || c===8) return;
-    if(c===7){
+    const c = await choose(['ずかん','虫かご','どうぐ','本物の虫をとる','ステータス','ルール','セーブ',`ふりがな：${furiMode ? 'たくさん' : 'ふつう'}`,'タイトルにもどる','とじる'], {title:'メニュー', cls:'side'});
+    if(c<0 || c===9) return;
+    if(c===7){ setFuri(!furiMode); await say(furiMode ? 'ふりがなを「たくさん」にしました。\n小学3年生からならう漢字にも、ふりがなが付きます。' : 'ふりがなを「ふつう」にしました。\n小学5年生からならう漢字に、ふりがなが付きます。'); continue; }
+    if(c===8){
       const y = await choose(['はい','いいえ'], {msg:'本当にタイトルにもどりますか？\n（セーブしていないところまでの進み具合は消えます）', cls:'side', start:1});
       if(y===0){ await fade(()=>{ mv = null; }); await titleScreen(); return; }
       continue;
@@ -1296,7 +1351,7 @@ async function fieldMenu(){
     if(c===3) await openCam();
     if(c===5) await ruleMenu();
     if(c===6){ save(); await say('セーブしました。'); }
-    if(c===4) await say(`自由研究（昆虫図鑑）：${research().total}点・いまなら「${endingOf(research()).award}」\nLv${S.lv}　けいけんち ${S.exp}/${need(S.lv)}\nたいりょく ${S.hp}/${maxHp()}　こうげき ${Math.round(patk())}\nあみ：${NETS[S.net].name}／くつ：${SHOES[S.shoes].name}${S.ticket ? '／乗船チケットあり' : ''}\nかご：${CAGES[S.cage].name}（つかまえる力${Math.round(CAGES[S.cage].pow*100)}・${cap()}ひきまで）`);
+    if(c===4) await say(`自由研究（こん虫ずかん）：${research().total}点・いまなら「${endingOf(research()).award}」\nLv${S.lv}　けいけんち ${S.exp}/${need(S.lv)}\nたいりょく ${S.hp}/${maxHp()}　こうげき ${Math.round(patk())}\nあみ：${NETS[S.net].name}／くつ：${SHOES[S.shoes].name}${S.ticket ? '／乗船チケットあり' : ''}\nかご：${CAGES[S.cage].name}（つかまえる力${Math.round(CAGES[S.cage].pow*100)}・${cap()}ひきまで）`);
   }
 }
 async function boxMenu(){
@@ -1324,7 +1379,7 @@ async function ruleMenu(){
   const c = await choose([
     {label:'A：たおしてゲット', note: S.rule==='A'?'いまこれ':''},
     {label:'B：弱らせてつかまえる', note: S.rule==='B'?'いまこれ':''}],
-    {title:'バトルのルール', msg:'A：虫のHPを0にしたらゲット。かんたんで爽快。\nB：HPを減らして「つかまえる」。HPを0にすると虫はにげてしまう。', start: S.rule==='A'?0:1});
+    {title:'バトルのルール', msg:'A：虫のHPを0にしたらゲット。かんたんでそうかい。\nB：HPを減らして「つかまえる」。HPを0にすると虫はにげてしまう。', start: S.rule==='A'?0:1});
   if(c===0) S.rule = 'A'; if(c===1) S.rule = 'B';
 }
 
@@ -1347,14 +1402,15 @@ async function giveGift(){
   if(cage > S.cage) got.push(CAGES[cage].name);
   if(!got.length){ S.items.drink += 3; S.items.mitsu += 3; got.push('スポーツドリンク3本', '虫みつ3こ'); }   // もっといい道具を持っていたら、かわりにどうぐ
   S.net = net; S.cage = cage; setGift(false); save(); hud();
-  await say(`${got.join('と')}を手に入れた！\nこれで、今年はもっとすごい図鑑がつくれそうだ！`, 'boku');
+  await say(`${got.join('と')}を手に入れた！\nこれで、今年はもっとすごいずかんがつくれそうだ！`, 'boku');
 }
 async function shopMain(){
   if(hasGift()) await giveGift();
   if(!S.dgIntro){   // はじめて来たとき、どんぐりのしくみを説明する
     await talk(['虫具店のおじさん「いらっしゃい！ はじめて見る顔だね。」', 'ojisan'],
       ['「うちでは、しらべた虫をとどけてくれた子に、お礼に『どんぐり』をわたしているんだ。」', 'ojisan'],
-      ['「どんぐりは、宗像で虫や自然をしらべた子がもらえる、子どものための地域のお金さ。\nあみや虫かご、くつと交換できるよ。」', 'ojisan'],
+      ['「どんぐりは、町の『どんぐり銀行』が出している、子どものための地域のお金さ。\n宗像で虫や自然をしらべた子がもらえるんだよ。」', 'ojisan'],
+      ['「数えかたは「D（ディー）」。100Dなら、どんぐり100こぶんだ。\nあみや虫かご、くつとこうかんできるよ。」', 'ojisan'],
       ['「とどけてくれた虫は、記録をとったら、おじさんが元の場所にかえしておくから安心しな。」', 'ojisan']);
     S.dgIntro = true; save();
   }
@@ -1362,7 +1418,7 @@ async function shopMain(){
   while(true){
     const c = await choose(['虫をとどける','あみを買う','虫かごを買う','くつを買う','どうぐを買う','店を出る'], {title:`むなかた虫具店　${dg(S.money)}`, msg:greet});
     greet = '「ほかに用はあるかい？」';
-    if(c<0 || c===5){ await say('「まいど！ 熱中症に気をつけるんだよ。」'); S.dir = 'D'; return; }
+    if(c<0 || c===5){ await say('「まいど！ ねっちゅうしょうに気をつけるんだよ。」'); S.dir = 'D'; return; }
     if(c===0) await sellMenu();
     if(c===1) await buyGear('net');
     if(c===2) await buyGear('cage');
@@ -1375,7 +1431,7 @@ async function sellMenu(){
     if(!S.box.length){ await say('「とどけてくれる虫がいないね。また持ってきておくれ。」'); return; }
     const sum = S.box.reduce((s,it)=>s + sellPrice(it), 0);
     const opts = [{label:'ぜんぶとどける', note:dg(sum)}, ...S.box.map(it=>({label:`${BUGS[it.id].name} Lv${it.lv}`, note:dg(sellPrice(it))}))];
-    const c = await choose(opts, {title:`虫をとどける　${dg(S.money)}`, msg:'「どの虫をとどけてくれるんだい？」\n（とどけても図鑑の記録は消えません）'});
+    const c = await choose(opts, {title:`虫をとどける　${dg(S.money)}`, msg:'「どの虫をとどけてくれるんだい？」\n（とどけてもずかんの記録は消えません）'});
     if(c<0) return;
     if(c===0){
       const y = await choose(['とどける','やめる'], {msg:`ぜんぶで お礼は ${dg(sum)} だよ。とどけてくれるかい？`, cls:'side'});
@@ -1429,14 +1485,14 @@ function catchRate(e){
   return clamp(CAGES[S.cage].pow * (1.15 - hpR*hpWeight) * lvF * e.b.catch * (e.mitsu ? 1.5 : 1), 0.03, 0.97);
 }
 const expOf = e=> Math.round(e.lv*3 + e.b.rank*6);
-/* まだつかまえていない（図鑑にない）虫のしるし：本に「？」のアイコン */
+/* まだつかまえていない（ずかんにない）虫のしるし：本に「？」のアイコン */
 const DEX_ICON = '<svg class="dexicon" viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="2" width="13" height="12" rx="1.5" fill="#fff4c8" stroke="#5a2a10" stroke-width="1.2"/><line x1="8" y1="2.5" x2="8" y2="13.5" stroke="#5a2a10" stroke-width="1"/><text x="4.75" y="11" font-size="8" font-weight="700" text-anchor="middle" fill="#c8402e">?</text><text x="11.25" y="11" font-size="8" font-weight="700" text-anchor="middle" fill="#c8402e">?</text></svg>';
 function updateB(e){
   const r = e.hp / e.maxhp, pr = S.hp / maxHp(), p = catchRate(e), dots = Math.max(1, Math.ceil(p*5));
   $('bInfo').classList.toggle('isnew', !S.dex[e.id]); $('bInfo').classList.remove('danger');
   $('bInfo').innerHTML = `<div class="row"><span>${esc(e.b.name)}</span><span>Lv${e.lv}</span></div>`+
     `<div class="row"><span><span class="lbl">レア度</span> <span class="stars">${stars(e.b.rank)}</span></span></div>`+
-    (S.dex[e.id] ? '' : `<div class="row"><span class="dexnew">${DEX_ICON}まだ図鑑にない虫！</span></div>`)+
+    (S.dex[e.id] ? '' : `<div class="row"><span class="dexnew">${DEX_ICON}まだずかんにない虫！</span></div>`)+
     `<span class="bar"><i class="${r<.3?'low':''}" style="width:${r*100}%"></i></span>`+
     `<div class="row"><span class="lbl">つかまえやすさ</span><span class="gauge">${'●'.repeat(dots)}${'○'.repeat(5-dots)}</span></div>`;
   $('pInfo').innerHTML = `<div class="row"><span>ぼく</span><span>Lv${S.lv}</span></div>`+
@@ -1455,11 +1511,11 @@ async function getBug(e){
   S.dex[e.id] = {n:(S.dex[e.id]?.n||0) + 1, best:Math.max(S.dex[e.id]?.best||0, e.lv)};
   hud();
   await say(`やったー！ ${e.b.name}をつかまえた！`, 'boku');
-  if(first) await say(`昆虫図鑑に ${e.b.name} が登録された！`);
+  if(first) await say(`こん虫ずかんに ${e.b.name} が登録された！`);
   await gainExp(expOf(e));
   return true;
 }
-/* 熱中症ペナルティ：虫かごの虫がにげてしまう（図鑑の記録は消えない） */
+/* ねっちゅうしょうペナルティ：虫かごの虫がにげてしまう（ずかんの記録は消えない） */
 async function faintPenalty(){
   if(!S.box.length) return;
   if(Math.random() < FAINT_ALL){
@@ -1498,7 +1554,7 @@ function battleBg(style){
 }
 /* 警告マーク（黄色い三角に「！」） */
 const WARN_ICON = '<svg class="warnicon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.2 L15.2 14.4 H0.8 Z" fill="#ffd23a" stroke="#1b130c" stroke-width="1.3" stroke-linejoin="round"/><rect x="7.1" y="5.2" width="1.8" height="5" rx=".6" fill="#1b130c"/><rect x="7.1" y="11.3" width="1.8" height="1.8" rx=".6" fill="#1b130c"/></svg>';
-/* 危ない虫（スズメバチ）：戦わずにしずかに逃げる。図鑑には「観察した」として記録 */
+/* 危ない虫（スズメバチ）：戦わずにしずかに逃げる。ずかんには「観察した」として記録 */
 async function dangerEncounter(id){
   const b = BUGS[id], slot = slotOf(S.min);
   battleEl.className = 'ov bg-' + AREAS[S.area].style + (slot==='yoru' ? ' night' : slot==='yu' ? ' dusk' : ''); battleBg(AREAS[S.area].style);
@@ -1509,7 +1565,7 @@ async function dangerEncounter(id){
   await say('スズメバチはとても危ない！\nさわがず、手でふりはらわず、しずかにその場をはなれよう…。');
   const first = !S.dex[id];
   if(first){ S.dex[id] = {n:0, best:0, watched:true}; hud(); }
-  await say('そーっと、後ろに下がって にげた。ふう、あぶなかった…。' + (first ? `\n遠くから観察したので、昆虫図鑑に ${b.name} を記録した！` : ''));
+  await say('そーっと、後ろに下がって にげた。ふう、あぶなかった…。' + (first ? `\n遠くから観察したので、こん虫ずかんに ${b.name} を記録した！` : ''));
   await fade(()=>{ battleEl.hidden = true; battleEl.classList.remove('alarm'); $('bInfo').classList.remove('danger'); $('pInfo').hidden = false; scene = 'field'; S.min += 5; hud(); });
 }
 async function battle(id){
@@ -1531,12 +1587,12 @@ async function battle(id){
       if(Math.random() < b.spd*0.05){ await say(`ブンッ！ ${b.name}にあみをよけられた！`); }
       else {
         let d = patk()*(0.85 + Math.random()*0.3); const crit = Math.random() < 1/12; if(crit) d *= 1.6; d = Math.max(1, Math.round(d));
-        // 網の必殺技：たおしてしまいそうな一撃ほど出やすい（ルールA「たおしてゲット」のときは、たおす一撃では出ない）
+        // 網の必殺技：たおしてしまいそうないちげきほど出やすい（ルールA「たおしてゲット」のときは、たおすいちげきでは出ない）
         const ko = d >= e.hp, so = NETS[S.net].soft;
         if(e.hp > 1 && (ko ? S.rule!=='A' && Math.random() < so.ko : Math.random() < so.any)){
           e.hp = 1; e.stun = 1; fx(bSprite,'hit',450); updateB(e);
           await say(`ひっさつ！「${SOFT_NAME}」！\n${b.name}をやさしくおさえこんだ！ のこりHP1！\n（いまがつかまえるチャンス！）`);
-        } else {   // ふつうの一撃
+        } else {   // ふつうのいちげき
         e.hp = Math.max(0, e.hp - d); fx(bSprite,'hit',450); updateB(e);
         await say((crit ? 'クリーンヒット！ ' : '') + `${b.name}に ${d} のダメージ！`);
         if(e.hp <= 0){
@@ -1564,7 +1620,7 @@ async function battle(id){
     const d = Math.max(1, Math.round(e.atk*(0.8 + Math.random()*0.4)));
     S.hp = Math.max(0, S.hp - d); fx(screenEl,'shake',300); updateB(e); hud();
     await say(`${b.name}は${ATTACK[b.shape]}\n${d} のダメージをうけた！`);
-    if(S.hp <= 0){ await say('目の前がくらくらする…熱中症かも！\nいそいで家に帰って休もう。', 'boku'); result = 'faint'; }
+    if(S.hp <= 0){ await say('目の前がくらくらする…ねっちゅうしょうかも！\nいそいで家に帰って休もう。', 'boku'); result = 'faint'; }
   }
   await fade(()=>{ battleEl.hidden = true; scene = 'field'; S.min += BATTLE_MIN; hud(); });
   if(result==='faint'){ await faintPenalty(); await sleep(true); }
@@ -1580,11 +1636,11 @@ const RIVALS = [
   {key:'kenta', name:'けんた（4年生・となりのクラス）', short:'けんた', bug:'nokogiri', lv:13, money:400,  item:'jueki', hi:'ノコギリのはさみで、まっぷたつだ！',      win:'まじかよ…！ 二学期、教えてくれよな。', lose:'へへん、となりのクラスの勝ちだな！'},
   {key:'soma',  name:'そうま（5年生）',               short:'そうま', bug:'kabuto',   lv:16, money:700,  item:'note',  hi:'夏の王様カブトムシに勝てるかな？',        win:'王様がやられた…。きみ、やるなあ。',  lose:'王様の力、思い知ったか！'},
   {key:'daichi',name:'だいち（6年生・ガキ大将）',       short:'だいち', bug:'miyama',   lv:20, money:1200, item:'jueki', hi:'おれのミヤマは、城山でいちばん強いぜ！',  win:'…おまえ、ただものじゃないな。',     lose:'ガッハッハ！ 出直してこい！'},
-  {key:'ren',   name:'れん（中学1年生・チャンピオン）',  short:'れん',   bug:'hirata',   lv:22, money:2000, item:'champ', hi:'チャンピオンの座は、ゆずらないよ。',      win:'参った。今日からきみがチャンピオンだ。', lose:'まだまだ。また挑戦しにおいで。'},
+  {key:'ren',   name:'れん（中学1年生・チャンピオン）',  short:'れん',   bug:'hirata',   lv:22, money:2000, item:'champ', hi:'チャンピオンの座は、ゆずらないよ。',      win:'参った。今日からきみがチャンピオンだ。', lose:'まだまだ。またちょうせんしにおいで。'},
 ];
 /* 虫のタイプ（虫ずもう用）：ちから・まもり（受けるダメージの倍率）・かいふく（ふんばるで回復する割合） */
 const TYPES = {
-  kouchu: {name:'甲虫',           atk:1.05, def:0.86, hp:1.08, heal:0.08},
+  kouchu: {name:'こうちゅう',           atk:1.05, def:0.86, hp:1.08, heal:0.08},
   chou:   {name:'チョウ',          atk:0.92, def:1.00, hp:0.98, heal:0.22},
   tonbo:  {name:'トンボ',          atk:1.06, def:1.02, hp:0.94, heal:0.08},
   batta:  {name:'バッタ・カマキリ', atk:1.08, def:0.96, hp:1.00, heal:0.11},
@@ -1596,7 +1652,7 @@ const SHAPE_TYPE = {beetle:'kouchu', stag:'kouchu', jewel:'kouchu', longhorn:'ko
   grass:'batta', mantis:'batta', cicada:'semi', bee:'hachi', firefly:'mizube', strider:'mizube'};
 const typeOf = b=> TYPES[SHAPE_TYPE[b.shape]];
 /* ひっさつわざ：mult いりょく／acc ねらい／open 使ったあとのスキ（受けるダメージ倍率）／pierce ふんばるをつきやぶる
-   blind 相手の攻撃が当たりにくくなる回数／weaken 相手のちから／poison どくのターン数／hits 回数 */
+   blind 相手のこうげきが当たりにくくなる回数／weaken 相手のちから／poison どくのターン数／hits 回数 */
 const SP_MOVES = {
   beetle:   {name:'ツノでなげとばし',   mult:2.0, acc:.70, open:1.5, info:'いりょくがとても大きい'},
   stag:     {name:'大あごではさみなげ', mult:1.8, acc:.75, open:1.5, pierce:true, info:'ふんばっている相手にもきく'},
@@ -1624,7 +1680,7 @@ const fstat = f=> `${f.t.name}タイプ　たいりょく${f.maxhp}　ちから$
 async function sumoRules(){
   await talk('【虫ずもうのルール】\nつっこむ：ふつうのこうげき。\nひっさつわざ：つよいけど、つぎに動くまでスキができて、受けるダメージが1.5倍になる。',
     'ふんばる：受けるダメージを大きくへらして、たいりょくを回復する。回復する量は虫のタイプでちがう。2回つづけると回復は半分。',
-    '【虫のタイプ】\n甲虫：ちから・まもりが強いけど、おそい。\nチョウ：よわいけど、ふんばるでたくさん回復。りんぷんで相手の攻撃をはずさせる。',
+    '【虫のタイプ】\nこうちゅう：ちから・まもりが強いけど、おそい。\nチョウ：よわいけど、ふんばるでたくさん回復。りんぷんで相手のこうげきをはずさせる。',
     'トンボ：とても速くて、ひっさつわざが当たりやすい。\nバッタ・カマキリ：バランス型。カマキリは2回こうげき。',
     'セミ：大音量で相手のちからを下げる。\nハチ：ちからが強く、どくでダメージをあたえる。\nホタル・アメンボ：目くらましと回復がとくい。',
     'すばやさが高い虫が先に動く。相手のタイプを見て、作戦を立てよう！');
@@ -1638,7 +1694,7 @@ async function sumoMenu(){
       const won = S.sumo[r.key], locked = i>0 && !S.sumo[RIVALS[i-1].key], done = S.sumoDay[r.key]===S.day;
       return {label: locked ? '？？？' : r.name,
         note: locked ? '' : done ? '今日はおわり' : won ? `再戦 ${dg(Math.round(r.money/4))}` : `賞金 ${dg(r.money)}`,
-        desc: locked ? '前の相手に勝つと、挑戦できるようになる' : `あいての虫：${BUGS[r.bug].name} Lv${r.lv}（${typeOf(BUGS[r.bug]).name}タイプ）` + (won ? '\n勝ったことがある。再戦は1日1回' : ''),
+        desc: locked ? '前の相手に勝つと、ちょうせんできるようになる' : `あいての虫：${BUGS[r.bug].name} Lv${r.lv}（${typeOf(BUGS[r.bug]).name}タイプ）` + (won ? '\n勝ったことがある。再戦は1日1回' : ''),
         disabled: locked || done};
     });
     opts.unshift({label:'虫ずもうのルール', desc:'わざとタイプの説明'});   // いちばん上
@@ -1745,7 +1801,7 @@ async function sumoBattle(r, it){
 }
 
 /* =========================================================
-   図鑑
+   ずかん
    ========================================================= */
 function openDex(){
   return new Promise(res=>{
@@ -1775,7 +1831,7 @@ function openDex(){
 }
 
 /* =========================================================
-   本物の虫を撮る（端末内AIで判定 → ごほうび）
+   本物の虫をとる（たんまつ内AIで判定 → ごほうび）
    ========================================================= */
 const PHOTO_KEY = KEY_PRE + 'munakata-photos-v1';
 const PHOTO_DAILY = 5;   // 1日（現実の日付）にごほうびがもらえる枚数
@@ -1788,7 +1844,7 @@ const PHOTO_ITEMS = [
 /* AIのラベル（ImageNet）→ 本物の虫のなかま */
 const PHOTO_CATS = {
   kabuto:    {name:'カブトムシ・クワガタのなかま', money:300, item:'jueki', shapes:['beetle','stag'], labels:['rhinoceros beetle']},
-  beetle:    {name:'甲虫のなかま',               money:120, item:'jueki', shapes:['beetle','stag','longhorn'], labels:['ground beetle','long-horned beetle','leaf beetle','dung beetle','weevil']},
+  beetle:    {name:'こうちゅうのなかま',               money:120, item:'jueki', shapes:['beetle','stag','longhorn'], labels:['ground beetle','long-horned beetle','leaf beetle','dung beetle','weevil']},
   hanmyo:    {name:'ハンミョウ',                 money:150, item:'note',  shapes:['jewel'], labels:['tiger beetle']},
   tentou:    {name:'テントウムシ',               money:80,  item:'note',  shapes:[], labels:['ladybug']},
   cicada:    {name:'セミ',                       money:100, item:'jueki', shapes:['cicada'], labels:['cicada']},
@@ -1883,7 +1939,7 @@ async function stampCheck(){
   try{ pos = await getPos(); }
   catch(e){ box.innerHTML = '位置情報がつかえませんでした。<br><small>スマホの設定で、このページ（Safari／Chrome）の位置情報が「許可」になっているか確かめてね。</small>'; return; }
   const sp = nearSpot(pos.lat, pos.lon); pos = null;   // 位置そのものはすぐに捨てる
-  if(!sp){ box.innerHTML = '近くに、スタンプのある場所はなかったよ。<br><small>宗像大社・さつき松原・城山・大島・釣川・赤間で撮ると、スタンプがもらえるよ。</small>'; return; }
+  if(!sp){ box.innerHTML = '近くに、スタンプのある場所はなかったよ。<br><small>宗像大社・さつき松原・城山・大島・釣川・赤間でとると、スタンプがもらえるよ。</small>'; return; }
   photos.stamps = photos.stamps || {};
   if(photos.stamps[sp.key]){ box.innerHTML = `ここは「${esc(sp.name)}」！ スタンプはもう持っているよ（${esc(photos.stamps[sp.key].date)}）。`; return; }
   // 安全の確認
@@ -1909,7 +1965,7 @@ async function handlePhoto(file){
   const head = `<img alt="" src="${thumb}">`;
   if(photoLeft() <= 0){ camResult(head + '<div class="txt ng big">今日のぶんはおしまい！</div><div class="txt">ごほうびは1日5まいまで。また明日、外で虫をさがしてみよう。</div>'); return; }
   const h = aHash(im);
-  if(photos.hashes.some(x=>hamming(x,h) <= 4)){ camResult(head + '<div class="txt ng big">この写真はもう見せてもらったよ！</div><div class="txt">ちがう虫か、べつの角度で撮ってみよう。</div>'); return; }
+  if(photos.hashes.some(x=>hamming(x,h) <= 4)){ camResult(head + '<div class="txt ng big">この写真はもう見せてもらったよ！</div><div class="txt">ちがう虫か、べつの角度でとってみよう。</div>'); return; }
   camResult(head + '<div class="txt">AIが写真を調べているよ…<br><small>（はじめての時は準備に少し時間がかかります）</small></div>');
   let preds;
   try{ const model = await getModel(); preds = await model.classify(scaled(im, 448), 20); }
@@ -1918,10 +1974,10 @@ async function handlePhoto(file){
   preds.forEach(p=>{ const k = LABEL2CAT[p.className.split(',')[0].trim()]; if(k){ score[k] = (score[k]||0) + p.probability; total += p.probability; } });
   const cat = Object.keys(score).sort((a,b)=>score[b]-score[a])[0];
   if(!cat || total < PHOTO_MIN){
-    camResult(head + `<div class="txt ng big">うーん、虫が見つからないみたい…</div><div class="txt">虫に近づいて、虫が大きく写るように撮ってみよう。${cat ? `<br><small>（${esc(PHOTO_CATS[cat].name)}かも？ ${Math.round(total*100)}%）</small>` : ''}</div>`);
+    camResult(head + `<div class="txt ng big">うーん、虫が見つからないみたい…</div><div class="txt">虫に近づいて、虫が大きく写るようにとってみよう。${cat ? `<br><small>（${esc(PHOTO_CATS[cat].name)}かも？ ${Math.round(total*100)}%）</small>` : ''}</div>`);
     return;
   }
-  if(cat==='hachi'){   // ハチに近づいて撮るのは危ないので、ごほうびは出さない
+  if(cat==='hachi'){   // ハチに近づいてとるのは危ないので、ごほうびは出さない
     camResult(head + '<div class="txt"><div class="ng big">ハチかも！ 気をつけて！</div>ハチ（とくにスズメバチ）は、さされるととても危険です。<br>写真をとるために近づいたりしないでね。<br><small>ハチの写真では、ごほうびはもらえません。</small></div>');
     return;
   }
@@ -1956,7 +2012,7 @@ function openCam(){
    ========================================================= */
 /* ---------- タイトルのボタン：アプリにする方法・友だちに教える ---------- */
 const GAME_URL = location.origin + location.pathname.replace(/index\.html$/, '');
-const SHARE_TEXT = '宗像が舞台の虫とりRPG「むなかた虫とり日記」で、いっしょに虫とりしよう！';
+const SHARE_TEXT = '宗像がぶたいの虫とりRPG「むなかた虫とり日記」で、いっしょに虫とりしよう！';
 const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints > 1);
 const isAndroid = /Android/.test(navigator.userAgent);
 const isStandalone = ()=> matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
@@ -2018,8 +2074,10 @@ async function showShare(){
 $('btnInstall').onclick = e=>{ e.stopPropagation(); showInstall(); };
 $('btnShare').onclick = e=>{ e.stopPropagation(); showShare(); };
 $('btnVer').onclick = e=>{ e.stopPropagation(); showChangelog(); };
+$('btnFuri').onclick = e=>{ e.stopPropagation(); setFuri(!furiMode); };
+furiLabel();
 function showChangelog(){
-  return openPanel('更新情報', `<p>いま遊んでいるのは <b>ver ${GAME_VER}</b>${window.DEMO ? '（デモ版）' : ''} です。<br><small>公開番号 ${esc(BUILD)}</small></p>
+  return openPanel('こうしん情報', `<p>いま遊んでいるのは <b>ver ${GAME_VER}</b>${window.DEMO ? '（デモ版）' : ''} です。<br><small>公開番号 ${esc(BUILD)}</small></p>
     <p class="note">新しいバージョンが出ているのに古い番号のままのときは、ページを開きなおしてね。</p>
     <div class="chlog">${CHANGELOG.map((c,i)=>`<h3>ver ${esc(c.v)}${i===0 ? '<span class="now">いまのバージョン</span>' : ''}<small>${esc(c.date)}</small></h3><ul>${c.items.map(t=>`<li>${esc(t)}</li>`).join('')}</ul>`).join('')}</div>`);
 }
@@ -2048,9 +2106,9 @@ async function titleScreen(){
 async function introCarry(c){
   await talk(
     [`${dateStr()}。小学${grade()}年生の夏休み、今年も虫とりの日がやってきた！`, 'boku'],
-    `去年の自由研究は「${c.lastAward}」（${c.lastScore}点）。\n自己ベストは ${c.best}点。今年はもっとすごい昆虫図鑑をつくるぞ！`,
-    `去年の道具は、ちゃんとしまってある。\nLv${S.lv}・${NETS[S.net].name}・${CAGES[S.cage].name}・${SHOES[S.shoes].name}\nどんぐり ${dg(S.money)}（子ども会からの ${dg(300)} をふくむ）`,
-    `図鑑は新しいノートでいちからつくりなおし。\n${dateStr(DAYS)}までの${DAYS}日間、がんばろう！`
+    `去年の自由研究は「${c.lastAward}」（${c.lastScore}点）。\n自己ベストは ${c.best}点。今年はもっとすごいこん虫ずかんをつくるぞ！`,
+    `去年の道具は、ちゃんとしまってある。\nLv${S.lv}・${NETS[S.net].name}・${CAGES[S.cage].name}・${SHOES[S.shoes].name}\nどんぐり ${dg(S.money)}（どんぐり銀行からの ${dg(300)} をふくむ）`,
+    `ずかんは新しいノートでいちからつくりなおし。\n${dateStr(DAYS)}までの${DAYS}日間、がんばろう！`
   );
 }
 async function intro(){
@@ -2058,19 +2116,19 @@ async function intro(){
   await talk(
     [`${dateStr()}。いよいよ虫とりの日がやってきた！`, 'boku'],
     ['7月21日に夏休みがはじまってから、がんばって宿題をほとんど終わらせた。\nのこりの夏休みは、虫とりに全力だ！', 'boku'],
-    'お母さん「宿題がんばったわね。でも夜9時までには帰ってくるのよ。\nそれから、子ども会から「どんぐり」がとどいてたわよ。」',
-    `どんぐりを ${dg(300)} もらった！\n「どんぐり」は、宗像で自然をしらべた子がもらえる、子どものための地域のお金だ。`,
-    `${dateStr(DAYS+1)}からは二学期がはじまる。\n${dateStr(DAYS)}までの${DAYS}日間で、宗像じゅうの虫をつかまえて昆虫図鑑を完成させよう！`,
-    '自由研究は「昆虫図鑑づくり」！\nたくさんの虫、めずらしい虫をのせるほど、二学期の発表で注目されるぞ。',
+    'お母さん「宿題がんばったわね。でも夜9時までには帰ってくるのよ。\nそれから、「どんぐり銀行」から、あなたのどんぐりがとどいてたわよ。」',
+    `どんぐりを ${dg(300)} もらった！\n「どんぐり銀行」は、宗像で自然をしらべた子どもに、どんぐり（D）をわたしてくれるところだ。`,
+    `${dateStr(DAYS+1)}からは二学期がはじまる。\n${dateStr(DAYS)}までの${DAYS}日間で、宗像じゅうの虫をつかまえてこん虫ずかんを完成させよう！`,
+    '自由研究は「こん虫ずかんづくり」！\nたくさんの虫、めずらしい虫をのせるほど、二学期の発表で注目されるぞ。',
     '町の広場の切りかぶでは、近所の子どもたちが「虫ずもう」をしているらしい。\nつかまえた虫で勝負して、賞金のどんぐりをかせごう！（子どもに話しかけるとはじまる）',
     'つかまえた虫を家のとなりの「虫具店」にとどけると、お礼にどんぐりがもらえる。\nどんぐりをためて、いいあみ・虫かご・くつを買おう！',
-    '本物の虫を見つけたら、メニューの「本物の虫を撮る」で写真を見せてね。\nどんぐりや、お店では買えないアイテムがもらえるよ！',
+    '本物の虫を見つけたら、メニューの「本物の虫をとる」で写真を見せてね。\nどんぐりや、お店では買えないアイテムがもらえるよ！',
     touch ? '【そうさ】十字キー：いどう　A：けってい　B：メニュー・キャンセル\n草むらを歩くと虫が出てくるよ。下の出口から町の外へ！'
           : '【そうさ】やじるしキー：いどう　Z：けってい　X：メニュー・キャンセル\n草むらを歩くと虫が出てくるよ。下の出口から町の外へ！'
   );
 }
-/* ---------- 自由研究「ぼくの昆虫図鑑」 ----------
-   点数 = レア度ポイント（図鑑にのった虫の★）＋ 本物の虫の写真 ＋ がんばり（つかまえた数） */
+/* ---------- 自由研究「ぼくのこん虫ずかん」 ----------
+   点数 = レア度ポイント（ずかんにのった虫の★）＋ 本物の虫の写真 ＋ がんばり（つかまえた数） */
 const RANK_PT = [0, 1, 2, 4, 7, 12];   // ★1〜★5 の点数
 function research(){
   const ids = Object.keys(S.dex).filter(id=>BUGS[id]);
@@ -2094,43 +2152,43 @@ const ENDINGS = [
 function endingOf(r){ if(r.complete || (r.kin && r.total >= 90)) return ENDINGS[0]; return ENDINGS.find(e=>r.total >= e.min); }
 function endingStory(e, r){
   const best = r.best ? BUGS[r.best].name : '虫';
-  const open = [`${dateStr(DAYS+1)}。二学期のはじまりだ。`, `自由研究の「ぼくの昆虫図鑑」をかかえて、学校へ向かった。\n（図鑑：${r.species}しゅるい）`];
+  const open = [`${dateStr(DAYS+1)}。二学期のはじまりだ。`, `自由研究の「ぼくのこん虫ずかん」をかかえて、学校へ向かった。\n（ずかん：${r.species}しゅるい）`];
   if(r.nst >= 3) open.push(r.nst >= SPOTS.length ? '夏休みに宗像じゅうの場所へ出かけて調べた「フィールドワーク」が、先生に大絶賛された！' : '本物の場所に出かけて調べた「フィールドワーク」も、先生にほめられた！');
   if(S.sumoChamp) open.push('夏休みに虫ずもうチャンピオンになったことは、もう学校中のうわさになっていた！');
   const body = {
     legend:[
-      '教室に入ったとたん、クラス中が図鑑のまわりに集まって大さわぎになった！',
+      '教室に入ったとたん、クラス中がずかんのまわりに集まって大さわぎになった！',
       r.kin ? '「これ…ミアレカブト！？ 大島の伝説の虫、本当にいたの！？」\nみんなの目がまんまるになった。' : `「${Object.keys(BUGS).length}しゅるい、ぜんぶ！？」\nみんなの目がまんまるになった。`,
       '先生があわてて校長先生をよんできて、全校集会で発表することになった。',
       '数日後、新聞記者さんが取材に来た。\n「宗像の小学生、夏休みの大発見！」',
-      'ぼくの昆虫図鑑は、「海の道むなかた館」にかざられることになった。\nこの夏のことは、ずっとわすれない。',
+      'ぼくのこん虫ずかんは、「海の道むなかた館」にかざられることになった。\nこの夏のことは、ずっとわすれない。',
     ],
     hero:[
       '教室に入ったとたん、「見せて見せて！」とクラス中が集まってきた。',
       `「${best}をつかまえたの！？ すげー！」\nとなりのクラスや、上級生まで見に来た。`,
-      '先生「こんなにりっぱな図鑑ははじめて見たよ。学校の代表として、市のコンクールに出そう！」',
+      '先生「こんなにりっぱなずかんははじめて見たよ。学校の代表として、市のコンクールに出そう！」',
       'その日から、ぼくは「虫ハカセ」とよばれるようになった。\nいちやく学校のヒーローだ！',
     ],
     star:[
-      '休み時間になると、図鑑のまわりに人だかりができた。',
+      '休み時間になると、ずかんのまわりに人だかりができた。',
       `「この${best}、どこでとったの？」「今度いっしょに連れてって！」`,
       '先生「よく調べたね。とてもいい自由研究だ！」\n銀賞をもらった！',
-      'クラスでちょっとした人気者になった。\n来年はもっとすごい図鑑をつくるぞ！',
+      'クラスでちょっとした人気者になった。\n来年はもっとすごいずかんをつくるぞ！',
     ],
     good:[
-      '何人かの友だちが、図鑑を見に来てくれた。',
+      '何人かの友だちが、ずかんを見に来てくれた。',
       '「アブラゼミとクマゼミって、こんなにちがうんだ」\n友だちが感心している。',
       '先生「ていねいに調べたね。」\n銅賞をもらった。',
       'なかなかいい夏休みだった。\nでも、もっとめずらしい虫も見てみたかったな…。',
     ],
     normal:[
-      '図鑑を出したけど、ページはちょっとスカスカだった。',
-      'となりの席の子は、カブトムシとクワガタで図鑑をうめつくしていた…。',
+      'ずかんを出したけど、ページはちょっとスカスカだった。',
+      'となりの席の子は、カブトムシとクワガタでずかんをうめつくしていた…。',
       '先生「来年はもっとたくさん見つけられるといいね。」\n努力賞をもらった。',
       '来年こそ、宗像じゅうの虫をつかまえるぞ！',
     ],
     poor:[
-      '図鑑には、虫が少ししかのっていなかった…。',
+      'ずかんには、虫が少ししかのっていなかった…。',
       '先生「…ええと、表紙の絵がとっても上手だね！」',
       'クラスのみんなは、ほかの子の自由研究に夢中だ。',
       'ぼくの夏休みって、いったい…。\n来年こそリベンジだ！',
@@ -2163,12 +2221,12 @@ async function ending(){
     goldwing:S.goldwing, ticket:S.ticket, visited:S.visited, best, lastScore:r.total, lastAward:e.award};
   saveCarry(carry);
   if(e.key==='poor') setGift(true);   // ひみつ：つぎの夏休み、虫具店のおじさんがいい道具をくれる
-  el.innerHTML = `<h2>自由研究「ぼくの昆虫図鑑」</h2>
+  el.innerHTML = `<h2>自由研究「ぼくのこん虫ずかん」</h2>
     <div class="win">
       <div class="ttl">${esc(e.award)}</div>
       <div class="dexs">${Object.keys(BUGS).map(id=>`<img alt="" title="${esc(BUGS[id].name)}" src="${spriteURL(id, !S.dex[id])}">`).join('')}</div>
       <table class="score">
-        <tr><th>図鑑にのった虫</th><td>${r.species} / ${total} しゅるい</td></tr>
+        <tr><th>ずかんにのった虫</th><td>${r.species} / ${total} しゅるい</td></tr>
         <tr><th>レア度ポイント</th><td>${r.rare} 点</td></tr>
         <tr><th>本物の虫の写真</th><td>${r.photo} 点</td></tr>
         <tr><th>がんばり（のべ ${S.caughtTotal}ひき）</th><td>${r.effort} 点</td></tr>
@@ -2177,16 +2235,16 @@ async function ending(){
         <tr class="sum"><th>自由研究の点数</th><td>${r.total} 点</td></tr>
       </table>
       ${r.best ? `<div class="bestbug"><img alt="" src="${spriteURL(r.best)}"><span>いちばんすごい虫<br>${esc(BUGS[r.best].name)}<br><span class="lbl">レア度</span> ${stars(BUGS[r.best].rank)}</span></div>` : ''}
-      <div style="text-align:center;margin-top:10px">あなたの称号は…</div><div class="ttl">「${esc(e.title)}」</div>
-      ${r.kin ? '<p class="fic">※ミアレカブトは、このゲームのための架空の昆虫です。</p>' : ''}
+      <div style="text-align:center;margin-top:10px">あなたのしょうごうは…</div><div class="ttl">「${esc(e.title)}」</div>
+      ${r.kin ? '<p class="fic">※ミアレカブトは、このゲームのためのかくうのこん虫です。</p>' : ''}
     </div>
     <div class="win carry">
-      <div class="ttl">${newBest ? '自己ベスト更新！' : `自己ベスト ${best}点`}</div>
+      <div class="ttl">${newBest ? '自己ベストこうしん！' : `自己ベスト ${best}点`}</div>
       <div>次の夏休み（小学${grade(carry.round)}年生）に、引きつげるもの：</div>
       <ul><li>レベル ${S.lv}</li><li>${esc(NETS[S.net].name)}・${esc(CAGES[S.cage].name)}・${esc(SHOES[S.shoes].name)}</li>
         <li>どうぐ（スポーツドリンク${S.items.drink}・虫みつ${S.items.mitsu}・樹液トラップ${S.items.jueki||0}・観察ノート${S.items.note||0}${S.goldwing ? '・金色のはね' : ''}${S.ticket ? '・乗船チケット' : ''}）</li>
         <li>どんぐり ${esc(dg(carry.money))}${boxValue ? `（虫かごにのこった${S.box.length}ひきをとどけたお礼 ${esc(dg(boxValue))} をふくむ）` : ''}</li></ul>
-      <div class="lbl">タイトルの「引きつぎではじめる」から遊べます。図鑑はいちからつくりなおしです。</div>
+      <div class="lbl">タイトルの「引きつぎではじめる」から遊べます。ずかんはいちからつくりなおしです。</div>
       ${e.key==='poor' ? '<div class="lbl" style="margin-top:.4em">……虫具店のおじさんが、なにか気にかけてくれているみたい。</div>' : ''}
     </div>
     <button class="btn" id="endBtn">タイトルへもどる</button>`;
