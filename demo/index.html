@@ -66,6 +66,8 @@ header small{color:var(--mute);font-size:12px}
 .bar i{display:block;height:100%;background:var(--hp)}
 .bar i.low{background:var(--hp-low)}
 #hud .money{color:var(--sun)}
+.updBar{position:fixed;left:12px;right:12px;margin:0 auto;width:fit-content;top:calc(env(safe-area-inset-top,0px) + 6px);z-index:10000;display:flex;align-items:center;justify-content:center;gap:.6em;white-space:nowrap;background:#14284af0;color:#fff;border:2px solid var(--sun);border-radius:10px;padding:.4em .5em .4em .9em;box-shadow:0 4px 12px #0008;font-size:13px}
+.updBar button{font:inherit;background:var(--sun);color:#1b130c;border:0;border-radius:6px;padding:.35em .8em;cursor:pointer;white-space:nowrap}
 .acorn{display:inline-block;width:1em;height:1.12em;vertical-align:-.2em;margin-right:.1em}
 #hud .time{display:inline-flex;align-items:center;gap:.3em}
 #hud .clock{width:1.9em;height:1.9em;flex:none;filter:drop-shadow(0 1px 1px #0008)}
@@ -522,11 +524,13 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンと更新情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きな更新は +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
+const BUILD = '20261022-2314';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり」にかえた（宗像で自然をしらべた子がもらえる、子どものための地域のお金）',
     '虫具店で虫を「売る」のをやめて、「とどける」とお礼にどんぐりがもらえるようにした',
     'タイトル画面にバージョンと「更新情報」を出すようにした',
+    '新しいバージョンが出たら「こうしんする」ボタンでお知らせするようにした',
     '操作をかんたんに：「メニュー」ボタンをなくして、Bボタンでメニュー・キャンセルにした',
     'スマホのたて画面で、図鑑の「とじる」ボタンがいつも右下に出るようにした',
     'エンディングの点数の画面で、画面の向きを変えると上にもどれなくなる不具合を直した',
@@ -539,6 +543,25 @@ const CHANGELOG = [
     '図鑑に本物の虫のデータ（大きさ・すんでいる場所・飼いかた）を追加']},
 ];
 document.querySelectorAll('.gver').forEach(e=> e.textContent = 'ver ' + GAME_VER + (window.DEMO ? ' デモ' : ''));
+
+/* 新しい版が公開されていたら知らせる（ホーム画面のアプリは古いページを覚えたままになりやすいので）
+   アプリを開いたときと、ほかのアプリからもどってきたときに version.json を見にいく */
+let updShown = false;
+async function checkUpdate(){
+  if(BUILD === 'dev' || updShown) return;
+  try{
+    const j = await (await fetch('version.json?t=' + Date.now(), {cache:'no-store'})).json();
+    if(!j.build || j.build === BUILD) return;
+    updShown = true;
+    const b = document.createElement('div'); b.className = 'updBar';
+    b.innerHTML = `<span>新しいバージョンがあります</span><button type="button">こうしんする</button>`;
+    b.querySelector('button').onclick = ()=>{ if(typeof scene !== 'undefined' && scene === 'field') save();   // 歩いているときは、いまの場所をセーブしてから
+      location.replace(location.pathname + '?u=' + encodeURIComponent(j.build)); };
+    document.body.appendChild(b);
+  }catch(e){}
+}
+checkUpdate();
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState === 'visible') checkUpdate(); });
 if(window.DEMO){ const b = document.createElement('div'); b.className = 'demoBadge'; b.textContent = 'デモ版'; document.body.appendChild(b); }
 
 /* 時間帯 */
@@ -1996,7 +2019,7 @@ $('btnInstall').onclick = e=>{ e.stopPropagation(); showInstall(); };
 $('btnShare').onclick = e=>{ e.stopPropagation(); showShare(); };
 $('btnVer').onclick = e=>{ e.stopPropagation(); showChangelog(); };
 function showChangelog(){
-  return openPanel('更新情報', `<p>いま遊んでいるのは <b>ver ${GAME_VER}</b>${window.DEMO ? '（デモ版）' : ''} です。</p>
+  return openPanel('更新情報', `<p>いま遊んでいるのは <b>ver ${GAME_VER}</b>${window.DEMO ? '（デモ版）' : ''} です。<br><small>公開番号 ${esc(BUILD)}</small></p>
     <p class="note">新しいバージョンが出ているのに古い番号のままのときは、ページを開きなおしてね。</p>
     <div class="chlog">${CHANGELOG.map((c,i)=>`<h3>ver ${esc(c.v)}${i===0 ? '<span class="now">いまのバージョン</span>' : ''}<small>${esc(c.date)}</small></h3><ul>${c.items.map(t=>`<li>${esc(t)}</li>`).join('')}</ul>`).join('')}</div>`);
 }
