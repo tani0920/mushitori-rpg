@@ -542,7 +542,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-0219';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-0243';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -557,7 +557,7 @@ const CHANGELOG = [
     'モンシロチョウ・ナツアカネ・ショウリョウバッタ・トノサマバッタの絵を新しくした',
     '会話とメニューの枠を少しすきとおらせて、うしろの絵が見えるようにした',
     '「プライバシーについて」を追加した（タイトルとオプション）。遊ばれ方を知るためのアクセス解析を入れた（名前・写真・位置は送らない）',
-    'ファミコンみたいな音のBGMと効果音を入れた（オプションでON/OFF）。時間帯で虫の声がかわる（朝は小鳥、昼はセミ、夕方はヒグラシ、夜はスズムシとコオロギ）',
+    'ファミコンみたいな音のBGMと効果音を入れた（オプションでON/OFF）。時間帯で虫の声がかわる（朝は小鳥、昼はセミ、夕方はヒグラシ、夜はスズムシとコオロギ）。朝と昼は少し軽やかな曲、タイトルは虫の声だけ。虫と出会うと、ドキドキする心臓の音が聞こえる',
     'バトルのコマンドを、左に「あみをふる・つかまえる」、右に「どうぐ・にげる」のならびにした',
     'スマホのたて画面で、タイトルの上のほうと、遊んでいるときの日付・時間を見やすくした',
     'エンディングの点数の画面で、画面の向きを変えると上にもどれなくなる不具合を直した',
@@ -598,7 +598,8 @@ function setGaOff(off){
    音（ファミコン風）：矩形波2つ・三角波・ノイズをブラウザの中で鳴らす。音のファイルは使わない
    iPhone は画面を一度さわるまで音を出せないので、最初のタップで準備する。マナーモードのときは鳴らさない（ambient）
    ========================================================= */
-const SONGS = {"title":{"bpm":66,"duty":[0.125,0.125],"env":{"p1":[0.03,0.5,0.6],"p2":[0.25,0.7,0.3],"tri":[0.4,1,0.2]},"vol":{"p1":0.07,"p2":0.045,"tri":0.2,"noi":0},"len":128,"p1":"0:8 72:8 69:16 0:8 71:8 67:16 0:8 69:4 65:4 69:16 0:8 67:4 71:4 64:16","p2":"65:4 69:4 72:4 76:4 72:4 69:4 72:4 69:4 64:4 67:4 71:4 74:4 71:4 67:4 71:4 67:4 62:4 65:4 69:4 72:4 69:4 65:4 69:4 65:4 60:4 64:4 67:4 71:4 67:4 64:4 67:4 64:4","tri":"41:32 40:32 38:32 36:32","noi":".:128"},"field":{"bpm":60,"duty":[0.125,0.125],"env":{"p1":[0.03,0.5,0.6],"p2":[0.35,0.8,0.3],"tri":[0.5,1,0.2]},"vol":{"p1":0,"p2":0.04,"tri":0.17,"noi":0},"len":128,"p1":"0:128","p2":"60:4 67:4 64:4 71:4 67:4 64:4 60:4 67:4 57:4 64:4 60:4 67:4 64:4 60:4 57:4 64:4 65:4 72:4 69:4 76:4 72:4 69:4 65:4 72:4 55:4 62:4 60:4 67:4 62:4 60:4 55:4 62:4","tri":"36:32 33:32 41:32 31:32","noi":".:128"},"battle":{"bpm":88,"duty":[0.25,0.125],"env":{"p1":[0.003,0,0.12],"p2":[0.3,0.8,0.3],"tri":[0.005,0,0.18]},"vol":{"p1":0.07,"p2":0.03,"tri":0.24,"noi":0.04},"len":128,"p1":"0:4 81:1 0:3 77:1 0:7 0:8 74:1 0:3 76:1 0:3 0:4 81:1 0:3 77:1 0:7 0:8 74:1 0:3 72:1 0:3 0:4 82:1 0:3 77:1 0:7 0:8 74:1 0:3 72:1 0:3 0:4 81:1 0:3 76:1 0:7 0:8 73:1 0:3 76:1 0:3","p2":"62:32 60:32 58:32 57:32","tri":"50:2 0:6 57:2 0:6 50:2 0:6 57:2 0:6 50:2 0:6 57:2 0:6 50:2 0:6 57:2 0:6 46:2 0:6 53:2 0:6 46:2 0:6 53:2 0:6 45:2 0:6 52:2 0:6 45:2 0:6 52:2 0:6","noi":".:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1"}};
+const SONGS = {"title":{"bpm":66,"duty":[0.125,0.125],"env":{"p1":[0.03,0.5,0.6],"p2":[0.25,0.7,0.3],"tri":[0.4,1,0.2]},"vol":{"p1":0.07,"p2":0.045,"tri":0.2,"noi":0},"len":128,"p1":"0:8 72:8 69:16 0:8 71:8 67:16 0:8 69:4 65:4 69:16 0:8 67:4 71:4 64:16","p2":"65:4 69:4 72:4 76:4 72:4 69:4 72:4 69:4 64:4 67:4 71:4 74:4 71:4 67:4 71:4 67:4 62:4 65:4 69:4 72:4 69:4 65:4 69:4 65:4 60:4 64:4 67:4 71:4 67:4 64:4 67:4 64:4","tri":"41:32 40:32 38:32 36:32","noi":".:128"},"field":{"bpm":60,"duty":[0.125,0.125],"env":{"p1":[0.03,0.5,0.6],"p2":[0.35,0.8,0.3],"tri":[0.5,1,0.2]},"vol":{"p1":0,"p2":0.04,"tri":0.17,"noi":0},"len":128,"p1":"0:128","p2":"60:4 67:4 64:4 71:4 67:4 64:4 60:4 67:4 57:4 64:4 60:4 67:4 64:4 60:4 57:4 64:4 65:4 72:4 69:4 76:4 72:4 69:4 65:4 72:4 55:4 62:4 60:4 67:4 62:4 60:4 55:4 62:4","tri":"36:32 33:32 41:32 31:32","noi":".:128"},"battle":{"bpm":88,"duty":[0.25,0.125],"env":{"p1":[0.003,0,0.12],"p2":[0.3,0.8,0.3],"tri":[0.005,0,0.18]},"vol":{"p1":0.07,"p2":0.03,"tri":0.24,"noi":0.04},"len":128,"p1":"0:4 81:1 0:3 77:1 0:7 0:8 74:1 0:3 76:1 0:3 0:4 81:1 0:3 77:1 0:7 0:8 74:1 0:3 72:1 0:3 0:4 82:1 0:3 77:1 0:7 0:8 74:1 0:3 72:1 0:3 0:4 81:1 0:3 76:1 0:7 0:8 73:1 0:3 76:1 0:3","p2":"62:32 60:32 58:32 57:32","tri":"50:2 0:6 57:2 0:6 50:2 0:6 57:2 0:6 50:2 0:6 57:2 0:6 50:2 0:6 57:2 0:6 46:2 0:6 53:2 0:6 46:2 0:6 53:2 0:6 45:2 0:6 52:2 0:6 45:2 0:6 52:2 0:6","noi":".:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1 .:1 .:1 .:1 .:1 .:1 .:1 h:1 .:1"},"field_day":{"bpm":76,"duty":[0.125,0.125],"env":{"p1":[0.05,0.6,0.35],"p2":[0.03,0.5,0.15],"tri":[0.03,0.8,0.2]},"vol":{"p1":0.04,"p2":0.026,"tri":0.15,"noi":0},"len":128,"p1":"72:4 76:2 74:2 72:4 67:4 69:4 72:4 0:8 72:4 76:2 79:2 76:4 74:4 72:12 0:4 77:4 76:2 74:2 72:4 69:4 72:4 74:4 0:8 74:4 76:2 74:2 71:4 67:4 74:12 0:4","p2":"60:2 64:2 67:2 71:2 72:2 71:2 67:2 64:2 60:2 64:2 67:2 71:2 72:2 71:2 67:2 64:2 57:2 60:2 64:2 67:2 69:2 67:2 64:2 60:2 57:2 60:2 64:2 67:2 69:2 67:2 64:2 60:2 53:2 57:2 60:2 64:2 65:2 64:2 60:2 57:2 53:2 57:2 60:2 64:2 65:2 64:2 60:2 57:2 55:2 59:2 62:2 67:2 71:2 67:2 62:2 59:2 55:2 59:2 62:2 67:2 71:2 67:2 62:2 59:2","tri":"36:8 43:8 36:8 43:8 33:8 40:8 33:8 40:8 41:8 36:8 41:8 36:8 31:8 38:8 31:8 38:8","noi":".:128"}};
+SONGS.sumo = SONGS.battle;
 const SND_KEY = 'munakata-sound-v1';
 const sndPref = (()=>{ try{ return Object.assign({bgm:true, se:true}, JSON.parse(localStorage.getItem(SND_KEY)) || {}); }catch(e){ return {bgm:true, se:true}; } })();
 const saveSnd = ()=>{ try{ localStorage.setItem(SND_KEY, JSON.stringify(sndPref)); }catch(e){} };
@@ -647,17 +648,32 @@ function aHit(dest, kind, t, vol, dur, att){   // att = 立ち上がりの秒数
   s.connect(f); f.connect(g); g.connect(dest); s.start(t, Math.random() * .5); s.stop(t + d + .02);
 }
 /* BGM：16分音符ごとに少し先まで予約して、くり返し鳴らす */
-let bgmNow = null, bgmTimer = null, bgmGain = null;
+let bgmNow = null, bgmTimer = null, bgmGain = null, heartTimer = null;
+/* 心臓の音（とくん、とくん）：バトルのあいだ小さく鳴らしつづけ、45秒くらいかけて 66 → 100 拍／分 に上げる（とれるかな…のドキドキ） */
+function heartPlay(dest){
+  const t0 = actx.currentTime; let next = t0 + .4;
+  heartTimer = setInterval(()=>{
+    while(next < actx.currentTime + .25){
+      const bpm = 66 + Math.min(1, (next - t0) / 45) * 34;
+      aTone(dest, 'tri', 110, next, .12, .16, 55, [.004, 0, .1]); aHit(dest, 'k', next, .1, .09);            // とくん
+      aTone(dest, 'tri', 98, next + .17, .1, .1, 50, [.004, 0, .08]); aHit(dest, 'k', next + .17, .06, .07);  // とくん（2つ目は小さく）
+      next += 60 / bpm;
+    }
+  }, 60);
+}
 function bgmStop(){
+  if(heartTimer){ clearInterval(heartTimer); heartTimer = null; }
   if(bgmTimer){ clearInterval(bgmTimer); bgmTimer = null; }
   if(bgmGain && actx){ const g = bgmGain; g.gain.setTargetAtTime(0, actx.currentTime, .05); setTimeout(()=>g.disconnect(), 400); }
   bgmGain = null; bgmNow = null;
   if(ambOut && actx){ const a = ambOut; a.gain.setTargetAtTime(0, actx.currentTime, .1); setTimeout(()=>a.disconnect(), 600); ambOut = null; ambBusy = {}; }
 }
-function bgmPlay(name){
+function bgmPlay(name, vol, heart){   // name が SONGS にないとき（'mushi'）は曲を鳴らさず、虫の音だけにする
   if(bgmNow === name) return;
-  bgmStop(); const sg = SONGS[name]; if(!sg || !actx) return;
-  bgmNow = name; bgmGain = actx.createGain(); bgmGain.connect(aBgm);
+  bgmStop(); if(!actx) return; const sg = SONGS[name];
+  bgmNow = name; bgmGain = actx.createGain(); bgmGain.gain.value = vol; bgmGain.connect(aBgm);
+  if(heart) heartPlay(bgmGain);
+  if(!sg) return;
   const g = bgmGain, step = 60 / sg.bpm / 4, ev = [];
   const VOL = sg.vol, ENV = sg.env || {};
   for(const ch of ['p1','p2','tri','noi']){
@@ -762,17 +778,16 @@ const AMB = {
 const AMB_SET = {
   title: {semi:[.10, .05], furin:[.05, .05]},
   asa:   {tori:[.10, .05], semi:[.04, .035], furin:[.05, .045]},
-  hiru:  {semi:[.16, .06], furin:[.04, .045]},
+  hiru:  {semi:[.45, .16], semi2:[.35, .12], semi3:[.25, .09], furin:[.03, .04]},   // 夏の昼：セミが曲に勝つくらい、何匹も重なって鳴く（そのぶん昼は全体を小さめにする → sceneVol）
   yu:    {higurashi:[.10, .045], furin:[.04, .04]},
   yoru:  {suzumushi:[.14, .04], korogi:[.12, .035]},
 };
+AMB.semi2 = AMB.semi; AMB.semi3 = AMB.semi;   // べつのセミ（同じ鳴き方で、高さだけ毎回ちがう）
 let ambOut = null, ambBusy = {};
 function ambTick(){
   if(!actx || actx.state !== 'running' || !sndPref.bgm || document.hidden || !bgmNow) return;
-  if(!ambOut){ ambOut = actx.createGain(); ambOut.connect(aBgm); }
-  const sc = typeof scene !== 'undefined' ? scene : 'title';
-  const set = AMB_SET[sc === 'title' || sc === 'end' ? 'title' : (typeof S !== 'undefined' && S ? slotOf(S.min) : 'hiru')];
-  const quiet = sc === 'battle' ? .6 : 1, now = actx.currentTime;
+  if(!ambOut){ ambOut = actx.createGain(); ambOut.gain.value = sceneVol(); ambOut.connect(aBgm); }
+  const set = AMB_SET[ambSlot()], quiet = 1, now = actx.currentTime;   // バトル中も虫の音はフィールドのまま
   for(const k in set){
     if((ambBusy[k] || 0) > now) continue;
     const [p, v] = set[k];
@@ -781,11 +796,25 @@ function ambTick(){
 }
 setInterval(ambTick, 400);
 /* 場面に合わせて曲を切りかえる */
-const BGM_OF = {title:'title', field:'field', battle:'battle', end:'title'};
+function ambSlot(){
+  const sc = typeof scene !== 'undefined' ? scene : 'title';
+  return sc === 'title' || sc === 'end' ? 'title' : (typeof S !== 'undefined' && S ? slotOf(S.min) : 'hiru');
+}
+const sceneVol = ()=> ambSlot() === 'hiru' ? .7 : 1;   // 昼はセミがにぎやかなので、曲も虫の音も少し小さく
+function bgmWant(){
+  const sc = typeof scene !== 'undefined' ? scene : 'title', slot = ambSlot();
+  if(sc === 'title' || sc === 'end') return 'mushi';   // タイトルは、あえて曲なしで虫の音だけ
+  if(sc === 'battle') return battleEl.classList.contains('vs') ? 'sumo' : 'battle';
+  return slot === 'asa' || slot === 'hiru' ? 'field_day' : 'field';   // 朝・昼は少し軽やかな曲、夕方・夜はゆったりした曲
+}
 function bgmUpdate(){
   if(!actx || actx.state !== 'running') return;
-  const want = sndPref.bgm && !document.hidden ? BGM_OF[typeof scene !== 'undefined' ? scene : 'title'] : null;
-  if(want) bgmPlay(want); else bgmStop();
+  const want = sndPref.bgm && !document.hidden ? bgmWant() : null;
+  if(!want){ bgmStop(); return; }
+  const vol = sceneVol();
+  if(want === 'sumo') bgmPlay('sumo', vol);   // すもうは今までどおりのバトル曲（心臓の音なし）
+  else bgmPlay(want, vol, want === 'battle');
+  if(bgmGain && Math.abs(bgmGain.gain.value - vol) > .01){ bgmGain.gain.setTargetAtTime(vol, actx.currentTime, .5); if(ambOut) ambOut.gain.setTargetAtTime(vol, actx.currentTime, .5); }
 }
 setInterval(bgmUpdate, 250);
 let aStale = false;
