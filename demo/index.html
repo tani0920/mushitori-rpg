@@ -542,7 +542,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-0156';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-0159';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -627,11 +627,15 @@ function aTone(dest, wave, f, t, dur, vol, f2, env){   // env = [立ち上がり
   const o = actx.createOscillator(), g = actx.createGain();
   if(wave === 'tri') o.type = 'triangle'; else o.setPeriodicWave(aWaves[wave]);
   o.frequency.setValueAtTime(f, t); if(f2) o.frequency.exponentialRampToValueAtTime(f2, t + dur);
-  const at = Math.min(a, dur * .5), dt = Math.min(dec, Math.max(.01, dur - at));
-  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + at);
-  g.gain.linearRampToValueAtTime(Math.max(vol * sus, .0001), t + at + dt);
-  if(sus > 0){ g.gain.setValueAtTime(vol * sus, Math.max(t + at + dt, t + dur * .85)); g.gain.linearRampToValueAtTime(0, t + dur); }
-  o.connect(g); g.connect(dest); o.start(t); o.stop(t + dur + .02);
+  // 音量の変化は、時刻がかならず後ろへ進むように並べる（iPhone の Safari は同じ時刻に命令が重なると、その音を鳴らさないことがある）
+  const t1 = t + Math.max(.002, Math.min(a, dur * .3));            // 立ち上がりのおわり
+  const t2 = Math.max(t1 + .002, Math.min(t1 + dec, t + dur * .8));  // 減りおわり
+  const t3 = Math.max(t2 + .002, t + dur * .85);                     // 消えはじめ
+  const end = Math.max(t3 + .01, t + dur);                           // 消えおわり
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t1);
+  g.gain.linearRampToValueAtTime(Math.max(vol * sus, .0001), t2);
+  if(sus > 0){ g.gain.setValueAtTime(vol * sus, t3); g.gain.linearRampToValueAtTime(0, end); }
+  o.connect(g); g.connect(dest); o.start(t); o.stop(end + .02);
 }
 function aHit(dest, kind, t, vol, dur){
   const s = actx.createBufferSource(), f = actx.createBiquadFilter(), g = actx.createGain();
@@ -696,7 +700,7 @@ const SE = {
   coin:   [['p', .5, 988, .06, .14], ['p', .5, 1318, .25, .14]],
   faint:  [['t', 0, 784, .12, .4], ['t', 0, 659, .12, .4], ['t', 0, 523, .12, .4], ['t', 0, 392, .3, .4]],
 };
-let seCount = 0;
+let seCount = 0, seErr = '';
 function se(name){
   if(!sndPref.se || !actx || actx.state === 'closed') return;
   if(actx.state !== 'running') actx.resume().catch(()=>{});
@@ -705,8 +709,11 @@ function se(name){
   let t = actx.currentTime + Math.max(.06, (actx.baseLatency || 0) * 2);
   for(const s of SE[name] || []){
     if(s[0] === 'r'){ t += s[1]; continue; }
-    if(s[0] === 'n'){ aHit(aSe, s[1], t, s[3], s[2]); t += s[2]; continue; }
-    aTone(aSe, s[0] === 't' ? 'tri' : s[1], s[2], t, s[3], s[4], s[5]); t += s[3];
+    try{
+      if(s[0] === 'n'){ aHit(aSe, s[1], t, s[3], s[2]); t += s[2]; continue; }
+      aTone(aSe, s[0] === 't' ? 'tri' : s[1], s[2], t, s[3], s[4], s[5]);
+    }catch(e){ seErr = String(e && e.message || e).slice(0, 60); }
+    t += s[3];
   }
 }
 /* 虫の音（時間帯で変わる）と風鈴。曲の音量（BGM）といっしょにON/OFFする */
@@ -2373,7 +2380,7 @@ function showPrivacy(){
 }
 function showChangelog(){
   setTimeout(()=>{ const b = $('seTest'); if(b) b.onclick = ()=>{ audioUnlock(); se('catch'); }; }, 0);
-  return openPanel('こうしん情報', `<p>いま遊んでいるのは <b>ver ${GAME_VER}</b>${window.DEMO ? '（デモ版）' : ''} です。<br><small>公開番号 ${esc(BUILD)}　／　音：${actx ? esc(actx.state) : 'まだ'}・BGM ${sndPref.bgm ? 'ON' : 'OFF'}・効果音 ${sndPref.se ? 'ON' : 'OFF'}（${seCount}回）${actx ? `・${actx.sampleRate}Hz・遅れ${Math.round((actx.baseLatency||0)*1000)}/${Math.round((actx.outputLatency||0)*1000)}ms` : ''}</small><br><button type="button" class="btn" id="seTest">効果音をテスト</button></p>
+  return openPanel('こうしん情報', `<p>いま遊んでいるのは <b>ver ${GAME_VER}</b>${window.DEMO ? '（デモ版）' : ''} です。<br><small>公開番号 ${esc(BUILD)}　／　音：${actx ? esc(actx.state) : 'まだ'}・BGM ${sndPref.bgm ? 'ON' : 'OFF'}・効果音 ${sndPref.se ? 'ON' : 'OFF'}（${seCount}回${seErr ? '・エラー ' + esc(seErr) : ''}）${actx ? `・${actx.sampleRate}Hz・遅れ${Math.round((actx.baseLatency||0)*1000)}/${Math.round((actx.outputLatency||0)*1000)}ms` : ''}</small><br><button type="button" class="btn" id="seTest">効果音をテスト</button></p>
     <p class="note">新しいバージョンが出ているのに古い番号のままのときは、ページを開きなおしてね。</p>
     <div class="chlog">${CHANGELOG.map((c,i)=>`<h3>ver ${esc(c.v)}${i===0 ? '<span class="now">いまのバージョン</span>' : ''}<small>${esc(c.date)}</small></h3><ul>${c.items.map(t=>`<li>${esc(t)}</li>`).join('')}</ul>`).join('')}</div>`);
 }
