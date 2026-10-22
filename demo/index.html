@@ -542,7 +542,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-0211';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-0215';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -637,12 +637,13 @@ function aTone(dest, wave, f, t, dur, vol, f2, env){   // env = [立ち上がり
   if(sus > 0){ g.gain.setValueAtTime(vol * sus, t3); g.gain.linearRampToValueAtTime(0, end); }
   o.connect(g); g.connect(dest); o.start(t); o.stop(end + .02);
 }
-function aHit(dest, kind, t, vol, dur){
+function aHit(dest, kind, t, vol, dur, att){   // att = 立ち上がりの秒数（草や風のように、ふわっと始める）
   const s = actx.createBufferSource(), f = actx.createBiquadFilter(), g = actx.createGain();
   s.buffer = aNoise;
-  const k = {k:['lowpass', 180, .14], s:['bandpass', 1800, .1], h:['highpass', 7000, .035], x:['bandpass', 1200, .25], w:['highpass', 2500, .14]}[kind];
-  f.type = k[0]; f.frequency.value = k[1]; const d = dur || k[2];
-  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + d);
+  const k = {k:['lowpass', 180, .14], s:['bandpass', 1800, .1], h:['highpass', 7000, .035], x:['bandpass', 1200, .25], w:['highpass', 2500, .14], f:['bandpass', 2600, .12, .8], a:['bandpass', 1400, .25, .5]}[kind];   // f = 草がカサッ、a = あみがふわっ
+  f.type = k[0]; f.frequency.value = k[1]; if(k[3]) f.Q.value = k[3]; const d = dur || k[2];
+  if(att){ const ta = t + Math.min(att, d * .6); g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(vol, ta); g.gain.exponentialRampToValueAtTime(.001, Math.max(ta + .01, t + d)); }
+  else { g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + d); }
   s.connect(f); f.connect(g); g.connect(dest); s.start(t, Math.random() * .5); s.stop(t + d + .02);
 }
 /* BGM：16分音符ごとに少し先まで予約して、くり返し鳴らす */
@@ -681,21 +682,22 @@ function bgmPlay(name){
   tick(); bgmTimer = setInterval(tick, 60);
 }
 /* 効果音 */
-const SE = {   // 戦闘の音は虫をおどろかさないよう、とくに小さめ
+const SE = {   // 虫とりの音は、虫に気づかれないような・いたくないような、やさしい音にする
   cursor: [['p', .25, 1320, .03, .12]],
   ok:     [['p', .25, 1046, .04, .14], ['p', .25, 1568, .07, .14]],
   cancel: [['p', .25, 784, .04, .13], ['p', .25, 523, .07, .13]],
-  encount:[['p', .5, 523, .05, .1], ['p', .5, 659, .05, .1], ['p', .5, 784, .05, .1], ['p', .5, 1046, .05, .1], ['p', .5, 784, .05, .1], ['p', .5, 1046, .1, .1]],
-  swing:  [['n', 'w', .14, .3]],
-  hit:    [['n', 's', .08, .35], ['p', .5, 220, .08, .1, 110]],
-  crit:   [['n', 's', .06, .4], ['p', .5, 880, .05, .1], ['p', .5, 330, .1, .11, 110]],
+  encount:[['n', 'f', .12, .3, .04], ['n', 'f', .1, .2, .03], ['r', .1], ['t', 0, 659, .12, .09, 0, [.03, 1, .1]], ['t', 0, 880, .24, .08, 0, [.03, 1, .1]]],   // 草がカサカサ…「あっ、いた」
+  sumo:   [['p', .5, 523, .05, .1], ['p', .5, 659, .05, .1], ['p', .5, 784, .05, .1], ['p', .5, 1046, .05, .1], ['p', .5, 784, .05, .1], ['p', .5, 1046, .1, .1]],
+  swing:  [['n', 'a', .26, .2, .1]],
+  hit:    [['n', 'a', .16, .18, .06], ['t', 0, 392, .12, .12, 262, [.01, 1, .1]]],   // あみがふわっ…ぽふ
+  crit:   [['n', 'a', .16, .2, .06], ['t', 0, 392, .12, .12, 262, [.01, 1, .1]], ['t', 0, 1318, .08, .06, 0, [.01, 1, .06]], ['t', 0, 1760, .18, .05, 0, [.01, 1, .1]]],
   miss:   [['p', .25, 620, .16, .09, 300]],
   special:[['p', .125, 1568, .05, .13], ['p', .125, 2093, .05, .13], ['p', .125, 1568, .05, .13], ['p', .125, 2637, .12, .13]],
-  throw:  [['n', 'x', .2, .25]],
+  throw:  [['n', 'a', .32, .22, .12]],
   catch:  [['p', .5, 523, .08, .1], ['p', .5, 659, .08, .1], ['p', .5, 784, .08, .1], ['p', .5, 1046, .1, .1], ['r', .06], ['p', .5, 1046, .08, .1], ['p', .5, 1318, .3, .1]],
   escape: [['p', .25, 523, .07, .14], ['p', .25, 440, .07, .14], ['p', .25, 349, .14, .14]],
   run:    [['p', .5, 300, .18, .12, 1200]],
-  damage: [['n', 'k', .15, .5], ['p', .5, 160, .12, .11, 70]],
+  damage: [['t', 0, 523, .07, .08, 392, [.005, 1, .05]], ['n', 'f', .1, .14, .01]],   // ちょん…カサッ
   levelup:[['p', .25, 523, .06, .15], ['p', .25, 659, .06, .15], ['p', .25, 784, .06, .15], ['p', .25, 1046, .06, .15], ['p', .25, 1318, .06, .15], ['p', .25, 1568, .2, .15]],
   coin:   [['p', .5, 988, .06, .14], ['p', .5, 1318, .25, .14]],
   faint:  [['t', 0, 784, .12, .4], ['t', 0, 659, .12, .4], ['t', 0, 523, .12, .4], ['t', 0, 392, .3, .4]],
@@ -710,8 +712,8 @@ function se(name){
   for(const s of SE[name] || []){
     if(s[0] === 'r'){ t += s[1]; continue; }
     try{
-      if(s[0] === 'n'){ aHit(aSe, s[1], t, s[3], s[2]); t += s[2]; continue; }
-      aTone(aSe, s[0] === 't' ? 'tri' : s[1], s[2], t, s[3], s[4], s[5]);
+      if(s[0] === 'n'){ aHit(aSe, s[1], t, s[3], s[2], s[4]); t += s[2]; continue; }
+      aTone(aSe, s[0] === 't' ? 'tri' : s[1], s[2], t, s[3], s[4], s[5], s[6]);
     }catch(e){ seErr = String(e && e.message || e).slice(0, 60); }
     t += s[3];
   }
@@ -2001,7 +2003,7 @@ async function sumoBattle(r, it){
   battleEl.className = 'ov bg-town vs'; battleBg('town'); bSprite.src = spriteURL(foe.id); mSprite.src = spriteURL(me.id); scene = 'battle';
   [[foe.id, bSprite], [me.id, mSprite]].forEach(([id, el])=>{ if(!imgOK[id] && imgReady[id]) imgReady[id].then(()=>{ if(scene==='battle') el.src = spriteURL(id); }); });
   await fade(()=>{ battleEl.hidden = false; upd(); });
-  se('encount');
+  se('sumo');
   await say(`${r.short}「${r.hi}」`);
   await say('はっけよーい……のこった！');
   const name = (f)=> f===me ? `ぼくの${me.b.name}` : `${r.short}の${foe.b.name}`;
