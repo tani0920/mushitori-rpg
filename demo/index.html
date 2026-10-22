@@ -177,6 +177,11 @@ body.touch.land #msg .face{width:3.6em;height:3.6em}
 .full{position:fixed;inset:0;z-index:100;overflow-y:auto;
   padding:max(12px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
 #dex{background:var(--paper);color:var(--paper-ink)}
+/* スマホのたて画面：下にスクロールしても「とじる」がいつも右下（指がとどくところ）にある */
+@media (max-width:560px), (orientation:portrait) and (pointer:coarse){
+  #dexClose{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:max(16px,env(safe-area-inset-bottom,0px));z-index:101;font-size:18px;padding:.55em 1.5em;box-shadow:0 3px 0 #0006,0 0 0 2px var(--paper)}
+  #dex .in{padding-bottom:72px}
+}
 #dex .in{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
 #dex .top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:4px 10px;border-bottom:3px double var(--paper-ink);padding-bottom:6px}
 #dex .top h2,#dex .top .btn{white-space:nowrap}
@@ -216,9 +221,16 @@ body:not(.touch) #titleScr .t4{max-width:80%}
 body:not(.touch) #menu.title{top:auto;bottom:3%}
 body:not(.touch) #titleScr .tbtns{margin-top:.4em}
 /* タイトルのクレジット（右上のすみ） */
-.demoBadge{position:fixed;left:50%;top:env(safe-area-inset-top,0px);transform:translateX(-50%);z-index:9999;background:#c0392b;color:#fff;font-family:var(--f-pixel);font-size:12px;letter-spacing:.1em;padding:2px 10px;border-radius:0 0 6px 6px;opacity:.9;pointer-events:none}
+.demoBadge{position:fixed;left:50%;transform:translateX(-50%);bottom:env(safe-area-inset-bottom,0px);z-index:9999;background:#c0392b;color:#fff;font-family:var(--f-pixel);font-size:12px;letter-spacing:.1em;padding:2px 10px;border-radius:6px 6px 0 0;opacity:.85;pointer-events:none}
 #titleScr .credit{position:absolute;right:.8em;top:.6em;font-family:var(--f-pixel);font-size:clamp(9px,1.9cqw,13px);letter-spacing:.06em;color:#fff;opacity:.92;text-shadow:1px 1px 0 #000,0 0 3px #000;pointer-events:none}
 body.touch #titleScr .credit{left:auto;right:max(12px,env(safe-area-inset-right,0px));bottom:auto;top:calc(env(safe-area-inset-top,0px) + 8px);font-size:clamp(10px,2.8vmin,14px)}
+/* タイトルのバージョン（ボタンの下）：押すと更新情報 */
+#titleScr .verbtn{margin-top:.5em;font-family:var(--f-pixel);font-size:clamp(9px,1.9cqw,13px);letter-spacing:.04em;color:#fff;background:#14284a99;border:1px solid #f7f1dfaa;border-radius:999px;padding:.2em .8em;cursor:pointer;text-shadow:1px 1px 0 #000}
+body.touch #titleScr .verbtn{font-size:clamp(11px,3vmin,15px)}
+#infoPanel .chlog h3{margin:.6em 0 .2em;font-weight:400;font-size:17px;color:#7a4a1a;border-bottom:1px solid var(--paper-line)}
+#infoPanel .chlog h3 small{color:#7a6a4a;font-size:12px;margin-left:.6em}
+#infoPanel .chlog ul{margin:0;padding-left:1.3em}
+#infoPanel .chlog .now{background:#c0392b;color:#fff;font-size:11px;border-radius:4px;padding:1px 6px;margin-left:.5em;vertical-align:2px}
 /* タイトルのボタン */
 #titleScr .tbtns{display:flex;gap:.6em;flex-wrap:wrap;justify-content:center;margin-top:.7em}
 #titleScr .tbtn{font:inherit;font-size:clamp(12px,2.6cqw,16px);color:#fff;background:#14284acc;border:2px solid #f7f1df;border-radius:999px;padding:.35em 1em;cursor:pointer;box-shadow:0 2px 0 #0006}
@@ -276,7 +288,8 @@ body.touch #titleScr .tbtn{font-size:clamp(13px,3.6vmin,19px)}
 #album .a{border:2px solid var(--paper-line);border-radius:4px;background:#fffaf0;padding:4px;text-align:center;font-size:11px;line-height:1.3}
 #album .a img,#album .a .no{width:100%;aspect-ratio:1;object-fit:cover;border-radius:2px;display:block;margin-bottom:3px}
 #album .a .no{background:repeating-linear-gradient(45deg,#efe4c8 0 6px,#f6eedb 6px 12px);display:flex;align-items:center;justify-content:center;font-size:22px;color:#c8b890}
-#endScr{background:linear-gradient(#1b3f7a,#3d2f6a 60%,#17261d);color:var(--ink);display:flex;align-items:center;justify-content:center}
+#endScr{background:linear-gradient(#1b3f7a,#3d2f6a 60%,#17261d);color:var(--ink);display:flex;flex-direction:column}
+#endScr>.in{margin:auto}   /* 中身が画面より長いときも上が切れない中央よせ（向きを変えたときも上にスクロールできる） */
 #endScr .in{max-width:520px;width:100%;text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center}
 #endScr h2{margin:0;font-weight:400;color:var(--sun);font-size:26px;letter-spacing:.1em}
 #endScr .win{width:100%;text-align:left}
@@ -417,7 +430,7 @@ body.touch.land #menu.title{top:auto;bottom:10px;left:50%;right:auto;transform:t
 </style>
 
 <div id="app">
-  <header><h1>むなかた虫とり日記</h1><small>プロトタイプ v0.2.0</small></header>
+  <header><h1>むなかた虫とり日記</h1><small>プロトタイプ <span class="gver"></span></small></header>
   <div id="hud"></div>
   <div id="screen">
     <canvas id="cv" width="320" height="240"></canvas>
@@ -427,9 +440,10 @@ body.touch.land #menu.title{top:auto;bottom:10px;left:50%;right:auto;transform:t
       <div class="t2">むなかた<br>虫とり日記</div>
       <img class="logo" alt="むなかた 虫とり日記" hidden>
       <div class="t3">宗像じゅうの虫をつかまえて、図鑑を完成させよう</div>
-      <div class="t4">※このゲームに出てくる場所と虫の組み合わせはゲーム用のもので、実際にその場所にいる虫とはかぎりません。ミアレカブトは架空の虫です。</div>
+      <div class="t4">※このゲームに出てくる場所と虫の組み合わせはゲーム用のもので、実際にその場所にいる虫とはかぎりません。</div>
       <div class="credit">Game Director: Ryohei Taniguchi</div>
       <div class="tbtns"><button type="button" class="tbtn" id="btnInstall">アプリにする方法</button><button type="button" class="tbtn" id="btnShare">友だちに教える</button></div>
+      <button type="button" class="verbtn" id="btnVer"><span class="gver"></span>　更新情報 ▸</button>
     </div>
     <div id="battle" class="ov" hidden>
       <div id="bInfo" class="binfo win"></div>
@@ -444,7 +458,7 @@ body.touch.land #menu.title{top:auto;bottom:10px;left:50%;right:auto;transform:t
   </div>
   <div id="pad">
     <div class="dpad"><button data-k="U" aria-label="上">▲</button><button data-k="L" aria-label="左">◀</button><button data-k="R" aria-label="右">▶</button><button data-k="D" aria-label="下">▼</button></div>
-    <div class="ab"><button data-k="M">メニュー</button><button data-k="B">B</button><button data-k="A">A</button></div>
+    <div class="ab"><button data-k="B">B</button><button data-k="A">A</button></div>
   </div>
   <div id="keys"><b>←↑↓→</b>いどう　<b>Z</b>/<b>Enter</b>けってい　<b>X</b>/<b>Esc</b>メニュー・もどる</div>
 </div>
@@ -501,6 +515,24 @@ const BUG_IMG_DIR = 'img/sprites/bugs/';
 const av = u=> u + (window.ASSET_VER ? '?v=' + window.ASSET_VER : '');   // 絵を差し替えたら古いキャッシュを使わない
 const KEY_PRE = window.DEMO ? 'demo-' : '';   // デモ版は本番のセーブにさわらない
 const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
+
+/* バージョンと更新情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きな更新は +0.1）。デモ版は次に出す番号で表示する */
+const GAME_VER = '0.2.1';
+const CHANGELOG = [
+  {v:'0.2.1', date:'2026-10-22', items:[
+    'タイトル画面にバージョンと「更新情報」を出すようにした',
+    '操作をかんたんに：「メニュー」ボタンをなくして、Bボタンでメニュー・キャンセルにした',
+    'スマホのたて画面で、図鑑の「とじる」ボタンがいつも右下に出るようにした',
+    'エンディングの点数の画面で、画面の向きを変えると上にもどれなくなる不具合を直した',
+    'スタンプラリーで、まだ出会っていない虫の名前を「？？？」にふせるようにした',
+    'ミアレカブトの図鑑の説明を読みやすくした',
+    'アプリのアイコンを作り直したときに、古いアイコンが残らないようにした']},
+  {v:'0.2.0', date:'2026-10', items:[
+    '虫31しゅるい・14日間の夏休み・6つのエンディング',
+    '虫ずもう、本物の虫の写真でごほうび、宗像 虫とりスタンプラリー',
+    '図鑑に本物の虫のデータ（大きさ・すんでいる場所・飼いかた）を追加']},
+];
+document.querySelectorAll('.gver').forEach(e=> e.textContent = 'ver ' + GAME_VER + (window.DEMO ? ' デモ' : ''));
 if(window.DEMO){ const b = document.createElement('div'); b.className = 'demoBadge'; b.textContent = 'デモ版'; document.body.appendChild(b); }
 
 /* 時間帯 */
@@ -689,7 +721,7 @@ const INFO = {
   ookuwa:     {ord:'コウチュウ目 クワガタムシ科', size:'オス約3〜7.7cm・メス約3〜4.5cm', range:'北海道〜九州（すんでいる場所はかぎられる）', season:'6〜8月（夜に活動）',
                care:'じょうぶで数年生きる。昆虫マットとゼリーで1ぴきずつ。野生のものは数がへっていて、国のレッドリストにのっているので大切に。'},
   kinkabuto:  {ord:'コウチュウ目 コガネムシ科（という言いつたえ）', size:'約9cm（伝説）', range:'宗像市 大島（伝説）', season:'夏の夜と朝（伝説）',
-               care:'言いつたえでは、見つけたら大島の海と森にかえすと、幸せがおとずれるという…。（このゲームのための架空の虫です）'},
+               care:'言いつたえでは、見つけたら大島の海と森にかえすと、幸せがおとずれるという…。'},
 };
 const ATTACK = {beetle:'ツノでつきあげてきた！', stag:'大あごではさんできた！', cicada:'おしっこをひっかけてきた！', butterfly:'りんぷんをまきちらした！',
   dragonfly:'顔のまわりをビュンビュン飛びまわった！', grass:'とびげりしてきた！', mantis:'カマでひっかいてきた！', bee:'おしりの針でさしてきた！',
@@ -1678,7 +1710,7 @@ function openDex(){
         return `<div class="c ${j===i?'sel':''}" data-j="${j}"><img alt="" src="${spriteURL(id, !got)}"><span class="no">No.${String(j+1).padStart(2,'0')}</span><br>${got||seen ? esc(BUGS[id].name) : '？？？'}</div>`; }).join('');
       const id = ids[i], b = BUGS[id], got = S.dex[id], seen = S.seen[id];
       det.innerHTML = `<div class="hd"><img alt="" src="${spriteURL(id, !got)}"><div><div>No.${String(i+1).padStart(2,'0')}</div><h3>${got||seen ? esc(b.name) : '？？？'}</h3><div class="stars">${got ? `<span class="rl">レア度</span> ${stars(b.rank)}` : ''}</div></div></div>`+
-        (got ? `<p>${fmt(b.desc)}</p>${INFO[id] ? `<h4>本物の虫のデータ</h4><dl class="real"><dt>なかま</dt><dd>${esc(INFO[id].ord)}</dd><dt>大きさ</dt><dd>${esc(INFO[id].size)}</dd><dt>日本でいる場所</dt><dd>${esc(INFO[id].range)}</dd><dt>見られる時期</dt><dd>${esc(INFO[id].season)}</dd><dt>飼いかた</dt><dd>${esc(INFO[id].care)}</dd></dl>` : ''}<h4>ゲームのきろく</h4><dl><dt>ゲームで出る場所</dt><dd>${esc(where(id))}</dd><dt>時間</dt><dd>${b.time.map(t=>SLOT_NAMES[t]).join('・')}</dd>${got.watched ? '<dt>きろく</dt><dd>遠くから観察した（危ないのでつかまえない）</dd>' : `<dt>つかまえた数</dt><dd>${got.n}ひき</dd><dt>さいこうLv</dt><dd>${got.best}</dd><dt>売り値のめやす</dt><dd>${b.price}円</dd>`}</dl><p class="note">※ゲームで出る場所と時間はゲーム用です。実際にその場所にいるとはかぎりません。本物の虫のデータ（大きさ・時期など）はおおよその目安です。</p>`
+        (got ? `<p>${fmt(b.desc)}</p>${INFO[id] ? `<h4>${id==='kinkabuto' ? '言いつたえのデータ' : '本物の虫のデータ'}</h4><dl class="real"><dt>なかま</dt><dd>${esc(INFO[id].ord)}</dd><dt>大きさ</dt><dd>${esc(INFO[id].size)}</dd><dt>日本でいる場所</dt><dd>${esc(INFO[id].range)}</dd><dt>見られる時期</dt><dd>${esc(INFO[id].season)}</dd><dt>飼いかた</dt><dd>${esc(INFO[id].care)}</dd></dl>` : ''}<h4>ゲームのきろく</h4><dl><dt>ゲームで出る場所</dt><dd>${esc(where(id))}</dd><dt>時間</dt><dd>${b.time.map(t=>SLOT_NAMES[t]).join('・')}</dd>${got.watched ? '<dt>きろく</dt><dd>遠くから観察した（危ないのでつかまえない）</dd>' : `<dt>つかまえた数</dt><dd>${got.n}ひき</dd><dt>さいこうLv</dt><dd>${got.best}</dd><dt>売り値のめやす</dt><dd>${b.price}円</dd>`}</dl><p class="note">※ゲームで出る場所と時間はゲーム用です。実際にその場所にいるとはかぎりません。本物の虫のデータ（大きさ・時期など）はおおよその目安です。</p>`
              : seen ? `<p>見かけたけど、まだつかまえていない。</p>` : `<p>まだ見たことがない虫。</p>`) +
         (()=>{ const r = realPhotoFor(b.shape); return r && r[1].img ? `<div class="real"><div>本物の${esc(PHOTO_CATS[r[0]].name)}の写真</div><img alt="" src="${r[1].img}"></div>` : ''; })();
       grid.querySelector('.sel')?.scrollIntoView({block:'nearest'});
@@ -1789,11 +1821,13 @@ function getPos(){
     navigator.geolocation.getCurrentPosition(p=>res({lat:p.coords.latitude, lon:p.coords.longitude}), rej, {enableHighAccuracy:true, timeout:12000, maximumAge:60000});
   });
 }
+// 出会う前の虫の名前はふせる（ミアレカブトは出会うか、スタンプをもらうと名前がわかる）
+const spInfo = (sp, got)=> (got || S.dex.kinkabuto || S.seen.kinkabuto) ? sp.info : sp.info.replace(/ミアレカブト/g, '？？？');
 function renderStamps(){
   photos.stamps = photos.stamps || {};
   $('stampCnt').textContent = `${stampCount()} / ${SPOTS.length}`;
   $('stamps').innerHTML = SPOTS.map(sp=>{ const g = photos.stamps[sp.key];
-    return `<div class="st ${g ? 'got' : ''}"><div class="ink">${g ? esc(sp.name) : '？'}</div><div><b>${esc(sp.name)}</b><br>${g ? `${esc(g.date)} ゲット` : esc(sp.info)}</div></div>`; }).join('');
+    return `<div class="st ${g ? 'got' : ''}"><div class="ink">${g ? esc(sp.name) : '？'}</div><div><b>${esc(sp.name)}</b><br>${g ? `${esc(g.date)} ゲット` : esc(spInfo(sp, false))}</div></div>`; }).join('');
 }
 function addResult(html){ const d = document.createElement('div'); d.className = 'stampbox'; d.innerHTML = html; $('camResult').appendChild(d); return d; }
 async function stampCheck(){
@@ -1817,7 +1851,7 @@ async function stampCheck(){
   let extra = '';
   if(sp.gift){ const it = PHOTO_ITEMS.find(t=>t.key===sp.gift); S.items[sp.gift] = (S.items[sp.gift]||0) + 1; save(); extra = `<br>${esc(it.name)}をもらった！`; }
   const all = stampCount() >= SPOTS.length;
-  box.innerHTML = `<b class="ok">「${esc(sp.name)}」のスタンプをゲット！</b>（${stampCount()}/${SPOTS.length}）<br>特典：${esc(sp.info)}${extra}<br>自由研究のフィールドワークに +3点${all ? '<br><b class="ok">スタンプぜんぶ集めた！ さらに +5点！</b>' : ''}<br><small>${esc(sp.warn)}</small>`;
+  box.innerHTML = `<b class="ok">「${esc(sp.name)}」のスタンプをゲット！</b>（${stampCount()}/${SPOTS.length}）<br>特典：${esc(spInfo(sp, true))}${extra}<br>自由研究のフィールドワークに +3点${all ? '<br><b class="ok">スタンプぜんぶ集めた！ さらに +5点！</b>' : ''}<br><small>${esc(sp.warn)}</small>`;
   renderStamps(); hud();
 }
 async function handlePhoto(file){
@@ -1936,6 +1970,12 @@ async function showShare(){
 }
 $('btnInstall').onclick = e=>{ e.stopPropagation(); showInstall(); };
 $('btnShare').onclick = e=>{ e.stopPropagation(); showShare(); };
+$('btnVer').onclick = e=>{ e.stopPropagation(); showChangelog(); };
+function showChangelog(){
+  return openPanel('更新情報', `<p>いま遊んでいるのは <b>ver ${GAME_VER}</b>${window.DEMO ? '（デモ版）' : ''} です。</p>
+    <p class="note">新しいバージョンが出ているのに古い番号のままのときは、ページを開きなおしてね。</p>
+    <div class="chlog">${CHANGELOG.map((c,i)=>`<h3>ver ${esc(c.v)}${i===0 ? '<span class="now">いまのバージョン</span>' : ''}<small>${esc(c.date)}</small></h3><ul>${c.items.map(t=>`<li>${esc(t)}</li>`).join('')}</ul>`).join('')}</div>`);
+}
 if(isStandalone()) $('btnInstall').textContent = 'アプリで遊んでいます';
 
 function titleArt(){
@@ -1977,8 +2017,8 @@ async function intro(){
     '町の広場の切りかぶでは、近所の子どもたちが「虫ずもう」をしているらしい。\nつかまえた虫で勝負して、賞金をかせごう！（子どもに話しかけるとはじまる）',
     'つかまえた虫は、家のとなりの「虫具店」で売れる。\nお金をためて、いいあみ・虫かご・くつを買おう！',
     '本物の虫を見つけたら、メニューの「本物の虫を撮る」で写真を見せてね。\nおこづかいや、お店では買えないアイテムがもらえるよ！',
-    touch ? '【そうさ】十字キー：いどう　A：けってい　B/メニュー：メニュー\n草むらを歩くと虫が出てくるよ。下の出口から町の外へ！'
-          : '【そうさ】やじるしキー：いどう　Z：けってい　X：メニュー\n草むらを歩くと虫が出てくるよ。下の出口から町の外へ！'
+    touch ? '【そうさ】十字キー：いどう　A：けってい　B：メニュー・キャンセル\n草むらを歩くと虫が出てくるよ。下の出口から町の外へ！'
+          : '【そうさ】やじるしキー：いどう　Z：けってい　X：メニュー・キャンセル\n草むらを歩くと虫が出てくるよ。下の出口から町の外へ！'
   );
 }
 /* ---------- 自由研究「ぼくの昆虫図鑑」 ----------
