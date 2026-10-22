@@ -282,7 +282,7 @@ body.touch #titleScr .tbtn{font-size:clamp(13px,3.6vmin,19px)}
 #cam .lead{margin:0;line-height:1.7}
 #cam .lead small{color:#7a6a4a}
 .camBtns{display:flex;gap:10px;flex-wrap:wrap}
-.camBtns label{flex:1 1 160px;text-align:center;font-size:17px;padding:.8em 1em}
+.camBtns label{flex:1 1 160px;text-align:center;font-size:17px;padding:.55em 1em;line-height:2.3}   /* ふりがなのあるボタンとないボタンで高さと文字の位置がそろうように、行の高さを先に取っておく */
 .vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}
 #camResult:empty{display:none}
 #camResult{border:2px solid var(--paper-ink);border-radius:6px;background:#fffaf0;padding:12px;display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start}
@@ -538,7 +538,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-0049';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-0053';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
