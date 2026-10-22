@@ -7,6 +7,15 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="むなかた虫とり日記">
 <meta name="theme-color" content="#17261d">
+<script>
+// /demo/ から開いたときはデモ版：セーブを本番と分け、検索サイトに出さない
+window.DEMO = /\/demo\//.test(location.pathname);
+if(DEMO){
+  document.title = '【デモ】' + document.title;
+  document.querySelector('meta[name="apple-mobile-web-app-title"]').content = '虫とり日記 デモ';
+  document.write('<meta name="robots" content="noindex,nofollow">');
+}
+</script>
 <link rel="apple-touch-icon" href="img/icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="img/icons/favicon-32.png">
 <link rel="manifest" href="manifest.webmanifest">
@@ -200,6 +209,7 @@ body:not(.touch) #titleScr .t4{max-width:80%}
 body:not(.touch) #menu.title{top:auto;bottom:3%}
 body:not(.touch) #titleScr .tbtns{margin-top:.4em}
 /* タイトルのクレジット（右上のすみ） */
+.demoBadge{position:fixed;left:50%;top:env(safe-area-inset-top,0px);transform:translateX(-50%);z-index:9999;background:#c0392b;color:#fff;font-family:var(--f-pixel);font-size:12px;letter-spacing:.1em;padding:2px 10px;border-radius:0 0 6px 6px;opacity:.9;pointer-events:none}
 #titleScr .credit{position:absolute;right:.8em;top:.6em;font-family:var(--f-pixel);font-size:clamp(9px,1.9cqw,13px);letter-spacing:.06em;color:#fff;opacity:.92;text-shadow:1px 1px 0 #000,0 0 3px #000;pointer-events:none}
 body.touch #titleScr .credit{left:auto;right:max(12px,env(safe-area-inset-right,0px));bottom:auto;top:calc(env(safe-area-inset-top,0px) + 8px);font-size:clamp(10px,2.8vmin,14px)}
 /* タイトルのボタン */
@@ -482,7 +492,9 @@ const FAINT_ALL = 0.2;           // 熱中症で倒れたとき、虫が全部�
 const USE_IMAGE_FILES = true;    // img/sprites/bugs/<id>.png があればそれを使う（tools/process_bugs.py で作る）
 const BUG_IMG_DIR = 'img/sprites/bugs/';
 const av = u=> u + (window.ASSET_VER ? '?v=' + window.ASSET_VER : '');   // 絵を差し替えたら古いキャッシュを使わない
-const SAVE_KEY = 'munakata-mushitori-v1';
+const KEY_PRE = window.DEMO ? 'demo-' : '';   // デモ版は本番のセーブにさわらない
+const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
+if(window.DEMO){ const b = document.createElement('div'); b.className = 'demoBadge'; b.textContent = 'デモ版'; document.body.appendChild(b); }
 
 /* 時間帯 */
 const SLOT_NAMES = {asa:'朝', hiru:'昼', yu:'夕方', yoru:'夜'};
@@ -869,7 +881,7 @@ function save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(
 function loadRaw(){ try{ return localStorage.getItem(SAVE_KEY); }catch(e){ return null; } }
 function clearSave(){ try{ localStorage.removeItem(SAVE_KEY); }catch(e){} }
 /* クリアしたときの引きつぎデータ（次の夏休みに持っていけるもの） */
-const CARRY_KEY = 'munakata-mushitori-carry-v1';
+const CARRY_KEY = KEY_PRE + 'munakata-mushitori-carry-v1';
 function loadCarry(){ try{ return JSON.parse(localStorage.getItem(CARRY_KEY)); }catch(e){ return null; } }
 function saveCarry(c){ try{ localStorage.setItem(CARRY_KEY, JSON.stringify(c)); }catch(e){} }
 const grade = (round=S.round||1)=> Math.min(6, 3 + round);   // 1年目は小学4年生
@@ -1243,7 +1255,7 @@ async function shop(){
   try{ await shopMain(); } finally { talkFace = null; }
 }
 /* ひみつ：大ざんねんエンディング（がんばったで賞）のあと、つぎに遊ぶときに虫具店のおじさんが道具をくれる */
-const GIFT_KEY = 'munakata-mushitori-gift-v1';
+const GIFT_KEY = KEY_PRE + 'munakata-mushitori-gift-v1';
 const hasGift = ()=>{ try{ return localStorage.getItem(GIFT_KEY)==='1'; }catch(e){ return false; } };
 function setGift(on){ try{ on ? localStorage.setItem(GIFT_KEY, '1') : localStorage.removeItem(GIFT_KEY); }catch(e){} }
 async function giveGift(){
@@ -1679,7 +1691,7 @@ function openDex(){
 /* =========================================================
    本物の虫を撮る（端末内AIで判定 → ごほうび）
    ========================================================= */
-const PHOTO_KEY = 'munakata-photos-v1';
+const PHOTO_KEY = KEY_PRE + 'munakata-photos-v1';
 const PHOTO_DAILY = 5;   // 1日（現実の日付）にごほうびがもらえる枚数
 const PHOTO_MIN = .25;   // 虫らしさがこれ以上なら「虫」と判定
 const MODEL_URL = 'https://storage.googleapis.com/tfjs-models/savedmodel/mobilenet_v2_1.0_224/model.json';

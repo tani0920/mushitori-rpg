@@ -1,0 +1,2130 @@
+<!doctype html>
+<html lang="ja">
+<meta charset="utf-8">
+<title>むなかた虫とり日記</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="むなかた虫とり日記">
+<meta name="theme-color" content="#17261d">
+<script>
+// /demo/ から開いたときはデモ版：セーブを本番と分け、検索サイトに出さない
+window.DEMO = /\/demo\//.test(location.pathname);
+if(DEMO){
+  document.title = '【デモ】' + document.title;
+  document.querySelector('meta[name="apple-mobile-web-app-title"]').content = '虫とり日記 デモ';
+  document.write('<meta name="robots" content="noindex,nofollow">');
+}
+</script>
+<link rel="apple-touch-icon" href="img/icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="img/icons/favicon-32.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap">
+<style>
+/* レイアウト: 携帯ゲーム機の画面(4:3)＋下にコントローラー。夏の夜の森色のフレームに、昔ながらのRPGウィンドウ */
+:root{
+  --frame:#17261d;      /* 森の夜 */
+  --frame-2:#21362a;
+  --ink:#f7f1df;        /* ウィンドウ文字 */
+  --win:#14284a;        /* ウィンドウ紺 */
+  --edge:#f7f1df;
+  --sun:#f4b63c;        /* ひまわり */
+  --hp:#5ccf6a;
+  --hp-low:#e8553e;
+  --paper:#f3ead2;      /* 図鑑の紙 */
+  --paper-ink:#2c2418;
+  --paper-line:#d8c9a3;
+  --mute:#a9bba9;
+  --f-pixel:"DotGothic16","Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic",monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+html{touch-action:manipulation;-webkit-text-size-adjust:100%;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+#screen,#pad{-webkit-touch-callout:none}
+body{margin:0;background:var(--frame);color:var(--ink);font-family:var(--f-pixel);
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+#app{max-width:760px;margin:0 auto;padding-block:10px 16px;display:flex;flex-direction:column;gap:8px}
+header{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap}
+header h1{margin:0;font-size:18px;font-weight:400;letter-spacing:.08em;color:var(--sun)}
+header small{color:var(--mute);font-size:12px}
+#hud{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:14px;align-items:center;font-variant-numeric:tabular-nums;min-height:22px}
+#hud .hp{display:inline-flex;align-items:center;gap:6px}
+.bar{display:inline-block;width:70px;height:8px;background:#0006;border:1px solid var(--edge);border-radius:2px;overflow:hidden;vertical-align:middle}
+.bar i{display:block;height:100%;background:var(--hp)}
+.bar i.low{background:var(--hp-low)}
+#hud .money{color:var(--sun)}
+#hud .time{display:inline-flex;align-items:center;gap:.3em}
+#hud .clock{width:1.9em;height:1.9em;flex:none;filter:drop-shadow(0 1px 1px #0008)}
+#hud .hrow{display:contents}
+#hud .place,#hud .lv{color:#fff}
+#screen{position:relative;width:min(100%, calc((100dvh - 250px) * 4 / 3));min-width:min(100%,300px);aspect-ratio:4/3;max-width:100%;margin:0 auto;
+  background:#000;border:4px solid var(--frame-2);border-radius:6px;overflow:hidden;container-type:inline-size}
+#cv{width:100%;height:100%;display:block;image-rendering:pixelated;image-rendering:crisp-edges}
+#screen .ov{font-size:clamp(11px,3.3cqw,19px)}
+.win{background:var(--win);border:3px solid var(--edge);border-radius:6px;box-shadow:0 0 0 2px var(--win);color:var(--ink);padding:.55em .85em;line-height:1.6}
+#msg{position:absolute;left:2.5%;right:2.5%;bottom:3%;min-height:25%;z-index:20;cursor:pointer}
+#msg.withface,#endScr .story.withface{display:flex;gap:.7em;align-items:flex-start}
+#msg .mtxt,#endScr .story .mtxt{flex:1;min-width:0}
+#msg .face,#endScr .story .face{width:4.4em;height:4.4em;flex:none;image-rendering:pixelated;background:#f3ead2;border:2px solid var(--edge);border-radius:4px}
+#endScr .story .face{width:84px;height:84px}
+#msg .face.fine,#endScr .story .face.fine{image-rendering:auto;background:linear-gradient(#fff6e0,#f3ead2)}
+body.touch.land #msg .face{width:3.6em;height:3.6em}
+#msg .next{display:inline-block;margin-left:.3em;animation:blink 1s steps(2) infinite;color:var(--sun)}
+@keyframes blink{50%{opacity:0}}
+#menu{position:absolute;right:2.5%;top:3%;max-height:66%;min-width:40%;max-width:95%;z-index:30;display:flex;flex-direction:column;padding:.4em .5em}
+#menu .mt{padding:.1em .4em .3em;color:var(--sun);border-bottom:1px dashed #f7f1df55;margin-bottom:.2em}
+#menu .mlist{position:relative;display:flex;min-height:0;flex:1 1 auto}
+#menu ul{list-style:none;margin:0;padding:0;overflow-y:auto;position:relative;flex:1;min-width:0;scrollbar-width:none}
+#menu ul::-webkit-scrollbar{display:none}
+#menu .sbar{flex:none;width:5px;margin:2px 0 2px 6px;border-radius:3px;background:#ffffff22;position:relative}
+#menu .sbar i{position:absolute;left:0;right:0;border-radius:3px;background:var(--sun)}
+#menu .more{position:absolute;left:50%;transform:translateX(-50%);color:var(--sun);font-size:.8em;line-height:1;pointer-events:none;animation:blink 1s steps(2) infinite;text-shadow:0 0 3px #000}
+#menu .more.up{top:-.15em}
+#menu .more.dn{bottom:-.35em}
+#menu li{display:flex;justify-content:space-between;align-items:baseline;gap:1em;padding:.15em .4em .15em 1.3em;position:relative;cursor:pointer;border-radius:3px}
+#menu li span{min-width:0;overflow-wrap:anywhere}
+#menu li em{font-style:normal;color:var(--mute);white-space:nowrap;flex:none}
+#menu li.sel{background:#ffffff14}
+#menu li.sel::before{content:"▶";position:absolute;left:.25em;color:var(--sun)}
+#menu li.dis{color:#f7f1df66}
+#menu li.dis em{color:#f7f1df55}
+#menu.cmditem{top:auto;bottom:31%;right:2.5%;min-width:34%}
+#menu.cmd{top:auto;left:2.5%;right:2.5%;bottom:3%;min-height:25%;max-width:none;z-index:31}   /* 戦闘コマンド：メッセージ欄の場所に2列で */
+#menu.cmd ul{display:grid;grid-template-columns:1fr 1fr;gap:.25em .8em;overflow:visible}
+#menu.cmd li{padding-top:.3em;padding-bottom:.3em}
+#menu.map{left:2.5%;right:auto;min-width:62%}
+#menu.title{right:auto;left:50%;transform:translateX(-50%);top:60%;min-width:44%}
+#menu.side{min-width:32%}
+#fade{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity .25s;z-index:60}
+#fade.on{opacity:1}
+#screen.shake{animation:shake .3s}
+@keyframes shake{20%{transform:translate(-4px,2px)}40%{transform:translate(4px,-2px)}60%{transform:translate(-3px,1px)}80%{transform:translate(3px,0)}}
+
+/* タイトル */
+#titleScr{position:absolute;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:12%;
+  background:linear-gradient(#1b3f7a 0%,#3d77c4 45%,#8fc6e8 62%,#4f9a3c 62%,#2f6b2a 100%);text-align:center}
+#titleScr .t1{font-size:clamp(14px,4cqw,22px);color:#fff;letter-spacing:.2em;text-shadow:2px 2px 0 #0008}
+#titleScr.art{background-size:cover;background-position:center bottom;image-rendering:pixelated}
+#titleScr .logo{width:min(84%,560px);image-rendering:auto;filter:drop-shadow(0 3px 0 #0005);margin:.2em 0 .4em}
+#titleScr.art .sun{display:none}
+#titleScr.fine{image-rendering:auto}
+#titleScr .t2{font-size:clamp(26px,9cqw,54px);color:var(--sun);letter-spacing:.06em;text-shadow:3px 3px 0 #5a2a10,-1px -1px 0 #fff3;line-height:1.15;margin:.15em 0}
+#titleScr .t3{font-size:clamp(11px,2.8cqw,16px);color:#fff;text-shadow:1px 1px 0 #0009}
+#titleScr .t4{max-width:34em;margin-top:.8em;padding:.35em .8em;font-size:clamp(9px,2.1cqw,12px);line-height:1.5;color:#fff;background:#0006;border-radius:4px}
+#titleScr .sun{position:absolute;right:9%;top:8%;width:12%;aspect-ratio:1;border-radius:50%;background:#ffe27a;box-shadow:0 0 0 6px #ffe27a44}
+
+/* バトル */
+#battle{position:absolute;inset:0;z-index:5;overflow:hidden;background-size:cover!important;background-position:center bottom!important;image-rendering:pixelated}
+#battle.bg-town{background:linear-gradient(#8fd0f0 0 55%,#79b956 55% 100%)}
+#battle.bg-tanbo{background:linear-gradient(#92d4f4 0 50%,#a7d75a 50% 58%,#6cae3e 58% 100%)}
+#battle.bg-kawara{background:linear-gradient(#9ad8f4 0 46%,#4f93cf 46% 60%,#e2d29c 60% 70%,#69a84a 70%)}
+#battle.bg-taisha{background:linear-gradient(#2f6b2a 0 10%,#7cc0a8 10% 48%,#3e7d32 48% 100%)}
+#battle.bg-matsubara{background:linear-gradient(#9fdcf6 0 38%,#3f86c8 38% 50%,#efdca4 50% 66%,#5f9e4a 66%)}
+#battle.bg-joyama{background:linear-gradient(#a6d0e8 0 30%,#5c8e5a 30% 46%,#3a6f34 46%)}
+#battle.bg-oshima{background:linear-gradient(#8fd6f8 0 42%,#2f78c0 42% 56%,#e8d6a0 56% 64%,#5a9a48 64%)}
+#battle.night::after{content:"";position:absolute;inset:0;background:#0a1440;opacity:.5;pointer-events:none}
+#battle.dusk::after{content:"";position:absolute;inset:0;background:#d8641e;opacity:.22;pointer-events:none}
+#bWrap{position:absolute;left:50%;top:21%;width:34%;transform:translateX(-50%);z-index:2}
+#bSprite{width:100%;display:block;image-rendering:pixelated;image-rendering:crisp-edges;animation:bob 1.2s ease-in-out infinite}
+#bShadow{width:70%;height:8%;margin:-4% auto 0;border-radius:50%;background:#0003}
+@keyframes bob{50%{transform:translateY(-5%)}}
+#bSprite.hit{animation:hit .45s steps(2) 1}
+@keyframes hit{0%,100%{opacity:1}25%,75%{opacity:.1}50%{opacity:1;transform:translateX(6%)}}
+#netfx{position:absolute;left:5%;top:-30%;width:90%;aspect-ratio:1;border-radius:50%;border:4px solid #fff;opacity:0;z-index:3;
+  background:repeating-linear-gradient(45deg,#fff8 0 2px,transparent 2px 9px),repeating-linear-gradient(-45deg,#fff8 0 2px,transparent 2px 9px)}
+#netfx.go{animation:net .7s ease-out forwards}
+@keyframes net{0%{opacity:0;transform:translateY(-60%) scale(.6)}40%{opacity:1;transform:translateY(20%) scale(1)}70%{transform:translateY(25%) rotate(-6deg)}100%{opacity:1;transform:translateY(25%) rotate(6deg)}}
+.binfo{position:absolute;z-index:4;padding:.35em .7em;line-height:1.4;font-size:.92em}
+#bInfo{left:2.5%;top:3%;min-width:36%}
+#pInfo{right:2.5%;top:3%;min-width:30%}
+.binfo .row{display:flex;justify-content:space-between;gap:.8em;align-items:center}
+.binfo .bar{width:100%;height:.6em}
+.binfo .stars{color:var(--sun);letter-spacing:.05em}
+.binfo .new{color:#ff8a6a}
+/* スズメバチ：黄色と黒のしましまの警告 */
+.binfo .warn{display:inline-flex;align-items:center;gap:.35em;margin:.2em 0;padding:.15em .7em .15em .4em;border-radius:4px;font-weight:700;color:#1b130c;
+  background:repeating-linear-gradient(-45deg,#ffd23a 0 8px,#ffe680 8px 16px);border:2px solid #1b130c;animation:warnblink .6s steps(2) infinite}
+.binfo .warnicon{width:1.35em;height:1.35em;flex:none}
+@keyframes warnblink{50%{filter:brightness(1.25)}}
+#battle .binfo.danger{width:auto!important;max-width:calc(100% - 16px)!important;white-space:nowrap;border-color:#ffd23a;box-shadow:0 0 0 3px #1b130c,0 0 0 6px #ffd23a}
+#battle.alarm::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;border:10px solid transparent;
+  border-image:repeating-linear-gradient(-45deg,#ffd23a 0 14px,#1b130c 14px 28px) 10;animation:alarmflash 1s ease-in-out infinite;opacity:.85}
+#battle.alarm::after{content:"";position:absolute;inset:0;background:#c8202044;pointer-events:none;animation:alarmflash 1s ease-in-out infinite}
+@keyframes alarmflash{50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){#battle.alarm::before,#battle.alarm::after,.binfo .warn{animation:none}}
+.binfo .dexnew{display:inline-flex;align-items:center;gap:.35em;margin:.15em 0 .1em;padding:.1em .6em .1em .35em;border-radius:999px;
+  background:#e8553e;color:#fff;font-size:.95em;font-weight:700;box-shadow:0 0 0 2px #ffd36a;animation:dexpulse 1.2s ease-in-out infinite}
+.binfo .dexicon{width:1.25em;height:1.25em;flex:none}
+@keyframes dexpulse{50%{box-shadow:0 0 0 2px #ffd36a,0 0 10px 3px #ffd36aaa}}
+#bInfo.isnew{border-color:#ffd36a}
+.binfo .gauge{color:var(--sun);letter-spacing:.1em}
+.binfo .lbl{color:var(--mute);font-size:.85em;white-space:nowrap}
+
+/* 図鑑・エンディング（画面全体） */
+.full{position:fixed;inset:0;z-index:100;overflow-y:auto;
+  padding:max(12px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+#dex{background:var(--paper);color:var(--paper-ink)}
+#dex .in{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+#dex .top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:4px 10px;border-bottom:3px double var(--paper-ink);padding-bottom:6px}
+#dex .top h2,#dex .top .btn{white-space:nowrap}
+#dex .top .cnt{order:3;flex-basis:100%;font-size:13px}
+#dex h2{margin:0;font-weight:400;font-size:20px;letter-spacing:.1em}
+#dex .cnt{font-variant-numeric:tabular-nums}
+.btn{font:inherit;background:var(--win);color:var(--ink);border:2px solid var(--edge);border-radius:6px;padding:.35em 1em;cursor:pointer}
+.btn:focus-visible,#pad button:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+#dex .body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
+@media (max-width:560px){#dex .body{grid-template-columns:minmax(0,1fr)}#dexDetail{order:-1}}
+#dexGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px;align-content:start}
+#dexGrid .c{border:2px solid var(--paper-line);border-radius:4px;padding:4px 2px 2px;text-align:center;cursor:pointer;background:#fffaf0;font-size:10px;line-height:1.2}
+#dexGrid .c img{width:40px;height:40px;image-rendering:pixelated;display:block;margin:0 auto 2px}
+#dexGrid .c.sel{border-color:var(--paper-ink);background:#fff3c4}
+#dexGrid .c .no{color:#8a7a5a}
+#dexDetail{border:2px solid var(--paper-ink);border-radius:6px;padding:12px;background:#fffaf0;min-width:0;align-self:start}
+#dexDetail .hd{display:flex;gap:12px;align-items:center}
+#dexDetail img{width:96px;height:96px;image-rendering:pixelated;background:repeating-linear-gradient(0deg,#f3ead2 0 8px,#efe4c8 8px 16px);border-radius:4px;flex:none}
+#dexDetail h3{margin:0;font-weight:400;font-size:20px}
+#dexDetail .stars{color:#c88a10}
+#dexDetail .stars .rl{color:#7a6a4a;font-size:12px;margin-right:2px}
+#dexDetail p{margin:.6em 0 0;line-height:1.7}
+#dexDetail dl{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;margin:.8em 0 0;font-size:13px}
+#dexDetail h4{margin:1em 0 0;font-weight:400;font-size:14px;color:#7a4a1a;border-bottom:1px solid var(--paper-line);padding-bottom:2px}
+#dexDetail h4+dl{margin-top:.4em}
+#dexDetail dl.real dd{line-height:1.55}
+#dexDetail dt{color:#7a6a4a}
+#dexDetail dd{margin:0}
+#dexDetail .note{font-size:12px;color:#7a6a4a;margin-top:.8em}
+#dexDetail .real{margin-top:12px;border-top:1px dashed var(--paper-line);padding-top:10px}
+#dexDetail .real img{width:100%;height:auto;max-height:220px;object-fit:cover;image-rendering:auto;background:none}
+#cam{background:var(--paper);color:var(--paper-ink)}
+/* パソコンのタイトル画面：ロゴを小さめにしてメニューと重ならないように */
+body:not(.touch) #titleScr{padding-top:4%}
+body:not(.touch) #titleScr .logo{width:min(44%,340px);margin:0 0 .1em}
+body:not(.touch) #titleScr .t4{max-width:80%}
+body:not(.touch) #menu.title{top:auto;bottom:3%}
+body:not(.touch) #titleScr .tbtns{margin-top:.4em}
+/* タイトルのクレジット（右上のすみ） */
+.demoBadge{position:fixed;left:50%;top:env(safe-area-inset-top,0px);transform:translateX(-50%);z-index:9999;background:#c0392b;color:#fff;font-family:var(--f-pixel);font-size:12px;letter-spacing:.1em;padding:2px 10px;border-radius:0 0 6px 6px;opacity:.9;pointer-events:none}
+#titleScr .credit{position:absolute;right:.8em;top:.6em;font-family:var(--f-pixel);font-size:clamp(9px,1.9cqw,13px);letter-spacing:.06em;color:#fff;opacity:.92;text-shadow:1px 1px 0 #000,0 0 3px #000;pointer-events:none}
+body.touch #titleScr .credit{left:auto;right:max(12px,env(safe-area-inset-right,0px));bottom:auto;top:calc(env(safe-area-inset-top,0px) + 8px);font-size:clamp(10px,2.8vmin,14px)}
+/* タイトルのボタン */
+#titleScr .tbtns{display:flex;gap:.6em;flex-wrap:wrap;justify-content:center;margin-top:.7em}
+#titleScr .tbtn{font:inherit;font-size:clamp(12px,2.6cqw,16px);color:#fff;background:#14284acc;border:2px solid #f7f1df;border-radius:999px;padding:.35em 1em;cursor:pointer;box-shadow:0 2px 0 #0006}
+#titleScr .tbtn:active{transform:translateY(1px)}
+body.touch #titleScr .tbtn{font-size:clamp(13px,3.6vmin,19px)}
+/* 説明パネル（アプリにする方法・友だちに教える） */
+#infoPanel{background:var(--paper);color:var(--paper-ink)}
+#infoPanel .in{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:12px;line-height:1.75;font-size:16px}
+#infoPanel .top{display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:3px double var(--paper-ink);padding-bottom:6px}
+#infoPanel h2{margin:0;font-weight:400;font-size:20px;letter-spacing:.06em}
+#infoPanel h3{margin:.4em 0 .2em;font-weight:400;font-size:17px;color:#7a4a1a}
+#infoPanel ol{margin:0;padding-left:1.4em}
+#infoPanel li{margin:.2em 0}
+#infoPanel .box{background:#fffaf0;border:2px solid var(--paper-line);border-radius:6px;padding:10px 14px}
+#infoPanel .box.now{border-color:#c88a10;background:#fff3c4}
+#infoPanel .note{font-size:13px;color:#7a6a4a}
+#infoPanel details{background:#fffaf0;border:2px solid var(--paper-line);border-radius:6px;padding:8px 14px}
+#infoPanel summary{cursor:pointer}
+#infoPanel .acts{display:flex;flex-wrap:wrap;gap:10px}
+#infoPanel .acts .btn,#infoPanel .acts a.btn{text-decoration:none;font-size:16px;padding:.5em 1.1em}
+#infoPanel .line{background:#06c755;border-color:#06c755;color:#fff}
+#infoPanel .url{font-family:monospace;word-break:break-all;background:#fffaf0;border:1px dashed var(--paper-line);padding:6px 10px;border-radius:4px;user-select:all;-webkit-user-select:all}
+#infoPanel .qr{display:flex;flex-direction:column;align-items:center;gap:4px}
+#infoPanel .qr img{width:200px;height:200px;image-rendering:pixelated;background:#fff;padding:8px;border-radius:6px}
+#infoPanel .ok{color:#2f7a2a}
+#cam .in{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+#cam .top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:4px 10px;border-bottom:3px double var(--paper-ink);padding-bottom:6px}
+#cam .top h2,#cam .top .btn{white-space:nowrap}
+#cam .top .cnt{order:3;flex-basis:100%;font-size:13px}
+#cam h2{margin:0;font-weight:400;font-size:20px;letter-spacing:.1em}
+#cam h3{margin:8px 0 0;font-weight:400;font-size:17px;border-bottom:1px solid var(--paper-line);padding-bottom:4px}
+#cam .lead{margin:0;line-height:1.7}
+#cam .lead small{color:#7a6a4a}
+.camBtns{display:flex;gap:10px;flex-wrap:wrap}
+.camBtns label{flex:1 1 160px;text-align:center;font-size:17px;padding:.8em 1em}
+.vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}
+#camResult:empty{display:none}
+#camResult{border:2px solid var(--paper-ink);border-radius:6px;background:#fffaf0;padding:12px;display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start}
+#camResult img{width:160px;max-width:100%;border-radius:4px;flex:none}
+#camResult .txt{flex:1 1 200px;min-width:0;line-height:1.7}
+#camResult .big{font-size:19px}
+#camResult .ok{color:#2f7a2a}
+#camResult .ng{color:#a8442e}
+#camResult ul{margin:.3em 0 0;padding-left:1.2em}
+#cam .geo{display:flex;align-items:center;gap:.5em;font-size:16px;background:#fffaf0;border:2px solid var(--paper-line);border-radius:6px;padding:8px 12px;cursor:pointer}
+#cam .geo input{width:22px;height:22px;flex:none}
+#stamps{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+#stamps .st{display:flex;gap:8px;align-items:center;background:#fffaf0;border:2px solid var(--paper-line);border-radius:6px;padding:6px 8px;font-size:12px;line-height:1.4}
+#stamps .st .ink{width:54px;height:54px;flex:none;border-radius:50%;border:3px dashed #c8b890;display:flex;align-items:center;justify-content:center;font-size:12px;color:#b8a880;text-align:center;line-height:1.1;font-weight:700}
+#stamps .st.got .ink{border:3px double #c8402e;color:#c8402e;background:#fff0e8;transform:rotate(-8deg)}
+#stamps .st b{font-size:14px;font-weight:400}
+#camResult .stampbox{flex-basis:100%;border-top:1px dashed var(--paper-line);padding-top:8px;line-height:1.7}
+#camResult .stampbox .btn{margin:.3em .4em 0 0}
+#album{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}
+#album .a{border:2px solid var(--paper-line);border-radius:4px;background:#fffaf0;padding:4px;text-align:center;font-size:11px;line-height:1.3}
+#album .a img,#album .a .no{width:100%;aspect-ratio:1;object-fit:cover;border-radius:2px;display:block;margin-bottom:3px}
+#album .a .no{background:repeating-linear-gradient(45deg,#efe4c8 0 6px,#f6eedb 6px 12px);display:flex;align-items:center;justify-content:center;font-size:22px;color:#c8b890}
+#endScr{background:linear-gradient(#1b3f7a,#3d2f6a 60%,#17261d);color:var(--ink);display:flex;align-items:center;justify-content:center}
+#endScr .in{max-width:520px;width:100%;text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center}
+#endScr h2{margin:0;font-weight:400;color:var(--sun);font-size:26px;letter-spacing:.1em}
+#endScr .win{width:100%;text-align:left}
+#endScr .ttl{font-size:22px;color:var(--sun);text-align:center}
+#endScr img{width:72px;height:72px;image-rendering:pixelated}
+img[src^="img/"]{image-rendering:auto!important}   /* ChatGPTで作った細かい絵はなめらかに縮小 */
+#endScr .story{font-size:18px;line-height:1.9;min-height:7.5em;text-align:left}
+#endScr .endart{width:100%;max-width:100%;aspect-ratio:3/2;object-fit:cover;border:3px solid var(--edge);border-radius:6px;box-shadow:0 0 0 2px var(--win);image-rendering:auto;height:auto}
+#endScr .in{max-width:640px!important}
+#endScr .dexs{display:grid;grid-template-columns:repeat(auto-fill,minmax(36px,1fr));gap:4px;margin:10px 0;background:#f3ead2;border-radius:4px;padding:6px}
+#endScr .dexs img{width:100%;height:auto;aspect-ratio:1}
+#endScr .score{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;margin-top:6px}
+#endScr .score th{text-align:left;font-weight:400;color:var(--mute);padding:3px 0}
+#endScr .score td{text-align:right;padding:3px 0}
+#endScr .score .sum th,#endScr .score .sum td{color:var(--sun);border-top:1px dashed #f7f1df55;padding-top:6px}
+#endScr .bestbug{display:flex;align-items:center;gap:10px;margin-top:10px}
+#endScr .bestbug img{width:56px;height:56px}
+#endScr .carry{text-align:left;line-height:1.7}
+#endScr .carry ul{margin:.3em 0;padding-left:1.2em}
+#endScr .carry .lbl{color:var(--mute);font-size:13px}
+#endScr .fic{margin:10px 0 0;font-size:12px;color:var(--mute);text-align:center}
+
+/* コントローラー */
+#pad{display:none;justify-content:space-between;align-items:center;gap:10px;padding-top:4px}
+@media (hover:none),(pointer:coarse){#pad{display:flex}#keys{display:none}}
+.dpad{display:grid;grid-template-columns:repeat(3,52px);grid-template-rows:repeat(3,52px)}
+#pad button{font:inherit;font-size:18px;color:var(--ink);background:var(--frame-2);border:2px solid #f7f1df55;border-radius:10px;touch-action:none;cursor:pointer}
+#pad button:active,#pad button.on{background:#33503f}
+.dpad [data-k=U]{grid-area:1/2}.dpad [data-k=L]{grid-area:2/1}.dpad [data-k=R]{grid-area:2/3}.dpad [data-k=D]{grid-area:3/2}
+.ab{display:grid;grid-template-columns:64px 64px;gap:10px;align-items:center}
+.ab [data-k=A],.ab [data-k=B]{width:64px;height:64px;border-radius:50%!important;grid-row:1}
+.ab [data-k=A]{background:#7a3a22!important;border-color:var(--sun)!important}
+.ab [data-k=M]{font-size:13px!important;padding:6px 10px;grid-row:2;grid-column:1/3;white-space:nowrap}
+/* ===== スマホ・タブレット：ゲーム画面を全画面に、ボタンは上に重ねる ===== */
+body.touch{position:fixed;inset:0;overflow:hidden;padding:0}
+html:has(body.touch){padding:0}
+body.touch #app{max-width:none;height:100%;padding:0;display:block;position:relative}
+body.touch header,body.touch #keys{display:none}
+body.touch #screen{position:absolute;inset:0;width:100%;height:100%;min-width:0;max-width:none;aspect-ratio:auto;border:0;border-radius:0;z-index:1;
+  --hudH:40px;--padH:200px;--sideL:0px;--sideR:0px}
+body.touch #hud{position:absolute;top:0;left:0;right:0;z-index:2;pointer-events:none;font-size:clamp(13px,3.4vmin,19px);gap:0 10px;min-height:0;
+  padding:calc(env(safe-area-inset-top,0px) + 5px) max(12px,env(safe-area-inset-right,0px)) 10px max(12px,env(safe-area-inset-left,0px));
+  background:linear-gradient(#000c 60%,#0000);text-shadow:1px 1px 0 #000}
+body.touch #hud:empty{display:none}
+body.touch #hud .bar{width:min(34vw,180px);height:.6em}
+/* スマホ縦・iPad：3行で大きく */
+body.touch:not(.land) #hud{display:flex;flex-direction:column;gap:2px;font-size:clamp(15px,4.2vmin,24px);line-height:1.35;padding-bottom:14px;background:linear-gradient(#000d 70%,#0000)}
+body.touch:not(.land) #hud .hrow{display:flex;gap:0 .8em;align-items:center;flex-wrap:wrap}
+body.touch:not(.land) #hud .date{font-weight:700}
+body.touch:not(.land) #hud .place{font-size:1.05em}
+body.touch:not(.land) #hud .day,body.touch:not(.land) #hud .time{color:var(--mute)}
+body.touch:not(.land) #hud .time{color:#fff}
+body.touch:not(.land) #hud .clock{width:2.4em;height:2.4em;margin:-.3em 0}
+body.touch.land #hud{font-size:clamp(13px,3.8vmin,18px)}
+body.touch.land #hud .bar{width:80px}
+body.touch #pad{position:absolute;left:0;right:0;bottom:0;z-index:3;display:flex;align-items:flex-end;pointer-events:none;
+  padding:0 max(14px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 16px) max(14px,env(safe-area-inset-left,0px))}
+body.touch .dpad,body.touch .ab{pointer-events:auto}
+body.touch .dpad{--c:clamp(56px,8.5vmin,80px);grid-template-columns:repeat(3,var(--c));grid-template-rows:repeat(3,var(--c));touch-action:none;
+  background:radial-gradient(circle,#0005 0 62%,transparent 63%);border-radius:50%}
+body.touch #pad button{background:#21362acc;border-color:#f7f1df88;font-size:20px;box-shadow:0 2px 0 #0006}
+body.touch #pad button.on{background:#4a6f55ee}
+body.touch .ab{--b:clamp(68px,10vmin,96px);grid-template-columns:var(--b) var(--b);gap:12px}
+body.touch .ab [data-k=A],body.touch .ab [data-k=B]{width:var(--b);height:var(--b);font-size:22px}
+body.touch .ab [data-k=A]{background:#8a3e22dd!important}
+body.touch .ab [data-k=M]{font-size:14px!important;padding:8px 10px}
+body.touch #screen .ov{font-size:clamp(15px,4.4vmin,30px)}
+body.touch .win{border-width:3px;padding:.5em .8em;line-height:1.55}
+body.touch #msg{left:calc(var(--sideL) + 8px);right:calc(var(--sideR) + 8px);bottom:calc(var(--padH) + 8px);min-height:6em;max-height:45%;overflow-y:auto}
+body.touch #menu{top:calc(var(--hudH) + 6px);right:calc(var(--sideR) + 8px);max-width:calc(100% - var(--sideL) - var(--sideR) - 16px);
+  max-height:calc(100% - var(--hudH) - var(--padH) - 6em - 30px)}
+body.touch #menu.map{left:calc(var(--sideL) + 8px);right:auto}
+body.touch #menu.cmditem{top:auto;bottom:calc(var(--padH) + 6em + 16px)}
+body.touch #menu.cmd{left:calc(var(--sideL) + 8px);right:calc(var(--sideR) + 8px);bottom:calc(var(--padH) + 8px);top:auto;min-height:6em;max-height:none}
+body.touch #menu.title{top:60%;bottom:auto;left:auto;right:6%;transform:none;min-width:0}   /* 男の子（左より）にかぶらないよう右に */
+body.touch #menu li{padding-top:.3em;padding-bottom:.3em}
+body.touch .binfo{font-size:.8em}
+body.touch #bInfo{top:calc(var(--hudH) + 4px);left:calc(var(--sideL) + 8px);min-width:0;width:calc(50% - var(--sideL) - 12px);max-width:16em}
+body.touch #pInfo{top:calc(var(--hudH) + 4px);right:calc(var(--sideR) + 8px);min-width:0;width:calc(50% - var(--sideR) - 12px);max-width:12em}
+body.touch #bWrap{top:calc(var(--hudH) + 4.8em);width:min(84%,44vh)}
+#mWrap{position:absolute;z-index:2;display:none}
+#mSprite{width:100%;display:block;image-rendering:pixelated;animation:bob 1.2s ease-in-out infinite .6s}
+#mSprite.hit{animation:hit .45s steps(2) 1}
+#battle.vs #bWrap{left:8%;right:auto;transform:none;width:24%;top:25%}   /* あいて：左上（左の名前の下） */
+#battle.vs #mWrap{display:block;right:8%;left:auto;width:24%;top:37%}   /* ぼく：右下（右の名前の下） */
+#battle.vs #bShadow,#battle.vs #netfx{display:none}
+body.touch #battle.vs #bWrap{top:calc(var(--hudH) + 5em);width:min(50%,30vh)}
+body.touch #battle.vs #mWrap{top:calc(var(--hudH) + 5em + min(26%,24vh));width:min(50%,30vh)}
+/* 戦闘中のウィンドウは半透明（背景と虫が見えるように）。文字には影をつけて読みやすく */
+#battle .binfo{background:rgba(20,40,74,.62);box-shadow:none}
+#battle:not([hidden]) ~ #msg{background:rgba(20,40,74,.5);box-shadow:none;text-shadow:0 1px 2px #000,0 0 4px #000}
+#battle:not([hidden]) ~ #menu{background:rgba(20,40,74,.68);box-shadow:none;text-shadow:0 1px 2px #000}
+#battle:not([hidden]) ~ #menu li.sel{background:#ffffff26}
+#battle .vsmark{display:none;position:absolute;left:50%;top:38%;transform:translateX(-50%);z-index:3;font-size:1.6em;color:#fff;text-shadow:2px 2px 0 #a8442e,-1px -1px 0 #a8442e}
+#battle.vs .vsmark{display:block}
+body.touch #battle.vs .vsmark{top:calc(var(--hudH) + 5em + min(24%,20vh))}
+body.touch #titleScr{padding-top:calc(env(safe-area-inset-top,0px) + 14%)}
+body.touch #titleScr.art{background-size:cover;background-position:center bottom;image-rendering:pixelated}
+#titleScr .logo{width:min(84%,560px);image-rendering:auto;filter:drop-shadow(0 3px 0 #0005);margin:.2em 0 .4em}
+#titleScr.art .sun{display:none}
+#titleScr.fine{image-rendering:auto}
+#titleScr .t2{font-size:clamp(34px,11vmin,64px)}
+body.touch #titleScr .t1{font-size:clamp(16px,4.6vmin,26px)}
+body.touch #titleScr .t3{font-size:clamp(13px,3.6vmin,20px);padding:0 16px}
+body.touch #titleScr .t4{font-size:clamp(11px,2.9vmin,15px);margin-left:12px;margin-right:12px}
+body.touch #dexGrid{grid-template-columns:repeat(auto-fill,minmax(72px,1fr))}
+body.touch #dexGrid .c{font-size:12px}
+body.touch #dexDetail{font-size:15px}
+body.touch #dexDetail dl{font-size:14px}
+/* ===== スマホ横向き ===== */
+body.touch.land #screen .ov{font-size:clamp(13px,4vmin,20px)}
+body.touch.land .dpad{--c:clamp(46px,12vh,64px)}
+body.touch.land .ab{--b:clamp(56px,15vh,76px);gap:8px}
+body.touch.land #pad{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 8px)}
+body.touch.land #msg{min-height:4.4em;max-height:38%;bottom:8px}
+body.touch.land #menu{max-height:calc(100% - var(--hudH) - 4.4em - 26px)}
+body.touch.land #menu.side,body.touch.land #menu.map{max-height:calc(100% - var(--hudH) - 14px)}
+body.touch.land #menu li{padding-top:.12em;padding-bottom:.12em}
+body.touch.land #menu.cmditem{bottom:calc(4.4em + 18px)}
+body.touch.land #menu.cmd{bottom:8px;min-height:4.4em}
+body.touch.land .binfo{font-size:.75em}
+body.touch.land #bInfo{left:calc(var(--sideL) + 8px)}
+/* 横向き：虫は「上の情報欄」と「下のメッセージ欄」のあいだの、上下まん中に置く */
+body.touch.land #battle{--free:calc(100% - var(--hudH) - 4.4em - 30px);--mid:calc(var(--hudH) + var(--free) / 2)}
+body.touch.land #bWrap{--w:min(56vh,30vw);width:var(--w);top:max(calc(var(--hudH) + .4em), calc(var(--mid) - var(--w) / 2))}
+body.touch.land #battle.vs #bWrap{--w:min(34vh,22vw);width:var(--w);left:calc(var(--sideL) + 6%);top:max(calc(var(--hudH) + 4.2em), calc(var(--mid) - var(--w) * .8))}
+body.touch.land #battle.vs #mWrap{--w:min(34vh,22vw);width:var(--w);right:calc(var(--sideR) + 6%);top:max(calc(var(--hudH) + 5.6em), calc(var(--mid) - var(--w) * .2))}
+body.touch.land #battle.vs .vsmark{top:calc(var(--mid) - .6em)}
+body.touch.land #titleScr{padding-top:calc(env(safe-area-inset-top,0px) + 3%);justify-content:flex-start}
+body.touch.land #titleScr .t1{font-size:clamp(13px,4vh,20px)}
+body.touch.land #titleScr .logo{width:auto;height:min(32vh,170px);margin:.1em 0}
+body.touch.land #titleScr .t3{font-size:clamp(11px,3.4vh,16px)}
+body.touch.land #titleScr .t4{font-size:clamp(9px,2.8vh,13px);max-width:min(60%,34em);margin-top:.4em}
+body.touch.land #menu.title{top:auto;bottom:10px;left:50%;right:auto;transform:translateX(-50%)}
+#keys{color:var(--mute);font-size:12px;text-align:center}
+#keys b{color:var(--ink);font-weight:400;border:1px solid #f7f1df55;border-radius:3px;padding:0 4px;margin:0 2px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div id="app">
+  <header><h1>むなかた虫とり日記</h1><small>プロトタイプ v0.2.0</small></header>
+  <div id="hud"></div>
+  <div id="screen">
+    <canvas id="cv" width="320" height="240"></canvas>
+    <div id="titleScr" class="ov">
+      <div class="sun"></div>
+      <div class="t1">夏休み さいごの14日間</div>
+      <div class="t2">むなかた<br>虫とり日記</div>
+      <img class="logo" alt="むなかた 虫とり日記" hidden>
+      <div class="t3">宗像じゅうの虫をつかまえて、図鑑を完成させよう</div>
+      <div class="t4">※このゲームに出てくる場所と虫の組み合わせはゲーム用のもので、実際にその場所にいる虫とはかぎりません。ミアレカブトは架空の虫です。</div>
+      <div class="credit">Game Director: Ryohei Taniguchi</div>
+      <div class="tbtns"><button type="button" class="tbtn" id="btnInstall">アプリにする方法</button><button type="button" class="tbtn" id="btnShare">友だちに教える</button></div>
+    </div>
+    <div id="battle" class="ov" hidden>
+      <div id="bInfo" class="binfo win"></div>
+      <div id="pInfo" class="binfo win"></div>
+      <div id="bWrap"><div id="netfx"></div><img id="bSprite" alt=""><div id="bShadow"></div></div>
+      <div id="mWrap"><img id="mSprite" alt=""></div>
+      <div class="vsmark">VS</div>
+    </div>
+    <div id="menu" class="win ov" hidden></div>
+    <div id="msg" class="win ov" hidden></div>
+    <div id="fade"></div>
+  </div>
+  <div id="pad">
+    <div class="dpad"><button data-k="U" aria-label="上">▲</button><button data-k="L" aria-label="左">◀</button><button data-k="R" aria-label="右">▶</button><button data-k="D" aria-label="下">▼</button></div>
+    <div class="ab"><button data-k="M">メニュー</button><button data-k="B">B</button><button data-k="A">A</button></div>
+  </div>
+  <div id="keys"><b>←↑↓→</b>いどう　<b>Z</b>/<b>Enter</b>けってい　<b>X</b>/<b>Esc</b>メニュー・もどる</div>
+</div>
+
+<div id="dex" class="full" hidden>
+  <div class="in">
+    <div class="top"><h2>昆虫図鑑</h2><span class="cnt" id="dexCnt"></span><button class="btn" id="dexClose">とじる</button></div>
+    <div class="body"><div id="dexGrid"></div><div id="dexDetail"></div></div>
+  </div>
+</div>
+<div id="cam" class="full" hidden>
+  <div class="in">
+    <div class="top"><h2>本物の虫を撮る</h2><span class="cnt" id="camCnt"></span><button class="btn" id="camClose">とじる</button></div>
+    <p class="lead">外で見つけた本物の虫を撮ると、ゲームでごほうびがもらえるよ！（1日5まいまで）<br>
+      <small>写真はこの端末の中だけでAIが判定します。どこにも送られません。</small></p>
+    <div class="camBtns">
+      <label class="btn">カメラで撮る<input id="camIn" class="vh" type="file" accept="image/*" capture="environment"></label>
+      <label class="btn">アルバムから選ぶ<input id="libIn" class="vh" type="file" accept="image/*"></label>
+    </div>
+    <div id="camResult"></div>
+    <label class="geo"><input type="checkbox" id="geoOn"> いまいる場所で「スタンプ」ももらう（位置情報をつかう）</label>
+    <p class="lead"><small>位置情報は、この端末の中で「スタンプの場所の近くにいるか」を調べるだけです。いる場所の記録は、保存も送信もしません。</small></p>
+    <h3>宗像 虫とりスタンプラリー <span id="stampCnt"></span></h3>
+    <p class="lead"><small>宗像大社・さつき松原・城山・大島などで本物の虫を撮ると、スタンプと特典がもらえるよ。<b>出かけるときは、かならずおうちの人といっしょに！</b></small></p>
+    <div id="stamps"></div>
+    <h3>本物の虫アルバム <span id="albumCnt"></span></h3>
+    <div id="album"></div>
+  </div>
+</div>
+<div id="infoPanel" class="full" hidden>
+  <div class="in">
+    <div class="top"><h2 id="ipTitle"></h2><button type="button" class="btn" id="ipClose">とじる</button></div>
+    <div id="ipBody"></div>
+  </div>
+</div>
+<div id="endScr" class="full" hidden><div class="in" id="endIn"></div></div>
+
+<script>document.write('<script src="img/sprites/list.js?t=' + Date.now() + '"><\/script>');   // 絵の一覧はいつも最新を読む</script>
+<script>
+'use strict';
+/* =========================================================
+   設定（ここをいじるとバランス調整できる）
+   ========================================================= */
+const DAYS = 14;                 // 虫とりの日数（8/13〜8/26。8/27から二学期）
+const START_DATE = [2026, 7, 13]; // 1日目の日付（年, 月-1, 日）＝ 8月13日
+const START_MIN = 6*60;          // 1日のはじまり 6:00
+const END_MIN = 21*60;           // 夜9時で強制帰宅
+const STEP_MIN = 2;              // 1歩で進む時間（分）
+const BATTLE_MIN = 10;           // 1回のバトルで進む時間（分）
+const FAINT_LOSE = 0.5;          // 熱中症で倒れたとき、虫かごからにげる割合
+const FAINT_ALL = 0.2;           // 熱中症で倒れたとき、虫が全部にげてしまう確率
+const USE_IMAGE_FILES = true;    // img/sprites/bugs/<id>.png があればそれを使う（tools/process_bugs.py で作る）
+const BUG_IMG_DIR = 'img/sprites/bugs/';
+const av = u=> u + (window.ASSET_VER ? '?v=' + window.ASSET_VER : '');   // 絵を差し替えたら古いキャッシュを使わない
+const KEY_PRE = window.DEMO ? 'demo-' : '';   // デモ版は本番のセーブにさわらない
+const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
+if(window.DEMO){ const b = document.createElement('div'); b.className = 'demoBadge'; b.textContent = 'デモ版'; document.body.appendChild(b); }
+
+/* 時間帯 */
+const SLOT_NAMES = {asa:'朝', hiru:'昼', yu:'夕方', yoru:'夜'};
+const slotOf = m => m < 9*60 ? 'asa' : m < 17*60 ? 'hiru' : m < 19*60 ? 'yu' : 'yoru';
+
+/* ---------- 装備 ---------- */
+const NETS = [
+  {name:'こども用あみ',   atk:4,  price:0,     soft:{ko:.20, any:.03}},
+  {name:'竹のあみ',       atk:7,  price:500,   soft:{ko:.35, any:.05}},
+  {name:'アルミのあみ',   atk:12, price:1500,  soft:{ko:.50, any:.07}},
+  {name:'カーボンのあみ', atk:18, price:4000,  soft:{ko:.65, any:.09}},
+  {name:'名人のあみ',     atk:26, price:10000, soft:{ko:.80, any:.12}},
+];
+/* 網の必殺技「ふんわりあみ」：虫をHP1でやさしくおさえこみ、虫は1ターンひるんで動けない。
+   ko＝たおしてしまう一撃のときに出る確率、any＝ふつうの一撃のときに出る確率。高いあみほど出やすい */
+const SOFT_NAME = 'ふんわりあみ';
+const softStars = n=> { const k = Math.round(NETS[n].soft.ko*5); return '★'.repeat(k) + '☆'.repeat(5-k); };
+const CAGES = [
+  {name:'おかしの空き箱',   pow:.35, cap:5,  price:0},
+  {name:'プラスチックかご', pow:.50, cap:8,  price:400},
+  {name:'大きな虫かご',     pow:.65, cap:12, price:1200},
+  {name:'木の飼育箱',       pow:.80, cap:16, price:3500},
+  {name:'名人の虫かご',     pow:.95, cap:24, price:9000},
+];
+const SHOES = [
+  {name:'ビーチサンダル', price:0},
+  {name:'スニーカー',     price:800},
+  {name:'登山ぐつ',       price:3000},
+];
+/* 大島へのフェリー：神湊の渡船ターミナルで買う「だいじなもの」（くつではない） */
+const TICKET = {name:'乗船チケット（無期限）', price:6000};
+const ITEMS = [
+  {key:'drink', name:'スポーツドリンク', price:80,  desc:'たいりょくを25回復'},
+  {key:'mitsu', name:'虫みつ',           price:150, desc:'バトル中、虫がつかまえやすくなる'},
+];
+
+/* ---------- フィールド（宗像市） ---------- */
+const AREAS = {
+  town:      {name:'赤間の町',     style:'town',      shoe:0, travel:20, rate:.5, bugs:['monshiro','shoryo','abura'],
+              intro:'家と虫具店がある町。'},
+  tanbo:     {name:'赤間の田んぼ', style:'tanbo',     shoe:0, travel:20, bugs:['monshiro','shoryo','tonosama','natsuakane','kamakiri'],
+              intro:'青々とした田んぼが広がっている。バッタやトンボがたくさんいそうだ。'},
+  kawara:    {name:'釣川の河原',   style:'kawara',    shoe:0, travel:30, bugs:['amenbo','shiokara','haguro','ginyanma','genji','shoryo','natsuakane'],
+              intro:'釣川の水がきらきら光っている。夜にはホタルが飛ぶらしい。'},
+  taisha:    {name:'宗像大社の森', style:'taisha',    shoe:1, travel:40, bugs:['abura','minmin','ageha','kokuwa','nokogiri','kabuto','tamamushi'],
+              intro:'大きな木がしげる神社の森。朝と夜はクワガタやカブトムシのチャンス！'},
+  matsubara: {name:'さつき松原',   style:'matsubara', shoe:1, travel:50, bugs:['kuma','tsukutsuku','usuba','hanmyo','oniyanma','abura'],
+              intro:'海ぞいに松林がつづいている。セミの声がすごい！'},
+  joyama:    {name:'城山',         style:'joyama',    shoe:2, travel:40, bugs:['higurashi','miyama','hirata','oomurasaki','suzumebachi','kokuwa','nokogiri'],
+              intro:'けわしい山道。強い虫がいそうだ。スズメバチには気をつけて！'},
+  oshima:    {name:'大島',         style:'oshima',    shoe:0, ticket:true, travel:90, bugs:['karasu','ruriboshi','ookuwa','kinkabuto','kabuto','miyama','oniyanma'],
+              intro:'神湊からフェリーでわたった大島。めずらしい虫のうわさがある…'},
+};
+/* 歩いたマスごとの出現率 */
+const ENC = {'"':.14, ',':.035, 'f':.08, 's':.03};
+
+/* ---------- 虫データ ----------
+   shape: ドット絵のかたち / c:[メイン色, サブ色, アクセント, はね]
+   lv,hp,atk: 基本ステータス / spd: すばやさ(0-5) 高いほど避ける・逃げる
+   catch: つかまえやすさ補正 / price: 売値 / time: 出る時間帯 / w: 出やすさ */
+const BUGS = {
+  monshiro:   {name:'モンシロチョウ',   shape:'butterfly', c:['#ffffff','#3a3a3a','#2a2a2a','#f6f6ee'], rank:1, lv:1,  hp:8,   atk:1,  spd:4, catch:1.2,  price:20,   time:['asa','hiru'],          w:5,
+               desc:'畑や田んぼのまわりでよく見る白いチョウ。ひらひら飛んで、意外とつかまえにくい。'},
+  shoryo:     {name:'ショウリョウバッタ', shape:'grass',   c:['#7cc444','#5a9a30','#ffffff'],            rank:1, lv:2,  hp:10,  atk:2,  spd:3, catch:1.1,  price:20,   time:['asa','hiru','yu'],     w:5,
+               desc:'先のとがった顔の大きなバッタ。オスは飛ぶとき「キチキチ」と音を出す。'},
+  tonosama:   {name:'トノサマバッタ',   shape:'grass',     c:['#8a8f4a','#6a6a30','#e8e0a0'],            rank:2, lv:4,  hp:16,  atk:3,  spd:4, catch:1.0,  price:60,   time:['hiru','yu'],           w:3,
+               desc:'草むらの王様。ジャンプ力がすごく、遠くまで飛んでにげる。'},
+  natsuakane: {name:'ナツアカネ',       shape:'dragonfly', c:['#d8402a','#b02a1a','#5a2a1a','#eef2ff'], rank:1, lv:3,  hp:11,  atk:2,  spd:5, catch:1.0,  price:35,   time:['hiru','yu'],           w:4,
+               desc:'夏の田んぼを飛ぶ赤とんぼのなかま。秋になると体がもっと赤くなる。'},
+  kamakiri:   {name:'オオカマキリ',     shape:'mantis',    c:['#5aa040','#7cc050','#f8f040'],            rank:3, lv:8,  hp:32,  atk:6,  spd:1, catch:0.9,  price:150,  time:['hiru','yu'],           w:2,
+               desc:'大きなカマで虫をつかまえるハンター。近づくとカマをふり上げておどかしてくる。'},
+  amenbo:     {name:'アメンボ',         shape:'strider',   c:['#4a3a2a','#6a5a40','#222222'],            rank:1, lv:2,  hp:9,   atk:1,  spd:5, catch:1.1,  price:25,   time:['asa','hiru','yu'],     w:4,
+               desc:'水の上をスイスイすべる虫。足の細かい毛で水をはじいて浮いている。'},
+  shiokara:   {name:'シオカラトンボ',   shape:'dragonfly', c:['#7a9ec8','#5a7aa8','#2a4a7a','#f0f4ff'], rank:1, lv:3,  hp:12,  atk:2,  spd:4, catch:1.0,  price:35,   time:['asa','hiru'],          w:5,
+               desc:'水色の体のトンボ（オス）。メスは黄色っぽくて「ムギワラトンボ」とよばれる。'},
+  haguro:     {name:'ハグロトンボ',     shape:'dragonfly', c:['#2a8a6a','#1a4a3a','#111111','#3a3a3a'], rank:2, lv:5,  hp:16,  atk:2,  spd:3, catch:1.0,  price:70,   time:['asa','hiru','yu'],     w:3,
+               desc:'黒いはねをパタパタさせて、川辺の草にとまる。ひらひら飛ぶのでチョウにまちがえられる。'},
+  ginyanma:   {name:'ギンヤンマ',       shape:'dragonfly', c:['#5ac04a','#4aa0d8','#2a6a2a','#e8f0ff'], rank:3, lv:9,  hp:30,  atk:5,  spd:5, catch:0.85, price:200,  time:['hiru','yu'],           w:2,
+               desc:'緑と水色の体の大きなトンボ。とても速くて、つかまえたら自慢できる。'},
+  genji:      {name:'ゲンジボタル',     shape:'firefly',   c:['#2a2a2a','#e04040','#e8ff60','#4a4a4a'], rank:3, lv:8,  hp:20,  atk:2,  spd:2, catch:1.0,  price:220,  time:['yoru'],                w:4,
+               desc:'夜の釣川で光る、宗像の夏の宝もの。きれいな川にしかすめない。'},
+  abura:      {name:'アブラゼミ',       shape:'cicada',    c:['#5a3a20','#3a2a1a','#2a2a2a','#9a6a3a'], rank:1, lv:4,  hp:14,  atk:3,  spd:2, catch:1.0,  price:30,   time:['asa','hiru','yu'],     w:5,
+               desc:'「ジージー」と鳴く、茶色いはねのセミ。宗像の夏の音といえばこれ。'},
+  minmin:     {name:'ミンミンゼミ',     shape:'cicada',    c:['#3a7a5a','#222222','#66cc66','#dde8ee'], rank:2, lv:6,  hp:20,  atk:3,  spd:2, catch:0.95, price:70,   time:['asa','hiru'],          w:3,
+               desc:'「ミーンミンミン」と鳴く、緑のもようのセミ。九州の平地では少しめずらしい。'},
+  ageha:      {name:'アゲハチョウ',     shape:'butterfly', c:['#222222','#222222','#e04040','#f0d850'], rank:2, lv:6,  hp:18,  atk:2,  spd:4, catch:0.95, price:80,   time:['asa','hiru'],          w:3,
+               desc:'黄色と黒のもようが美しい大きなチョウ。ミカンやサンショウの木に卵をうむ。'},
+  kokuwa:     {name:'コクワガタ',       shape:'stag',      c:['#2a1a10','#3a2a1a','#6a5a3a'],            rank:2, lv:7,  hp:24,  atk:5,  spd:1, catch:1.0,  price:90,   time:['asa','yu','yoru'],     w:3,
+               desc:'小さいけど力もちなクワガタ。木のすきまにかくれるのが上手。'},
+  nokogiri:   {name:'ノコギリクワガタ', shape:'stag',      c:['#7a3010','#4a1a08','#a85a28'],            rank:3, lv:10, hp:38,  atk:8,  spd:1, catch:0.85, price:250,  time:['asa','yu','yoru'],     w:2,
+               desc:'ギザギザの大あごがかっこいいクワガタ。クヌギの木の樹液に集まる。'},
+  kabuto:     {name:'カブトムシ',       shape:'beetle',    c:['#5a2a10','#3a1a08','#8a4a20'],            rank:3, lv:11, hp:44,  atk:9,  spd:1, catch:0.8,  price:300,  time:['asa','yoru'],          w:2,
+               desc:'夏の虫の王様。オスの大きなツノで、ほかの虫を投げとばす。'},
+  tamamushi:  {name:'タマムシ',         shape:'jewel',     c:['#2ab070','#c03a8a','#5ae0a0'],            rank:4, lv:14, hp:36,  atk:5,  spd:4, catch:0.6,  price:600,  time:['hiru'],                w:1,
+               desc:'虹色にかがやく体をもつ。むかしは宝ものとして大切にされた。'},
+  kuma:       {name:'クマゼミ',         shape:'cicada',    c:['#151515','#333333','#c8a040','#eef2f2'], rank:2, lv:8,  hp:26,  atk:4,  spd:2, catch:0.95, price:90,   time:['asa','hiru'],          w:5,
+               desc:'「シャンシャンシャン」と朝から大声で鳴く、日本最大級のセミ。'},
+  tsukutsuku: {name:'ツクツクボウシ',   shape:'cicada',    c:['#3a5a3a','#222222','#88cc88','#eef2f2'], rank:2, lv:8,  hp:22,  atk:3,  spd:3, catch:0.9,  price:110,  time:['yu'],                  w:3,
+               desc:'「ツクツクボーシ」と鳴く。夏休みの終わりが近いことを知らせるセミ。'},
+  usuba:      {name:'ウスバキトンボ',   shape:'dragonfly', c:['#e0b040','#c09030','#a05a20','#ffffff'], rank:1, lv:6,  hp:18,  atk:2,  spd:5, catch:1.0,  price:50,   time:['hiru','yu'],           w:4,
+               desc:'海をわたって南からやってくる黄色いトンボ。群れでふわふわ飛ぶ。'},
+  hanmyo:     {name:'ハンミョウ',       shape:'jewel',     c:['#c03030','#3060c0','#30c060'],            rank:3, lv:11, hp:30,  atk:6,  spd:4, catch:0.8,  price:280,  time:['hiru'],                w:2,
+               desc:'道の先へ先へと飛ぶので「道おしえ」とよばれる、とてもカラフルな虫。'},
+  oniyanma:   {name:'オニヤンマ',       shape:'dragonfly', c:['#222222','#e8d030','#44cc44','#f0f0e0'], rank:4, lv:14, hp:46,  atk:8,  spd:5, catch:0.7,  price:500,  time:['hiru','yu'],           w:1,
+               desc:'日本でいちばん大きいトンボ。黄色と黒のしまもようで、速くて強い。'},
+  higurashi:  {name:'ヒグラシ',         shape:'cicada',    c:['#7a5a2a','#3a6a3a','#99cc66','#eef2f2'], rank:2, lv:10, hp:30,  atk:4,  spd:3, catch:0.9,  price:140,  time:['asa','yu'],            w:4,
+               desc:'夕方の山で「カナカナカナ」とすずしげに鳴くセミ。'},
+  miyama:     {name:'ミヤマクワガタ',   shape:'stag',      c:['#6a4a28','#8a6a38','#c8a060'],            rank:4, lv:15, hp:58,  atk:11, spd:1, catch:0.7,  price:700,  time:['asa','yu','yoru'],     w:2,
+               desc:'頭のでっぱりが特ちょうの、すずしい山にすむクワガタ。'},
+  hirata:     {name:'ヒラタクワガタ',   shape:'stag',      c:['#141414','#242424','#4a4a4a'],            rank:4, lv:16, hp:62,  atk:12, spd:1, catch:0.65, price:800,  time:['yoru'],                w:2,
+               desc:'平たい体と太い大あごをもつ、パワー自慢のクワガタ。はさむ力はさいきょう級。'},
+  oomurasaki: {name:'オオムラサキ',     shape:'butterfly', c:['#4a3a8a','#222222','#f0e060','#6a4ac0'], rank:4, lv:15, hp:44,  atk:6,  spd:4, catch:0.65, price:750,  time:['hiru'],                w:2,
+               desc:'日本の国チョウ。オスのはねはむらさき色にかがやく。'},
+  suzumebachi:{name:'オオスズメバチ',   shape:'bee',       c:['#e8a020','#222222','#e85020','#ddddc8'], rank:5, lv:20, hp:70,  atk:18, spd:3, catch:0.5,  price:1200, time:['hiru'],                w:1,
+               desc:'世界最大級のハチ。とても危険！ 見つけたら、さわがず、手でふりはらわず、しずかにその場をはなれよう。\n（ゲームでも、つかまえずに遠くから観察するだけ）', danger:true},
+  karasu:     {name:'カラスアゲハ',     shape:'butterfly', c:['#1a2a2a','#111111','#3ac0a0','#2a4a5a'], rank:3, lv:14, hp:40,  atk:5,  spd:4, catch:0.8,  price:400,  time:['asa','hiru'],          w:3,
+               desc:'黒いはねが、光の角度で青緑にかがやくアゲハ。'},
+  ruriboshi:  {name:'ルリボシカミキリ', shape:'longhorn',  c:['#60b0e8','#111111','#111111'],            rank:4, lv:17, hp:50,  atk:8,  spd:3, catch:0.65, price:900,  time:['hiru'],                w:2,
+               desc:'空色に黒いもようの、宝石みたいなカミキリムシ。'},
+  ookuwa:     {name:'オオクワガタ',     shape:'stag',      c:['#111111','#1c1c1c','#3a3a3a'],            rank:5, lv:22, hp:90,  atk:16, spd:1, catch:0.45, price:2500, time:['yoru'],                w:1,
+               desc:'クワガタの王様。とても用心深く、なかなか姿を見せない。'},
+  kinkabuto:  {name:'ミアレカブト',     shape:'beetle',    c:['#e8c040','#c89820','#fff0a0'],            rank:5, lv:25, hp:110, atk:20, spd:2, catch:0.35, price:5000, time:['asa','yoru'],          w:0.4,
+               desc:'大島につたわる伝説の虫。みあれ祭の船団にみちびかれて現れるという、金色にかがやくカブトムシ。見た人には幸せがおとずれるらしい…。\n※ミアレカブトは、このゲームのための架空の昆虫です。'},
+};
+/* 本物の虫のデータ（図鑑用）：目・科／体長／日本の生息地／見られる時期（成虫）／飼いかた。数字はおおよその目安 */
+const INFO = {
+  monshiro:   {ord:'チョウ目 シロチョウ科', size:'はねを広げて約5cm', range:'日本全国', season:'3〜11月',
+               care:'幼虫（アオムシ）をキャベツの葉で育てると、さなぎ→チョウになるのを観察できる。チョウになったら外にはなそう。'},
+  shoryo:     {ord:'バッタ目 バッタ科', size:'オス約5cm・メス約8cm', range:'本州〜九州・沖縄', season:'7〜11月',
+               care:'エノコログサやススキなどイネ科の草を入れ、きりふきで少ししめらせる。'},
+  tonosama:   {ord:'バッタ目 バッタ科', size:'オス約4.5cm・メス約6.5cm', range:'日本全国', season:'7〜11月',
+               care:'大きめのケースにイネ科の草を入れる。しめった土を入れておくと、メスが卵をうむことも。'},
+  natsuakane: {ord:'トンボ目 トンボ科', size:'約3.5cm', range:'北海道〜九州', season:'6〜11月（秋にまっ赤になる）',
+               care:'トンボの成虫を飼うのはむずかしい。観察したら、はねをいためないように外にはなそう。'},
+  kamakiri:   {ord:'カマキリ目 カマキリ科', size:'約7〜9.5cm', range:'本州〜九州', season:'8〜11月',
+               care:'生きたバッタやコオロギをエサに。共食いするので1ぴきずつ、背の高いケースで飼う。'},
+  amenbo:     {ord:'カメムシ目 アメンボ科', size:'約1.1〜1.6cm', range:'日本全国', season:'4〜10月',
+               care:'水をはった入れものに、水に落ちた小さな虫をエサに入れる。飛ぶのでふたをわすれずに。'},
+  shiokara:   {ord:'トンボ目 トンボ科', size:'約5〜5.5cm', range:'日本全国', season:'4〜10月',
+               care:'成虫を飼うのはむずかしい。ヤゴ（幼虫）なら、水草を入れた水そうで育てて羽化を観察できる。'},
+  haguro:     {ord:'トンボ目 カワトンボ科', size:'約6cm', range:'本州〜九州', season:'5〜10月',
+               care:'成虫を飼うのはむずかしい。きれいな川べりで、ひらひら飛ぶすがたを観察しよう。'},
+  ginyanma:   {ord:'トンボ目 ヤンマ科', size:'約7cm', range:'日本全国', season:'4〜10月',
+               care:'成虫を飼うのはむずかしい。ヤゴは池や田んぼにいて、水そうで育てられる（小さな虫やメダカを食べる）。'},
+  genji:      {ord:'コウチュウ目 ホタル科', size:'約1.5〜2cm（メスのほうが大きい）', range:'本州〜九州', season:'5〜7月（宗像ではおもに5〜6月）',
+               care:'成虫は水しかのまず、1〜2週間ほどしか生きない。とることが禁止されている場所も多いので、観察して楽しもう。'},
+  abura:      {ord:'カメムシ目 セミ科', size:'はねの先まで約5.5〜6cm', range:'北海道〜九州', season:'7〜9月',
+               care:'成虫は木のしるをすうので、飼うのはむずかしい。ぬけがらを集めて、オス・メスを調べるのもおもしろい。'},
+  minmin:     {ord:'カメムシ目 セミ科', size:'はねの先まで約6cm', range:'北海道〜九州（西日本では山に多い）', season:'7〜9月',
+               care:'成虫を飼うのはむずかしい。鳴き声と、はねのすきとおった緑のもようを観察しよう。'},
+  ageha:      {ord:'チョウ目 アゲハチョウ科', size:'はねを広げて約8〜9cm', range:'日本全国', season:'3〜10月',
+               care:'幼虫をミカンやサンショウの葉で育てると、チョウになるまで観察できる。'},
+  kokuwa:     {ord:'コウチュウ目 クワガタムシ科', size:'オス約2〜5cm・メス約2〜3cm', range:'日本全国', season:'6〜9月',
+               care:'昆虫マットと昆虫ゼリー、とまり木を入れて1ぴきずつ。冬をこして2〜3年生きることもある。'},
+  nokogiri:   {ord:'コウチュウ目 クワガタムシ科', size:'オス約3〜7.5cm・メス約2.5〜4cm', range:'日本全国', season:'7〜8月',
+               care:'昆虫マットと昆虫ゼリー、とまり木を入れる。けんかするのでオスは1ぴきずつ。'},
+  kabuto:     {ord:'コウチュウ目 コガネムシ科', size:'オス約3〜8cm（ツノをふくむ）・メス約3〜5cm', range:'本州〜九州（北海道では外から入ったもの）', season:'7〜8月',
+               care:'昆虫マットを深めにしき、昆虫ゼリーととまり木を。オスとメスを飼うと、土の中に卵をうんで幼虫が育つ。'},
+  tamamushi:  {ord:'コウチュウ目 タマムシ科', size:'約3〜4cm', range:'本州〜九州', season:'7〜8月',
+               care:'エノキやケヤキの葉を食べる。飼うのはむずかしいので、木の高いところを飛ぶすがたを観察しよう。'},
+  kuma:       {ord:'カメムシ目 セミ科', size:'はねの先まで約6〜7cm', range:'本州（関東より西）〜九州・沖縄', season:'7〜9月（午前中によく鳴く）',
+               care:'成虫を飼うのはむずかしい。西日本でとくに多いセミで、宗像でもよく聞こえる。'},
+  tsukutsuku: {ord:'カメムシ目 セミ科', size:'はねの先まで約4.5cm', range:'北海道〜九州', season:'7〜10月（8月の終わりに多い）',
+               care:'成虫を飼うのはむずかしい。鳴きはじめると、夏休みの終わりが近いサイン。'},
+  usuba:      {ord:'トンボ目 トンボ科', size:'約5cm', range:'日本全国（毎年、南の国から飛んでくる）', season:'6〜10月',
+               care:'成虫を飼うのはむずかしい。お盆のころに群れで飛ぶので「精霊トンボ」ともよばれる。'},
+  hanmyo:     {ord:'コウチュウ目 ハンミョウ科（オサムシ科とすることも）', size:'約2cm', range:'本州〜九州', season:'4〜10月',
+               care:'小さな虫を食べる肉食。かわいた砂を入れたケースで、生きたエサをあたえる。'},
+  oniyanma:   {ord:'トンボ目 オニヤンマ科', size:'約9〜11cm（日本でいちばん大きいトンボ）', range:'日本全国', season:'6〜10月',
+               care:'成虫を飼うのはむずかしい。ヤゴはきれいな小川の砂の中で、何年もかけて育つ。'},
+  higurashi:  {ord:'カメムシ目 セミ科', size:'はねの先まで約4〜5cm', range:'北海道南部〜九州', season:'6〜9月（朝と夕方に鳴く）',
+               care:'成虫を飼うのはむずかしい。うす暗い林の中で、カナカナという声をさがそう。'},
+  miyama:     {ord:'コウチュウ目 クワガタムシ科', size:'オス約3〜8cm・メス約2.5〜4.5cm', range:'北海道〜九州（九州では山に多い）', season:'7〜8月',
+               care:'暑さに弱いので、25℃より低いすずしい場所で飼う。昆虫マットとゼリー、とまり木を。'},
+  hirata:     {ord:'コウチュウ目 クワガタムシ科', size:'オス約2〜7.5cm・メス約2〜4cm', range:'本州〜九州・沖縄', season:'6〜9月',
+               care:'気があらく、はさむ力が強いので1ぴきずつ。じょうぶで、数年生きることもある。'},
+  oomurasaki: {ord:'チョウ目 タテハチョウ科', size:'はねを広げてオス約10cm・メス約12cm', range:'北海道〜九州', season:'6〜8月',
+               care:'日本の国チョウ。幼虫はエノキの葉を食べる。数がへっている場所もあるので、観察して楽しもう。'},
+  suzumebachi:{ord:'ハチ目 スズメバチ科', size:'はたらきバチ約3〜4cm・女王約4〜5.5cm', range:'北海道〜九州', season:'4〜11月（8〜10月はとくに危険）',
+               care:'ぜったいに飼わない・近づかない！ 見つけたら、さわがず、手でふりはらわずに、しずかにはなれよう。'},
+  karasu:     {ord:'チョウ目 アゲハチョウ科', size:'はねを広げて約8〜12cm', range:'日本全国', season:'4〜9月',
+               care:'幼虫はカラスザンショウやミカンのなかまの葉を食べる。はねの青緑の光を観察しよう。'},
+  ruriboshi:  {ord:'コウチュウ目 カミキリムシ科', size:'約1.8〜3cm', range:'北海道〜九州', season:'6〜9月',
+               care:'かれたブナやクルミなどの木にあつまる。成虫は長くは生きないので、写真で記録しよう。'},
+  ookuwa:     {ord:'コウチュウ目 クワガタムシ科', size:'オス約3〜7.7cm・メス約3〜4.5cm', range:'北海道〜九州（すんでいる場所はかぎられる）', season:'6〜8月（夜に活動）',
+               care:'じょうぶで数年生きる。昆虫マットとゼリーで1ぴきずつ。野生のものは数がへっていて、国のレッドリストにのっているので大切に。'},
+  kinkabuto:  {ord:'コウチュウ目 コガネムシ科（という言いつたえ）', size:'約9cm（伝説）', range:'宗像市 大島（伝説）', season:'夏の夜と朝（伝説）',
+               care:'言いつたえでは、見つけたら大島の海と森にかえすと、幸せがおとずれるという…。（このゲームのための架空の虫です）'},
+};
+const ATTACK = {beetle:'ツノでつきあげてきた！', stag:'大あごではさんできた！', cicada:'おしっこをひっかけてきた！', butterfly:'りんぷんをまきちらした！',
+  dragonfly:'顔のまわりをビュンビュン飛びまわった！', grass:'とびげりしてきた！', mantis:'カマでひっかいてきた！', bee:'おしりの針でさしてきた！',
+  firefly:'ピカッと光った！ まぶしい！', strider:'水しぶきをとばしてきた！', longhorn:'かみついてきた！', jewel:'かみついてきた！'};
+
+/* ---------- ドット絵（あたり）：16x16 ---------- */
+const mirror = half => half.map(r => r + [...r].reverse().join(''));
+const SHAPES = {
+  beetle:[".......33.......",".......11.......","......3113......","......3113......",".....321123.....","....32222223....","...3.322223.3...","..3.31111113.3..","....31111113....","...3111441113...","..3.31111113.3..","....31111113....","...3.311113.3...",".....311113.....","......3113......","................"],
+  stag:["...3........3...","...13......31...","....13....31....",".....13..31.....","......3223......",".....322223.....","...3.322223.3...","..3.31111113.3..","....31111113....","...3111441113...","..3.31111113.3..","....31111113....","...3.311113.3...",".....311113.....","......3113......","................"],
+  butterfly:mirror(["......3.",".......3",".3333..3","3wwww3.3","3w11ww32","3w1441w2","3ww11ww2",".3wwww32","..3ww3.2",".3w11w32","3w1ww1w2","3ww11w32",".3www3.3","..333...","........","........"]),
+  cicada:mirror(["........","......33",".....342",".....322","...3w322","..3ww322",".3ww3122",".3ww3112","3ww.3112","3ww.3112","3ww..311",".3w..311",".3w...31","..3w..3.","...33...","........"]),
+  dragonfly:mirror(["........","......34","......33",".......2","33333..2","3wwwww32",".33333.2","33333..2","3wwwww32",".33333.2",".......1",".......1",".......1",".......1",".......3","........"]),
+  firefly:mirror(["........","........","......3.",".......3","......33",".....322","....3111","...3w111","...3w111","...3w111","....3111",".....344",".....344","......33","........","........"]),
+  bee:mirror(["........","......3.",".......3","......33","..33.344",".3ww3322","3www3222","3ww31111",".3331222","....3111","....3222","....3111",".....322","......33",".......3","........"]),
+  strider:mirror(["3.......",".3......","..3.....","...3..33","....3.31",".....331","3333.331","....3331",".....331","....3.31","...3..31","..3...33",".3......","3.......","........","........"]),
+  longhorn:mirror(["3.......","3.......",".3......",".3....33","..3..344","..3..311","...3.311","....3111","...31221","...31111","...31221","...31111","...31221","....3111",".....333","........"]),
+  jewel:mirror(["........","......33",".....311",".....344","....3111","...32222","...31111","...31111","...32222","...31111","...31111","...32222","....3111",".....311","......33","........"]),
+  grass:["................","................","................","3...............",".3..............","..3...3333333...","..33331111111333",".31412222222113.",".3111111111113..","..333333333333..","...3.3...3..3...","..3..3....3..3..",".3...3.....3..3.",".........33...3.","................","................"],
+  mantis:["................","..3.............","...3............","...33...........","..3443..........","..3113..........","...313..........","..3113..........",".3.313..........","3..31122222223..","...3111111111113","....33333333333.",".....3...3...3..","....3...3...3...","................","................"],
+};
+const spriteCache = {};
+const imgOK = {};
+function spriteURL(id, sil){
+  if(USE_IMAGE_FILES && imgOK[id]){
+    if(!sil) return av(BUG_IMG_DIR + id + '.png');
+    const k = id + '_fs';   // まだつかまえていない虫のシルエット
+    if(!spriteCache[k]){ const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d');
+      g.drawImage(imgOK[id], 0, 0, 128, 128); g.globalCompositeOperation = 'source-in'; g.fillStyle = '#2a2418'; g.fillRect(0, 0, 128, 128); spriteCache[k] = c.toDataURL(); }
+    return spriteCache[k];
+  }
+  const key = id+(sil?'_s':''); if(spriteCache[key]) return spriteCache[key];
+  const b = BUGS[id], rows = SHAPES[b.shape];
+  const c = document.createElement('canvas'); c.width = c.height = 16; const x = c.getContext('2d');
+  const pal = {'1':b.c[0], '2':b.c[1], '3':'#1b130c', '4':b.c[2], 'w':b.c[3]||'#f4f4ea'};
+  rows.forEach((r,y)=>[...r].forEach((ch,i)=>{ if(ch==='.'||ch===' ') return; x.fillStyle = sil ? '#2a2418' : (pal[ch]||'#f0f'); x.fillRect(i,y,1,1); }));
+  return spriteCache[key] = c.toDataURL();
+}
+const imgReady = {};   // 読みこみ待ち（読みこめたら resolve）
+// BUG_IMAGES（絵がある虫の一覧）は tools/process_images.py が img/sprites/list.js に書き出す
+if(USE_IMAGE_FILES) (window.BUG_IMAGES || Object.keys(BUGS)).forEach(id=>{ imgReady[id] = new Promise(res=>{ const im = new Image(); im.onload = ()=>{ imgOK[id] = im; res(); }; im.src = av(BUG_IMG_DIR + id + '.png'); }); });
+
+/* 主人公（麦わらぼうしの小学生） 12x16 */
+const PC = {h:'#e8cf6a', b:'#c8402e', s:'#f1c08e', k:'#2a1e14', t:'#fbf8ef', u:'#3d6fd6', p:'#33447e', g:'#2f7fd0', m:'#c0504a'};
+const HAT = ["....hhhh....","...hhhhhh...","...bbbbbb...",".hhhhhhhhhh."];
+const LEGS_F = ["..tttttttt..",".sttuuuutts.",".stttttttts.","..pppppppp..","..ppp..ppp..","..ss....ss..","..ss....ss..",".ggg....ggg."];
+const P_FRONT = [...HAT,"..kssssssk..","..skssssks..","..ssssssss..","...ssmmss...",...LEGS_F];
+const P_BACK  = [...HAT,"..kkkkkkkk..","..kkkkkkkk..","..skkkkkks..","...ssssss...",...LEGS_F];
+const P_SIDE  = [...HAT,"...kssssss..","...sssskss..","...ssssssss.","....ssssm...","...tttttt...","...tttuuts..","...tttttt...","...pppppp...","...ppp.ppp..","...ss...ss..","...ss...ss..","..ggg..ggg.."];
+
+/* =========================================================
+   マップ
+   ========================================================= */
+const W = 20, H = 15, TS = 16;
+const PASS = new Set([',', '"', '.', 's', 'f', 'E', 'D', 'P', 'r']);
+const TOWN = [
+  "TTTTTTTTTTTTTTTTTTTT",
+  "T..................T",
+  "T.HHHH......SSSSS..T",
+  "T.HHHH......SSSSS..T",
+  "T.HDHH......SSPSS..T",
+  "T..................T",
+  "T,,,,....,,,,,.....T",
+  'T,"",....,""",..TT.T',
+  "T,,,,....,,,,,..TT.T",
+  "T............K.....T",
+  "T.....~~~~.........T",
+  "T.....~~~~....,,,,.T",
+  'T.............,"",.T',
+  "T..................T",
+  "TTTTTTTTTEETTTTTTTTT",
+];
+function hashStr(s){ let h = 2166136261; for(const ch of s){ h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h>>>0; }
+function mulberry(a){ return ()=>{ a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a>>>15, 1 | a); t = t + Math.imul(t ^ t>>>7, 61 | t) ^ t; return ((t ^ t>>>14)>>>0) / 4294967296; }; }
+function genMap(id){
+  if(id === 'town') return TOWN.map(r=>[...r]);
+  const st = AREAS[id].style, R = mulberry(hashStr(id)), ri = (a,b)=>a + Math.floor(R()*(b-a+1));
+  const m = [...Array(H)].map(()=>Array(W).fill(','));
+  const set = (x,y,t)=>{ if(x>=0&&y>=0&&x<W&&y<H) m[y][x] = t; };
+  const rect = (x0,y0,w,h,t)=>{ for(let y=y0;y<y0+h;y++) for(let x=x0;x<x0+w;x++) set(x,y,t); };
+  const scatter = (t,p)=>{ for(let y=1;y<H-1;y++) for(let x=1;x<W-1;x++) if(m[y][x]===',' && R()<p) m[y][x] = t; };
+  const blobs = (n, y0=2, y1=12)=>{ for(let k=0;k<n;k++){ const cx = ri(2,17), cy = ri(y0,y1), r = ri(1,2);
+    for(let dy=-r;dy<=r;dy++) for(let dx=-r;dx<=r;dx++){ const x=cx+dx, y=cy+dy; if(x>0&&y>0&&x<W-1&&y<H-1 && dx*dx+dy*dy <= r*r+R()*1.5 && (m[y][x]===','||m[y][x]==='s')) m[y][x] = '"'; } } };
+  for(let x=0;x<W;x++){ m[0][x]='T'; m[H-1][x]='T'; } for(let y=0;y<H;y++){ m[y][0]='T'; m[y][W-1]='T'; }
+  if(st==='tanbo'){ rect(2,2,6,4,'f'); rect(11,2,7,4,'f'); rect(2,9,5,4,'f'); rect(13,9,5,4,'f'); scatter('T',.02); blobs(5); }
+  if(st==='kawara'){ rect(1,2,18,1,'s'); rect(1,3,18,3,'~'); rect(1,6,18,1,'s'); scatter('T',.04); blobs(7,8,12); for(let k=0;k<3;k++) set(ri(2,17),6,'o'); }
+  if(st==='taisha'){ scatter('T',.28); blobs(6); rect(9,1,2,1,'J'); rect(9,2,2,1,'.'); rect(9,3,2,1,'r'); for(let y=4;y<7;y++){ set(9,y,'.'); set(10,y,'.'); } }
+  if(st==='matsubara'){ rect(0,0,W,3,'~'); rect(1,3,18,2,'s'); scatter('T',.22); blobs(6,5,12); }
+  if(st==='joyama'){ scatter('T',.34); scatter('o',.05); blobs(7); for(let y=2;y<7;y++){ set(9,y,'.'); set(10,y,'.'); } }
+  if(st==='oshima'){ rect(0,0,W,2,'~'); for(let y=0;y<H-1;y++){ m[y][0]='~'; m[y][W-1]='~'; } rect(1,2,18,1,'s'); scatter('T',.18); blobs(7,3,12); }
+  // どこにでも行けるように道を通す
+  const clear = (x,y)=>{ const t = m[y][x]; if(t==='T'||t==='o') m[y][x] = '.'; };
+  for(let x=2;x<=17;x++) clear(x,7);
+  for(let y=3;y<=12;y++){ clear(4,y); clear(15,y); }
+  for(let y=7;y<=13;y++){ set(9,y,'.'); set(10,y,'.'); }
+  set(9,14,'E'); set(10,14,'E');
+  return m;
+}
+const maps = {}; Object.keys(AREAS).forEach(id=>maps[id] = genMap(id));
+const tileAt = (x,y)=> (maps[S.area][y]||[])[x];
+
+/* タイル描画（あたり） */
+function nz(x,y,i){ return hashStr(x+','+y+','+i) % 1000 / 1000; }
+function drawTile(g, m, x, y, st){
+  const t = m[y][x], X = x*TS, Y = y*TS;
+  const grass = st==='matsubara'||st==='oshima' ? '#78ad4a' : st==='joyama' ? '#4f9640' : '#5aa840';
+  const px = (c,a,b,w=1,h=1)=>{ g.fillStyle = c; g.fillRect(X+a, Y+b, w, h); };
+  const fill = c=>px(c,0,0,TS,TS);
+  const specks = (c,n)=>{ for(let i=0;i<n;i++) px(c, Math.floor(nz(x,y,i)*15), Math.floor(nz(x,y,i+50)*14), 1, 2); };
+  const ground = ()=>{ fill(grass); specks('#4a9136',4); };
+  switch(t){
+    case ',': ground(); break;
+    case '"': fill('#3f8f34'); for(let i=0;i<7;i++){ const a = Math.floor(nz(x,y,i)*14), b = 4+Math.floor(nz(x,y,i+9)*9); px('#2d6e26',a,b,1,4); px('#6cc050',a,b-1,1,1); px('#2d6e26',a+1,b+1,1,3); } break;
+    case '.': fill('#d9c48e'); specks('#c4ad78',5); break;
+    case 'E': fill('#d9c48e'); specks('#c4ad78',3); px('#fff6',6,6,4,1); px('#fff6',7,7,2,2); px('#fff6',4,5,8,1); break;
+    case 's': fill('#ecd9a2'); specks('#d6c088',5); break;
+    case 'o': ground(); px('#7d7f78',2,5,12,9); px('#a2a49c',3,5,8,3); px('#5a5c56',2,13,12,1); break;
+    case 'f': fill('#6aa0d0'); for(let c=1;c<16;c+=5){ px('#8fd048',c,1,3,13); px('#5f9a2e',c+1,3,1,11); } break;
+    case '~': fill('#3b7fc4'); px('#6aa6e0', Math.floor(nz(x,y,1)*10), 4, 5, 1); px('#6aa6e0', Math.floor(nz(x,y,2)*10)+2, 11, 4, 1); break;
+    case 'T': {
+      ground();
+      if(st==='matsubara'||st==='oshima'){ px('#6b4a2a',7,9,3,7); px('#1f4f34',2,1,12,4); px('#2a6a44',3,1,8,2); px('#1f4f34',0,5,16,4); px('#2a6a44',1,5,9,2); }
+      else { px('#6b4a2a',6,11,4,5); px('#255a24',1,2,14,10); px('#255a24',3,0,10,2); px('#3a7f34',3,2,7,4); px('#4f9a3e',4,2,3,2); }
+      break; }
+    case 'r': fill('#d9c48e'); { const left = m[y][x-1] !== 'r'; px('#c8402e',0,2,16,2); px('#9a2a1e',0,5,16,1); px('#c8402e', left?3:11, 4, 2, 12); } break;
+    case 'J': fill('#2f5a2a'); px('#4a3424',0,2,16,5); px('#8a5a3a',2,7,12,9); px('#e8d8a8',6,9,4,7); break;
+    case 'H': case 'S': {
+      const roof = t==='H' ? '#c0493a' : '#3a6fb0', dark = t==='H' ? '#8e3226' : '#284f82';
+      const above = (m[y-1]||[])[x];
+      if(above !== t){ fill(roof); for(let i=3;i<16;i+=4) px(dark,0,i,16,1); }
+      else { fill('#f0e6d0'); px('#c8b890',0,15,16,1); if((x+y)%2) { px('#7ab8e0',4,4,8,6); px('#5a4a3a',4,4,8,1); } }
+      break; }
+    case 'K': fill('#d9c48e'); specks('#c4ad78',5); px('#7a5a3a',1,11,14,4); px('#9a7a52',2,11,12,2); break;   // 切りかぶの土俵（子どもは上にかく）
+    case 'D': case 'P': fill('#f0e6d0'); px('#7a4a2a',3,3,10,13); px('#e8c060',10,9,2,2); if(t==='P'){ px('#3a6fb0',1,1,14,4); px('#fff',6,2,4,2); } break;
+    default: fill('#000');
+  }
+}
+const layerCache = {};
+/* ChatGPTのタイル（img/sprites/tiles.png：4×4マス・1マス16ドット）
+   1段目：草地 草むら 道 砂浜／2段目：田んぼ 水 木 松／3段目：岩 赤い屋根 壁 ドア／4段目：青い屋根 お店の入口 鳥居 おやしろ */
+const TILE_IDX = {',':0, '"':1, '.':2, 's':3, 'f':4, '~':5, 'T':6, 'o':8, 'D':11, 'P':13, 'E':2, 'K':2, 'r':2, 'J':0};
+let tileSheet = null;
+const USE_TILE_ART = true;    // true にするとChatGPTのタイル（img/sprites/tiles.png）でフィールドを描く。false はシンプルな見やすい絵
+if(USE_TILE_ART && window.HAS_TILES){ const im = new Image(); im.onload = ()=>{ tileSheet = im; for(const k in layerCache) delete layerCache[k]; }; im.src = av('img/sprites/tiles.png'); }
+const tileAtIdx = (g, i, X, Y)=> g.drawImage(tileSheet, (i%4)*TS, Math.floor(i/4)*TS, TS, TS, X, Y, TS, TS);
+function drawTileImg(g, m, x, y, st){
+  const t = m[y][x], down = (m[y+1]||[])[x];
+  let i = TILE_IDX[t];
+  if(t==='T' && (st==='matsubara' || st==='oshima')) i = 7;
+  if(t==='H') i = down==='H' || down==='D' ? 9 : 10;    // 下も家なら屋根、いちばん下の段は壁
+  if(t==='S') i = down==='S' || down==='P' ? 12 : 10;
+  if(i==null) return false;
+  tileAtIdx(g, i, x*TS, y*TS);
+  const X = x*TS, Y = y*TS, px = (c,a,b,w,h)=>{ g.fillStyle = c; g.fillRect(X+a, Y+b, w, h); };
+  if(t==='E'){ px('#fff8',6,6,4,1); px('#fff8',7,7,2,2); px('#fff8',4,5,8,1); }                       // 出口の矢じるし
+  if(t==='K'){ px('#7a5a3a',1,11,14,4); px('#9a7a52',2,11,12,2); }                                     // 切りかぶの土俵
+  return true;
+}
+function mapLayer(id){
+  if(layerCache[id]) return layerCache[id];
+  const c = document.createElement('canvas'); c.width = W*TS; c.height = H*TS; const g = c.getContext('2d'), m = maps[id], st = AREAS[id].style;
+  for(let y=0;y<H;y++) for(let x=0;x<W;x++) if(!(tileSheet && drawTileImg(g, m, x, y, st))) drawTile(g, m, x, y, st);
+  if(tileSheet){   // 鳥居とおやしろは2マスのまん中に1つだけ置く
+    for(let y=0;y<H;y++) for(let x=0;x<W;x++){
+      const t = m[y][x]; if((t!=='r' && t!=='J') || m[y][x-1]===t) continue;
+      tileAtIdx(g, t==='r' ? 14 : 15, x*TS + (m[y][x+1]===t ? TS/2 : 0), y*TS);
+    }
+  }
+  return layerCache[id] = c;
+}
+
+/* =========================================================
+   ゲーム状態
+   ========================================================= */
+function newState(){ return {day:1, min:START_MIN, lv:1, exp:0, hp:24, money:300, net:0, cage:0, shoes:0, items:{drink:1, mitsu:0, jueki:0, note:0},
+  box:[], dex:{}, seen:{}, visited:{town:true}, area:'town', x:3, y:5, dir:'D', rule:'B', warned:false, caughtTotal:0,
+  goldwing:false, ticket:false, trapDay:0, link:{}, round:1, sumo:{}, sumoDay:{}, sumoChamp:false}; }
+function loadState(json){ const d = newState(), s = Object.assign(d, JSON.parse(json)); s.items = Object.assign(newState().items, s.items); s.link = s.link || {}; s.sumo = s.sumo || {}; if(s.shoes >= 3){ s.shoes = 2; s.ticket = true; }   // 前のバージョンのマリンシューズ → 乗船チケット
+   s.sumoDay = s.sumoDay || {}; return s; }
+let S = newState();
+const maxHp = ()=> 24 + (S.lv-1)*6;
+const patk  = ()=> NETS[S.net].atk + (S.lv-1)*1.5;
+const need  = lv=> 10 + lv*lv*6;
+const cap   = ()=> CAGES[S.cage].cap;
+const clamp = (v,a,b)=> Math.max(a, Math.min(b, v));
+const rint  = (a,b)=> a + Math.floor(Math.random()*(b-a+1));
+const stars = n=> '★'.repeat(n) + '☆'.repeat(5-n);
+const esc = s=> String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt = s=> esc(s).replace(/\n/g,'<br>');
+const wait = ms=> new Promise(r=>setTimeout(r,ms));
+function dateStr(day=S.day){ const d = new Date(START_DATE[0] + (S.round||1) - 1, START_DATE[1], START_DATE[2] + day - 1); return `${d.getMonth()+1}月${d.getDate()}日（${'日月火水木金土'[d.getDay()]}）`; }
+const hhmm = (m=S.min)=> `${Math.floor(m/60)}:${String(m%60).padStart(2,'0')}`;
+const sellPrice = it=> Math.round(BUGS[it.id].price * (1 + (it.lv - BUGS[it.id].lv)*0.1));
+const dexCount = ()=> Object.keys(S.dex).length;
+function save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){} }
+function loadRaw(){ try{ return localStorage.getItem(SAVE_KEY); }catch(e){ return null; } }
+function clearSave(){ try{ localStorage.removeItem(SAVE_KEY); }catch(e){} }
+/* クリアしたときの引きつぎデータ（次の夏休みに持っていけるもの） */
+const CARRY_KEY = KEY_PRE + 'munakata-mushitori-carry-v1';
+function loadCarry(){ try{ return JSON.parse(localStorage.getItem(CARRY_KEY)); }catch(e){ return null; } }
+function saveCarry(c){ try{ localStorage.setItem(CARRY_KEY, JSON.stringify(c)); }catch(e){} }
+const grade = (round=S.round||1)=> Math.min(6, 3 + round);   // 1年目は小学4年生
+
+/* =========================================================
+   UI（メッセージ・メニュー）
+   ========================================================= */
+const $ = id=> document.getElementById(id);
+const msgEl = $('msg'), menuEl = $('menu'), hudEl = $('hud'), screenEl = $('screen');
+let uiHandler = null, busy = false, scene = 'title';
+
+/* 顔グラフィック：「お母さん「…」」のように名前ではじまるせりふは、その人の顔を出す。
+   お店の中のせりふ（「…」ではじまる）はおじさん。ぼくのひとりごとは say(…, 'boku') で指定 */
+const FACE_OF = {'お母さん':'mama', '虫具店のおじさん':'ojisan', '先生':'sensei', 'ゆうた':'yuta'};
+let talkFace = null;   // いま話している相手（お店ではおじさん）
+function faceFor(text, face){
+  if(face) return face;
+  const m = /^([^「\n]{1,10})「/.exec(text); if(m && FACE_OF[m[1]]) return FACE_OF[m[1]];
+  if(talkFace && text.startsWith('「')) return talkFace;
+  return null;
+}
+const faceImg = f=> (f && (window.FACES||[]).includes(f)) ? `<img class="face${window.FACES_FINE ? ' fine' : ''}" alt="" src="${av('img/sprites/faces/' + f + '.png')}">` : '';
+function setMsg(text, face, next){
+  const img = faceImg(faceFor(text, face));
+  msgEl.classList.toggle('withface', !!img);
+  msgEl.innerHTML = img + `<div class="mtxt">${fmt(text)}${next ? '<span class="next">▼</span>' : ''}</div>`;
+}
+function say(text, face){
+  return new Promise(res=>{
+    setMsg(text, face, true); msgEl.hidden = false;
+    uiHandler = k=>{ if(k==='A'||k==='B'){ uiHandler = null; msgEl.hidden = true; msgEl.onclick = null; res(); } };
+    msgEl.onclick = ()=> uiHandler && uiHandler('A');
+  });
+}
+async function talk(...lines){ for(const l of lines) await (Array.isArray(l) ? say(l[0], l[1]) : say(l)); }
+function choose(opts, o={}){
+  return new Promise(res=>{
+    const items = opts.map(x=> typeof x==='string' ? {label:x} : x);
+    let i = clamp(o.start||0, 0, items.length-1);
+    const hasDesc = items.some(it=>it.desc);
+    const showMsg = ()=>{ const t = (hasDesc && items[i].desc) ? `【${items[i].label}】\n${items[i].desc}` : o.msg;
+      if(t){ setMsg(t, (hasDesc && items[i].desc) ? null : o.face, false); msgEl.hidden = false; msgEl.onclick = null; } };
+    menuEl.className = 'win ov ' + (o.cls||'');
+    const render = ()=>{
+      showMsg();
+      menuEl.innerHTML = (o.title ? `<div class="mt">${esc(o.title)}</div>` : '') + '<div class="mlist"><ul>' + items.map((it,j)=>
+        `<li class="${j===i?'sel':''} ${it.disabled?'dis':''}" data-j="${j}"><span>${esc(it.label)}</span>${it.note!=null?`<em>${esc(it.note)}</em>`:''}</li>`).join('') +
+        '</ul><div class="sbar" hidden><i></i></div><div class="more up" hidden>▲</div><div class="more dn" hidden>▼</div></div>';
+      const ul = menuEl.querySelector('ul'), sel = menuEl.querySelector('.sel');
+      if(sel){ const t = sel.offsetTop, b = t + sel.offsetHeight; if(t < ul.scrollTop) ul.scrollTop = t; else if(b > ul.scrollTop + ul.clientHeight) ul.scrollTop = b - ul.clientHeight; }
+      // 見えていない続きがあるときは ▲▼ とスクロールバーを出す
+      const bar = menuEl.querySelector('.sbar'), thumb = bar.firstChild, up = menuEl.querySelector('.more.up'), dn = menuEl.querySelector('.more.dn');
+      const upd = ()=>{ const more = ul.scrollHeight - ul.clientHeight > 2; bar.hidden = !more;
+        up.hidden = !more || ul.scrollTop <= 2; dn.hidden = !more || ul.scrollTop + ul.clientHeight >= ul.scrollHeight - 2;
+        if(more){ const h = ul.clientHeight / ul.scrollHeight; thumb.style.height = h*100 + '%'; thumb.style.top = (ul.scrollTop / ul.scrollHeight)*100 + '%'; } };
+      ul.onscroll = upd; upd();
+    };
+    const done = v=>{ uiHandler = null; menuEl.hidden = true; menuEl.onclick = null; if(o.msg || hasDesc) msgEl.hidden = true; res(v); };
+    uiHandler = k=>{
+      const cols = o.cls==='cmd' ? 2 : 1;   // 戦闘コマンドは2列：左右で横、上下で縦にうごく
+      if(cols>1 && (k==='L' || k==='R')){ const row = i - i % cols, c = (i % cols + (k==='R' ? 1 : cols-1)) % cols; i = Math.min(row + c, items.length-1); render(); }
+      else if(k==='U' || k==='D'){
+        if(cols>1){   // 2列のときは、たての列ごとにぐるっと一周：あみ→どうぐ→つかまえる→にげる→あみ
+          const order = []; for(let c=0;c<cols;c++) for(let j=c;j<items.length;j+=cols) order.push(j);
+          const p = order.indexOf(i); i = order[(p + (k==='D' ? 1 : order.length-1)) % order.length];
+        } else i = (i + (k==='D' ? 1 : items.length-1)) % items.length;
+        render(); }
+      else if(k==='A'){ if(!items[i].disabled) done(i); }
+      else if((k==='B'||k==='M') && o.cancel!==false) done(-1);
+    };
+    menuEl.onclick = e=>{ const li = e.target.closest('li'); if(!li) return; const j = +li.dataset.j;
+      if(hasDesc && j!==i){ i = j; render(); return; }   // 説明つきメニューは1回目で説明、2回目で決定
+      i = j; render(); if(!items[j].disabled) done(j); };
+    menuEl.hidden = false; render();
+  });
+}
+async function fade(fn){ $('fade').classList.add('on'); await wait(260); if(fn) fn(); await wait(80); $('fade').classList.remove('on'); await wait(200); }
+async function run(fn){ if(busy) return; busy = true; try{ await fn(); } finally { busy = false; } }
+
+/* 丸い時計（長針・短針）。夜は文字盤を紺色に */
+function clockSVG(m=S.min){
+  const h = Math.floor(m/60), mi = m % 60, ha = ((h % 12) + mi/60) * 30, ma = mi * 6, night = slotOf(m)==='yoru';
+  const hand = (a, len, w, c)=>{ const r = a*Math.PI/180; return `<line x1="20" y1="20" x2="${(20 + Math.sin(r)*len).toFixed(1)}" y2="${(20 - Math.cos(r)*len).toFixed(1)}" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/>`; };
+  const ticks = Array.from({length:12}, (_,k)=>{ const r = k*30*Math.PI/180, big = k%3===0, a = big ? 13.5 : 15;
+    return `<line x1="${(20+Math.sin(r)*a).toFixed(1)}" y1="${(20-Math.cos(r)*a).toFixed(1)}" x2="${(20+Math.sin(r)*16.5).toFixed(1)}" y2="${(20-Math.cos(r)*16.5).toFixed(1)}" stroke="${night ? '#9fb3d0' : '#5a4a3a'}" stroke-width="${big ? 2 : 1.2}"/>`; }).join('');
+  return `<svg class="clock" viewBox="0 0 40 40" role="img" aria-label="${h}時${mi}分"><circle cx="20" cy="20" r="18.5" fill="${night ? '#1c2a52' : '#fbf6e6'}" stroke="#f4b63c" stroke-width="2.5"/>${ticks}`+
+    hand(ha, 9.5, 3.2, night ? '#f7f1df' : '#2b2118') + hand(ma, 14, 2, night ? '#f7f1df' : '#2b2118') + `<circle cx="20" cy="20" r="2" fill="#c8402e"/></svg>`;
+}
+function hud(){
+  if(scene==='title'){ hudEl.innerHTML = ''; return; }
+  const r = S.hp / maxHp();
+  hudEl.innerHTML = `<div class="hrow"><span class="date">${dateStr()}</span><span class="day">${S.day}/${DAYS}日目</span><span class="time">${clockSVG()}${hhmm()} ${SLOT_NAMES[slotOf(S.min)]}</span></div>`+
+    `<div class="hrow"><span class="place">${esc(AREAS[S.area].name)}</span><span class="money">${S.money}円</span><span>図鑑 ${dexCount()}/${Object.keys(BUGS).length}</span></div>`+
+    `<div class="hrow"><span class="lv">Lv${S.lv}</span><span class="hp">HP <span class="bar"><i class="${r<.3?'low':''}" style="width:${r*100}%"></i></span>${S.hp}/${maxHp()}</span></div>`;
+}
+
+/* =========================================================
+   入力
+   ========================================================= */
+const KEYMAP = {ArrowUp:'U', ArrowDown:'D', ArrowLeft:'L', ArrowRight:'R', w:'U', s:'D', a:'L', d:'R', W:'U', S:'D', A:'L', D:'R',
+  z:'A', Z:'A', Enter:'A', ' ':'A', x:'B', X:'B', Escape:'B', Backspace:'B', c:'M', C:'M', m:'M', M:'M'};
+let held = null; const heldKeys = [];
+function press(k){
+  if(uiHandler){ uiHandler(k); return; }
+  if(scene!=='field' || busy || mv) return;
+  if(k==='M' || k==='B') run(fieldMenu);
+  else if(k==='A') run(checkFront);
+}
+document.addEventListener('keydown', e=>{
+  const k = KEYMAP[e.key]; if(!k) return; e.preventDefault();
+  if('UDLR'.includes(k)){ if(!heldKeys.includes(k)) heldKeys.push(k); held = k; press(k); }
+  else if(!e.repeat) press(k);
+});
+document.addEventListener('keyup', e=>{ const k = KEYMAP[e.key]; const i = heldKeys.indexOf(k); if(i>=0) heldKeys.splice(i,1); held = heldKeys[heldKeys.length-1] || null; });
+window.addEventListener('blur', ()=>{ heldKeys.length = 0; held = null; });
+/* 十字キー：押しっぱなしで歩き続ける。指をすべらせて向きを変えられる */
+(()=>{
+  const pad = document.querySelector('.dpad'); let pid = null, cur = null, repT = null;
+  const light = k=> pad.querySelectorAll('button').forEach(b=>b.classList.toggle('on', b.dataset.k===k));
+  const setDir = k=>{
+    if(k===cur) return; cur = k; held = k; light(k); clearTimeout(repT);
+    if(!k) return;
+    press(k);
+    const rep = ()=>{ if(cur===k){ if(uiHandler) uiHandler(k); repT = setTimeout(rep, 130); } };
+    repT = setTimeout(rep, 380);   // メニューの中では長押しでカーソルが連続で動く
+  };
+  const dirAt = e=>{ const r = pad.getBoundingClientRect(), dx = e.clientX - (r.left + r.width/2), dy = e.clientY - (r.top + r.height/2);
+    if(Math.hypot(dx,dy) < r.width*0.12) return cur; return Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'R' : 'L') : (dy > 0 ? 'D' : 'U'); };
+  pad.addEventListener('pointerdown', e=>{ e.preventDefault(); pid = e.pointerId; try{ pad.setPointerCapture(pid); }catch(_){} setDir(dirAt(e)); });
+  pad.addEventListener('pointermove', e=>{ if(e.pointerId===pid) setDir(dirAt(e)); });
+  const end = e=>{ if(e.pointerId!==pid) return; pid = null; setDir(null); };
+  pad.addEventListener('pointerup', end); pad.addEventListener('pointercancel', end); pad.addEventListener('lostpointercapture', end);
+  pad.addEventListener('contextmenu', e=>e.preventDefault());
+})();
+document.querySelectorAll('.ab button').forEach(b=>{
+  b.addEventListener('pointerdown', e=>{ e.preventDefault(); b.classList.add('on'); press(b.dataset.k); });
+  const up = ()=>b.classList.remove('on');
+  b.addEventListener('pointerup', up); b.addEventListener('pointercancel', up); b.addEventListener('pointerleave', up);
+  b.addEventListener('contextmenu', e=>e.preventDefault());
+});
+
+/* =========================================================
+   フィールド
+   ========================================================= */
+const cv = $('cv'), ctx = cv.getContext('2d'); ctx.imageSmoothingEnabled = false;
+/* スマホ・タブレットは全画面。マップを大きく表示して、カメラが主人公を追いかける */
+const QS = new URLSearchParams(location.search);   // ?touch でスマホ表示、?demo=field|battle|menu で画面確認用
+const TOUCH = matchMedia('(hover:none),(pointer:coarse)').matches || QS.has('touch');
+if(TOUCH) document.body.classList.add('touch');
+let hudI = 0;   // HUDの高さ（マップ座標）
+function layout(){
+  if(!TOUCH){ if(cv.width!==320){ cv.width = 320; cv.height = 240; ctx.imageSmoothingEnabled = false; } return; }
+  const r = screenEl.getBoundingClientRect(); if(!r.width || !r.height) return;
+  const land = r.width > r.height;
+  document.body.classList.toggle('land', land);
+  const s = land ? Math.max(1, Math.min(r.width/(15*TS), r.height/(11*TS), 3.6))    // 横向き：縦11マス見える
+                 : Math.max(1, Math.min(r.width/(11*TS), r.height/(9*TS), 3.6));   // 縦向き：横11マス見える
+  const w = Math.round(r.width/s), h = Math.round(r.height/s);
+  if(cv.width!==w || cv.height!==h){ cv.width = w; cv.height = h; ctx.imageSmoothingEnabled = false; }
+  const padEl = $('pad'), dp = padEl.querySelector('.dpad').getBoundingClientRect(), ab = padEl.querySelector('.ab').getBoundingClientRect();
+  const hudH = hudEl.offsetHeight;
+  hudI = hudH / s;
+  const st = screenEl.style;
+  st.setProperty('--hudH', hudH + 'px');
+  st.setProperty('--padH', land ? '0px' : (r.bottom - Math.min(dp.top, ab.top) + 6) + 'px');
+  st.setProperty('--sideL', land ? (dp.right - r.left + 6) + 'px' : '0px');
+  st.setProperty('--sideR', land ? (r.right - ab.left + 6) + 'px' : '0px');
+}
+addEventListener('resize', layout);
+/* スマホを回したとき、画面の大きさが確定してからもう一度ととのえる（縦横比がくずれないように） */
+function relayout(){ layout(); [80, 250, 600].forEach(ms=>setTimeout(()=>{ layout(); if(window.titleArt) titleArt(); if(scene==='battle' && lastBgStyle) battleBg(lastBgStyle); }, ms)); }
+addEventListener('orientationchange', relayout);
+if(window.visualViewport) visualViewport.addEventListener('resize', relayout);
+if(window.ResizeObserver) new ResizeObserver(()=>layout()).observe(screenEl);
+if(window.ResizeObserver) new ResizeObserver(layout).observe(hudEl);
+layout();
+let mv = null; const MOVE_MS = 140;
+const DIRS = {U:[0,-1], D:[0,1], L:[-1,0], R:[1,0]};
+function tryMove(k, ts){
+  S.dir = k; const [dx,dy] = DIRS[k], nx = S.x+dx, ny = S.y+dy, t = tileAt(nx,ny);
+  if(!t || !PASS.has(t)) return;
+  mv = {fx:S.x, fy:S.y, tx:nx, ty:ny, t0:ts};
+}
+function loop(ts){
+  if(scene==='field' && !busy && !uiHandler && !mv && held) tryMove(held, ts);
+  if(mv && ts - mv.t0 >= MOVE_MS){ S.x = mv.tx; S.y = mv.ty; mv = null; run(onStep); }
+  draw(ts); requestAnimationFrame(loop);
+}
+const NPC_PAL = Object.assign({}, PC, {h:'#2f6fd0', b:'#2f6fd0', t:'#f0d040', u:'#c84030', p:'#3a3a3a', g:'#c84030'});   // 青い帽子・黄色いシャツの子
+/* 町の切りかぶの子（ゆうた）：img/sprites/npc_yuta.png の4コマ（立つ・右手をふる・立つ・左手をふる）をくり返す */
+let npcSheet = null;
+if(window.HAS_NPC_YUTA){ const im = new Image(); im.onload = ()=>{ npcSheet = im; }; im.src = av('img/sprites/npc_yuta.png'); }
+function drawNpc(tx, ty, ts){
+  const px = tx*TS, py = ty*TS - 4, bob = npcSheet ? 0 : (Math.floor(ts/400) % 2 ? -1 : 0);
+  if(npcSheet) ctx.drawImage(npcSheet, (Math.floor(ts/350) % 4) * 16, 0, 16, 16, px, py, 16, 16);
+  else P_FRONT.forEach((r,y)=>[...r].forEach((ch,i)=>{ if(ch==='.') return; ctx.fillStyle = NPC_PAL[ch]; ctx.fillRect(px + 2 + i, py + y + bob, 1, 1); }));
+  if(sumoNext()){ ctx.fillStyle = '#fff'; ctx.fillRect(px+6, py-9+bob, 5, 8); ctx.fillStyle = '#e04030'; ctx.fillRect(px+8, py-8+bob, 1, 4); ctx.fillRect(px+8, py-3+bob, 1, 1); }   // 「！」
+}
+/* 主人公の歩きの絵（img/sprites/player.png：横3コマ＝立ち・右足・左足、たて4段＝下・左・右・上、1コマ16ドット） */
+const USE_PLAYER_ART = true;    // true：img/sprites/player.png の主人公／false：プログラムで描いたシンプルな主人公
+let playerSheet = null, footRow = [15, 15, 15, 15];
+if(USE_PLAYER_ART && window.HAS_PLAYER){ const im = new Image(); im.onload = ()=>{
+  // 段ごとに足のいちばん下の行をしらべて、足がちょうど地面（マスのいちばん下）につくようにする
+  const c = document.createElement('canvas'); c.width = im.width; c.height = im.height; const g = c.getContext('2d'); g.drawImage(im, 0, 0);
+  const d = g.getImageData(0, 0, im.width, im.height).data;
+  for(let r=0;r<4;r++){ let low = 0; for(let y=0;y<16;y++) for(let x=0;x<im.width;x++) if(d[((r*16+y)*im.width + x)*4 + 3] > 0) low = Math.max(low, y); footRow[r] = low; }
+  playerSheet = im; }; im.src = av('img/sprites/player.png'); }
+const DIR_ROW = {D:0, L:1, R:2, U:3};
+function drawPlayer(px, py, ts){
+  if(playerSheet){
+    const row = DIR_ROW[S.dir], col = mv ? 1 + ((mv.tx + mv.ty) % 2) : 0;   // 歩いているあいだは右足・左足を1歩ごとにこうたい
+    const dy = 15 - footRow[row];
+    ctx.fillStyle = '#0002'; ctx.fillRect(Math.round(px)+4, Math.round(py)+14, 8, 2);   // 足もとのうすい影（足の下にかくれる）
+    ctx.drawImage(playerSheet, col*16, row*16, 16, 16, Math.round(px), Math.round(py) + dy, 16, 16);
+    return;
+  }
+  const rows = S.dir==='U' ? P_BACK : S.dir==='D' ? P_FRONT : P_SIDE, flip = S.dir==='L';
+  const bob = mv && Math.floor((ts - mv.t0) / (MOVE_MS/2)) % 2 ? -1 : 0;
+  ctx.fillStyle = '#0003'; ctx.fillRect(px+3, py+14, 10, 2);
+  rows.forEach((r,y)=>[...r].forEach((ch,i)=>{ if(ch==='.') return; ctx.fillStyle = PC[ch]; ctx.fillRect(px + 2 + (flip ? 11-i : i), py + y + bob - 1, 1, 1); }));
+}
+function draw(ts){
+  if(scene==='title'){ return; }
+  let px = S.x*TS, py = S.y*TS;
+  if(mv){ const p = clamp((ts - mv.t0)/MOVE_MS, 0, 1); px = (mv.fx + (mv.tx-mv.fx)*p)*TS; py = (mv.fy + (mv.ty-mv.fy)*p)*TS; }
+  // カメラ：マップが画面より大きい方向だけ主人公を追いかける
+  const MW = W*TS, MH = H*TS, VW = cv.width, VH = cv.height;
+  const camX = MW <= VW ? -(VW-MW)/2 : clamp(px + 8 - VW/2, 0, MW - VW);
+  const camY = MH <= VH - hudI ? -hudI : clamp(py + 8 - (VH + hudI)/2, -hudI, MH - VH);
+  ctx.fillStyle = '#17261d'; ctx.fillRect(0, 0, VW, VH);
+  ctx.save(); ctx.translate(-Math.round(camX), -Math.round(camY));
+  ctx.drawImage(mapLayer(S.area), 0, 0);
+  if(S.area==='town'){ ctx.fillStyle = '#fbf8ef'; ctx.fillRect(12*TS+20, 2*TS+4, 40, 9); ctx.fillStyle = '#284f82'; ctx.font = '8px sans-serif'; ctx.textBaseline = 'top'; ctx.fillText('虫具店', 12*TS+28, 2*TS+4); }
+  if(S.area==='town') maps.town.forEach((r,y)=>r.forEach((t,x)=>{ if(t==='K') drawNpc(x, y, ts); }));
+  drawPlayer(px, py, ts);
+  const slot = slotOf(S.min);
+  ctx.restore();
+  if(slot==='yoru'){ ctx.fillStyle = 'rgba(10,20,70,.48)'; ctx.fillRect(0,0,cv.width,cv.height);
+    if(S.area==='kawara'){ for(let i=0;i<10;i++){ const fx = (i*53 + Math.sin(ts/900+i)*22 + 320) % 320, fy = 30 + (i*37)%170 + Math.cos(ts/700+i*2)*10; ctx.fillStyle = `rgba(230,255,120,${.5+.5*Math.sin(ts/300+i)})`; ctx.fillRect(Math.round(fx-camX), Math.round(fy-camY), 2, 2); } } }
+  else if(slot==='yu'){ ctx.fillStyle = 'rgba(220,100,30,.2)'; ctx.fillRect(0,0,cv.width,cv.height); }
+  else if(slot==='asa' && S.min < 7*60){ ctx.fillStyle = 'rgba(120,160,230,.14)'; ctx.fillRect(0,0,cv.width,cv.height); }
+}
+async function onStep(){
+  S.min += STEP_MIN; hud();
+  const t = tileAt(S.x, S.y);
+  if(t==='E') await worldMap();
+  else if(t==='D') await home();
+  else if(t==='P'){ await shop(); S.y += 1; }
+  else {
+    const A = AREAS[S.area], r = (ENC[t]||0) * (A.rate||1);
+    if(Math.random() < r){ const id = pickBug(); if(id) await battle(id); }
+  }
+  await checkTime();
+}
+function pickBug(){
+  const slot = slotOf(S.min), list = AREAS[S.area].bugs.filter(id=>BUGS[id].time.includes(slot));
+  if(!list.length) return null;
+  const wt = id=>{ const b = BUGS[id]; let w = b.w;
+    if(S.trapDay===S.day && b.rank>=3) w *= 3;            // 樹液トラップ
+    if((S.link[b.shape]||0) >= S.day) w *= 2;             // 本物の虫を撮ったなかまが出やすい
+    if(id==='kinkabuto' && S.goldwing) w *= 8;            // 金色のはね
+    w *= stampBoost(id);                                  // 本物の場所でとったスタンプの特典
+    return w; };
+  let r = Math.random() * list.reduce((s,id)=>s + wt(id), 0);
+  for(const id of list){ r -= wt(id); if(r <= 0) return id; }
+  return list[list.length-1];
+}
+async function checkFront(){
+  const [dx,dy] = DIRS[S.dir], t = tileAt(S.x+dx, S.y+dy);
+  const lines = {T:'大きな木だ。あまい樹液のにおいがする…', '~': S.area==='matsubara'||S.area==='oshima' ? '玄界灘の海だ。遠くに島が見える。' : '水がきれいだ。メダカが泳いでいる。',
+    H:'ぼくの家だ。', S:'虫具店。むなかたの虫とりキッズ御用達の店。', J:'宗像大社のおやしろだ。虫がたくさんとれますように…', o:'大きな石だ。下に虫がかくれているかも？'};
+  if(t==='K'){ await sumoMenu(); await checkTime(); return; }
+  if(lines[t]) await say(lines[t]);
+}
+async function checkTime(){
+  if(S.min >= END_MIN){ await say('夜9時だ！ もう帰らないと、お母さんにおこられる…'); await sleep(); }
+  else if(S.min >= 20*60 && !S.warned){ S.warned = true; await say('もう夜8時だ。そろそろ帰る時間かな。\n（夜9時になると強制的に家に帰ります）'); }
+}
+
+/* ---------- 宗像市マップ（移動） ---------- */
+async function worldMap(){
+  const ids = Object.keys(AREAS).filter(a=>a !== S.area);
+  const opts = ids.map(a=>{ const A = AREAS[a];
+    if(A.ticket) return {label:A.name, note: S.ticket ? `フェリー ${A.travel}分` : '乗船チケットが必要'};   // チケットはターミナルで買える
+    const ok = S.shoes >= A.shoe;
+    return {label:A.name, note: ok ? `${A.travel}分` : `${SHOES[A.shoe].name}が必要`, disabled:!ok}; });
+  opts.push({label:'やめる'});
+  const c = await choose(opts, {title:'宗像市マップ', msg:'どこへ行こう？', cls:'map'});
+  if(c < 0 || c === ids.length){ S.y -= 1; S.dir = 'U'; return; }
+  const id = ids[c], A = AREAS[id];
+  if(A.ticket && !S.ticket){
+    const y = await choose(['買う','やめる'], {cls:'side', start:0,
+      msg:`神湊の渡船ターミナル。大島行きのフェリーには「${TICKET.name}」が必要だ。\n${ticketPrice()}円で買いますか？${photos.stamps?.oshima ? '（大島のスタンプで半額！）' : ''}（いま ${S.money}円）`});
+    if(y!==0){ S.y -= 1; S.dir = 'U'; return; }
+    if(S.money < ticketPrice()){ await say('お金が足りない…。虫を売ってお金をためよう。'); S.y -= 1; S.dir = 'U'; return; }
+    S.money -= ticketPrice(); S.ticket = true; hud();
+    await say(`${TICKET.name}を手に入れた！\nこれで、いつでも大島へわたれる。（だいじなもの）`);
+  }
+  await fade(()=>{ S.min += A.travel; S.area = id; if(id==='town'){ S.x = 9; S.y = 13; } else { S.x = 9; S.y = 13; } S.dir = 'U'; hud(); });
+  const first = !S.visited[id]; S.visited[id] = true;
+  await say(`${A.name}に着いた。（${hhmm()}）` + (first ? '\n' + A.intro : ''));
+}
+
+/* ---------- 家 ---------- */
+async function home(){
+  const c = await choose(['ねる（次の日へ）','セーブする','そとに出る'], {msg:'ただいま！', cls:'side'});
+  if(c===0){ await sleep(); return; }
+  if(c===1){ save(); await say('セーブしました。'); }
+  S.y += 1; S.dir = 'D';
+}
+async function sleep(faint){
+  if(S.day >= DAYS){ await ending(); return; }
+  await fade(()=>{ S.day++; S.min = START_MIN; S.hp = maxHp(); S.area = 'town'; S.x = 3; S.y = 5; S.dir = 'D'; S.warned = false; hud(); });
+  save();
+  const left = DAYS - S.day + 1;
+  const tip = left===1 ? '今日が夏休み最後の日だ！ 明日から二学期…。' : left<=3 ? `二学期まで、あと${left}日…！` : S.day<=4 ? ['お盆で、親せきのおじさんたちが遊びに来ている。','お盆なので、お墓まいりに行ってきた。','お盆の夜は、町内でぼんおどりがあるらしい。'][S.day%3] : ['今日もいい天気だ！','セミが朝から元気に鳴いている。','ラジオ体操に行ってきた！','朝ごはんをしっかり食べた！'][S.day%4];
+  await say(`${dateStr()} の朝。\n${faint ? 'ゆっくり休んだら元気になった。' : ''}${tip}`);
+}
+
+/* ---------- メニュー ---------- */
+async function fieldMenu(){
+  while(true){
+    const c = await choose(['ずかん','虫かご','どうぐ','本物の虫を撮る','ステータス','ルール','セーブ','タイトルにもどる','とじる'], {title:'メニュー', cls:'side'});
+    if(c<0 || c===8) return;
+    if(c===7){
+      const y = await choose(['はい','いいえ'], {msg:'本当にタイトルにもどりますか？\n（セーブしていないところまでの進み具合は消えます）', cls:'side', start:1});
+      if(y===0){ await fade(()=>{ mv = null; }); await titleScreen(); return; }
+      continue;
+    }
+    if(c===0) await openDex();
+    if(c===1) await boxMenu();
+    if(c===2) await itemMenu();
+    if(c===3) await openCam();
+    if(c===5) await ruleMenu();
+    if(c===6){ save(); await say('セーブしました。'); }
+    if(c===4) await say(`自由研究（昆虫図鑑）：${research().total}点・いまなら「${endingOf(research()).award}」\nLv${S.lv}　けいけんち ${S.exp}/${need(S.lv)}\nたいりょく ${S.hp}/${maxHp()}　こうげき ${Math.round(patk())}\nあみ：${NETS[S.net].name}／くつ：${SHOES[S.shoes].name}${S.ticket ? '／乗船チケットあり' : ''}\nかご：${CAGES[S.cage].name}（つかまえる力${Math.round(CAGES[S.cage].pow*100)}・${cap()}ひきまで）`);
+  }
+}
+async function boxMenu(){
+  while(true){
+    if(!S.box.length){ await say('虫かごはからっぽだ。'); return; }
+    const c = await choose(S.box.map(it=>({label:`${BUGS[it.id].name} Lv${it.lv}`, note:`${sellPrice(it)}円`})), {title:`虫かご ${S.box.length}/${cap()}`});
+    if(c<0) return;
+    const it = S.box[c];
+    const y = await choose(['にがす','やめる'], {msg:`${BUGS[it.id].name}（Lv${it.lv}）をどうする？`, cls:'side'});
+    if(y===0){ S.box.splice(c,1); await say(`${BUGS[it.id].name}をにがしてあげた。元気でね！`); }
+  }
+}
+async function itemMenu(){
+  const list = [...ITEMS, ...PHOTO_ITEMS];
+  const opts = list.map(t=>({label:`${t.name} ×${S.items[t.key]||0}`, desc:t.desc + (t.key==='mitsu' ? '（バトル中に使う）' : ''), disabled:t.key==='mitsu' || !(S.items[t.key]>0)}));
+  if(S.ticket) opts.push({label:TICKET.name, note:'だいじなもの', desc:'神湊から大島へ、フェリーでいつでもわたれる', disabled:true});
+  if(S.goldwing) opts.push({label:'金色のはね', note:'だいじなもの', desc:'大島の伝説の虫、ミアレカブトが出やすくなる', disabled:true});
+  const c = await choose(opts, {title:'どうぐ'});
+  const key = list[c]?.key;
+  if(key==='drink'){ S.items.drink--; const before = S.hp; S.hp = Math.min(maxHp(), S.hp+25); hud(); await say(`スポーツドリンクをのんだ！\nたいりょくが ${S.hp-before} 回復した。`); }
+  if(key==='jueki'){ if(S.trapDay===S.day){ await say('今日はもう樹液トラップをしかけてある。'); return; } S.items.jueki--; S.trapDay = S.day; await say('樹液トラップをしかけた！\n今日いちにち、めずらしい虫が出やすくなる。'); }
+  if(key==='note'){ S.items.note--; await say('観察ノートを読んだ。虫のことがよくわかった！'); await gainExp(40); hud(); }
+}
+async function ruleMenu(){
+  const c = await choose([
+    {label:'A：たおしてゲット', note: S.rule==='A'?'いまこれ':''},
+    {label:'B：弱らせてつかまえる', note: S.rule==='B'?'いまこれ':''}],
+    {title:'バトルのルール', msg:'A：虫のHPを0にしたらゲット。かんたんで爽快。\nB：HPを減らして「つかまえる」。HPを0にすると虫はにげてしまう。', start: S.rule==='A'?0:1});
+  if(c===0) S.rule = 'A'; if(c===1) S.rule = 'B';
+}
+
+/* ---------- お店 ---------- */
+async function shop(){
+  talkFace = 'ojisan';
+  try{ await shopMain(); } finally { talkFace = null; }
+}
+/* ひみつ：大ざんねんエンディング（がんばったで賞）のあと、つぎに遊ぶときに虫具店のおじさんが道具をくれる */
+const GIFT_KEY = KEY_PRE + 'munakata-mushitori-gift-v1';
+const hasGift = ()=>{ try{ return localStorage.getItem(GIFT_KEY)==='1'; }catch(e){ return false; } };
+function setGift(on){ try{ on ? localStorage.setItem(GIFT_KEY, '1') : localStorage.removeItem(GIFT_KEY); }catch(e){} }
+async function giveGift(){
+  const net = Math.max(S.net, 3), cage = Math.max(S.cage, 3);   // カーボンのあみ・木の飼育箱（もっといいのを持っていればそのまま）
+  await talk('虫具店のおじさん「おっ、きみか。去年の自由研究、ちょっとざんねんだったんだってな…。」',
+    '虫具店のおじさん「でも、毎日がんばって虫をさがしてたの、おじさんは見てたぞ。」',
+    (S.net < 3 || S.cage < 3) ? '虫具店のおじさん「これは、おじさんが子どものころに使ってた道具だ。持っていきな！」' : '虫具店のおじさん「道具はもう立派だな。じゃあ、これを持っていきな！」');
+  const got = [];
+  if(net > S.net) got.push(NETS[net].name);
+  if(cage > S.cage) got.push(CAGES[cage].name);
+  if(!got.length){ S.items.drink += 3; S.items.mitsu += 3; got.push('スポーツドリンク3本', '虫みつ3こ'); }   // もっといい道具を持っていたら、かわりにどうぐ
+  S.net = net; S.cage = cage; setGift(false); save(); hud();
+  await say(`${got.join('と')}を手に入れた！\nこれで、今年はもっとすごい図鑑がつくれそうだ！`, 'boku');
+}
+async function shopMain(){
+  if(hasGift()) await giveGift();
+  let greet = '虫具店のおじさん「いらっしゃい！ 今日はなんの用だい？」';
+  while(true){
+    const c = await choose(['虫を売る','あみを買う','虫かごを買う','くつを買う','どうぐを買う','店を出る'], {title:`むなかた虫具店　${S.money}円`, msg:greet});
+    greet = '「ほかに用はあるかい？」';
+    if(c<0 || c===5){ await say('「まいど！ 熱中症に気をつけるんだよ。」'); S.dir = 'D'; return; }
+    if(c===0) await sellMenu();
+    if(c===1) await buyGear('net');
+    if(c===2) await buyGear('cage');
+    if(c===3) await buyGear('shoes');
+    if(c===4) await buyItems();
+  }
+}
+async function sellMenu(){
+  while(true){
+    if(!S.box.length){ await say('「売れる虫がいないね。また持ってきておくれ。」'); return; }
+    const sum = S.box.reduce((s,it)=>s + sellPrice(it), 0);
+    const opts = [{label:'ぜんぶ売る', note:`${sum}円`}, ...S.box.map(it=>({label:`${BUGS[it.id].name} Lv${it.lv}`, note:`${sellPrice(it)}円`}))];
+    const c = await choose(opts, {title:`虫を売る　${S.money}円`, msg:'「どの虫を売ってくれるんだい？」\n（売っても図鑑の記録は消えません）'});
+    if(c<0) return;
+    if(c===0){
+      const y = await choose(['売る','やめる'], {msg:`ぜんぶで ${sum}円 だよ。売るかい？`, cls:'side'});
+      if(y===0){ S.money += sum; S.box = []; hud(); await say(`${sum}円 もらった！`); }
+    } else {
+      const it = S.box[c-1], p = sellPrice(it); S.box.splice(c-1,1); S.money += p; hud();
+      await say(`${BUGS[it.id].name}を ${p}円 で売った！`);
+    }
+  }
+}
+function gearDesc(kind, g, j){
+  if(kind==='net') return `あみのつよさ ${g.atk}（いまは ${NETS[S.net].atk}）\n${SOFT_NAME}の出やすさ ${softStars(j)}（HP1でおさえこむ必殺技）`;
+  if(kind==='cage') return `つかまえる力 ${Math.round(g.pow*100)}・${g.cap}ひきまで入る（いまは ${Math.round(CAGES[S.cage].pow*100)}・${CAGES[S.cage].cap}ひき）`;
+  const a = Object.values(AREAS).filter(a=>a.shoe===j).map(a=>a.name).join('と');
+  return a ? `${a}に行けるようになる` : '近所を歩けるくつ';
+}
+async function buyGear(kind){
+  const L = {net:NETS, cage:CAGES, shoes:SHOES}[kind], label = {net:'あみ', cage:'虫かご', shoes:'くつ'}[kind];
+  while(true){
+    const opts = L.map((g,j)=>({label:g.name, note: j===S[kind] ? 'もってる' : j<S[kind] ? '―' : `${g.price}円`, desc:gearDesc(kind,g,j), disabled: j<=S[kind]}));
+    const c = await choose(opts, {title:`${label}を買う　${S.money}円`, msg: kind==='shoes' ? '「いいくつがあれば、遠くの場所にも行けるよ。大島へは、神湊でフェリーの乗船チケットを買うんだよ。」' : '「いい道具をそろえると、強い虫もつかまえやすくなるよ。」'});
+    if(c<0) return;
+    const g = L[c];
+    if(S.money < g.price){ await say('お金が足りない…'); continue; }
+    const y = await choose(['買う','やめる'], {msg:`${g.name}は ${g.price}円 だよ。買うかい？`, cls:'side'});
+    if(y!==0) continue;
+    S.money -= g.price; S[kind] = c; hud();
+    let extra = '';
+    if(kind==='shoes'){ const names = Object.values(AREAS).filter(a=>a.shoe===c).map(a=>a.name).join('と'); extra = `\n${names}に行けるようになった！`; }
+    await say(`${g.name}を手に入れた！${extra}`);
+  }
+}
+async function buyItems(){
+  while(true){
+    const c = await choose(ITEMS.map(t=>({label:`${t.name}（${S.items[t.key]}こ）`, note:`${t.price}円`, desc:t.desc})), {title:`どうぐを買う　${S.money}円`, msg:'「どれにする？」'});
+    if(c<0) return;
+    const t = ITEMS[c];
+    if(S.money < t.price){ await say('お金が足りない…'); continue; }
+    S.money -= t.price; S.items[t.key]++; hud();
+  }
+}
+
+/* =========================================================
+   バトル
+   ========================================================= */
+const battleEl = $('battle'), bSprite = $('bSprite');
+function catchRate(e){
+  const lvDiff = S.lv - e.lv, hpR = e.hp / e.maxhp;
+  const hpWeight = clamp(1 - lvDiff*0.05, 0.3, 1.1);           // レベルが高いほどHPの影響が小さくなる
+  const lvF = clamp(1 + lvDiff*0.06, 0.35, 1.8);
+  return clamp(CAGES[S.cage].pow * (1.15 - hpR*hpWeight) * lvF * e.b.catch * (e.mitsu ? 1.5 : 1), 0.03, 0.97);
+}
+const expOf = e=> Math.round(e.lv*3 + e.b.rank*6);
+/* まだつかまえていない（図鑑にない）虫のしるし：本に「？」のアイコン */
+const DEX_ICON = '<svg class="dexicon" viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="2" width="13" height="12" rx="1.5" fill="#fff4c8" stroke="#5a2a10" stroke-width="1.2"/><line x1="8" y1="2.5" x2="8" y2="13.5" stroke="#5a2a10" stroke-width="1"/><text x="4.75" y="11" font-size="8" font-weight="700" text-anchor="middle" fill="#c8402e">?</text><text x="11.25" y="11" font-size="8" font-weight="700" text-anchor="middle" fill="#c8402e">?</text></svg>';
+function updateB(e){
+  const r = e.hp / e.maxhp, pr = S.hp / maxHp(), p = catchRate(e), dots = Math.max(1, Math.ceil(p*5));
+  $('bInfo').classList.toggle('isnew', !S.dex[e.id]); $('bInfo').classList.remove('danger');
+  $('bInfo').innerHTML = `<div class="row"><span>${esc(e.b.name)}</span><span>Lv${e.lv}</span></div>`+
+    `<div class="row"><span><span class="lbl">レア度</span> <span class="stars">${stars(e.b.rank)}</span></span></div>`+
+    (S.dex[e.id] ? '' : `<div class="row"><span class="dexnew">${DEX_ICON}まだ図鑑にない虫！</span></div>`)+
+    `<span class="bar"><i class="${r<.3?'low':''}" style="width:${r*100}%"></i></span>`+
+    `<div class="row"><span class="lbl">つかまえやすさ</span><span class="gauge">${'●'.repeat(dots)}${'○'.repeat(5-dots)}</span></div>`;
+  $('pInfo').innerHTML = `<div class="row"><span>ぼく</span><span>Lv${S.lv}</span></div>`+
+    `<span class="bar"><i class="${pr<.3?'low':''}" style="width:${pr*100}%"></i></span>`+
+    `<div class="row"><span class="lbl">HP</span><span>${S.hp}/${maxHp()}</span></div>`;
+}
+function fx(el, cls, ms){ el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); setTimeout(()=>el.classList.remove(cls), ms); }
+async function gainExp(n){
+  S.exp += n; await say(`けいけんちを ${n} もらった！`);
+  while(S.exp >= need(S.lv)){ S.exp -= need(S.lv); S.lv++; S.hp = Math.min(maxHp(), S.hp + 6); hud(); await say(`レベルが ${S.lv} にあがった！\n（たいりょく+6・こうげき+1.5）`); }
+}
+async function getBug(e){
+  if(S.box.length >= cap()){ await say(`虫かごがいっぱいで、${e.b.name}を入れられなかった…\n虫はにげていった。`); await gainExp(Math.round(expOf(e)/2)); return false; }
+  S.box.push({id:e.id, lv:e.lv}); S.caughtTotal++;
+  const first = !S.dex[e.id];
+  S.dex[e.id] = {n:(S.dex[e.id]?.n||0) + 1, best:Math.max(S.dex[e.id]?.best||0, e.lv)};
+  hud();
+  await say(`やったー！ ${e.b.name}をつかまえた！`, 'boku');
+  if(first) await say(`昆虫図鑑に ${e.b.name} が登録された！`);
+  await gainExp(expOf(e));
+  return true;
+}
+/* 熱中症ペナルティ：虫かごの虫がにげてしまう（図鑑の記録は消えない） */
+async function faintPenalty(){
+  if(!S.box.length) return;
+  if(Math.random() < FAINT_ALL){
+    const n = S.box.length; S.box = [];
+    await say(`たおれたひょうしに、虫かごのふたが開いてしまった！\n虫かごの虫が ${n}ひき ぜんぶ にげてしまった…`);
+    return;
+  }
+  const n = Math.max(1, Math.round(S.box.length * FAINT_LOSE));
+  const gone = [];
+  for(let k=0;k<n;k++) gone.push(S.box.splice(Math.floor(Math.random()*S.box.length), 1)[0]);
+  const names = gone.map(it=>BUGS[it.id].name).join('、');
+  await say(`たおれたひょうしに、虫かごから虫がにげてしまった！\n${names}（${n}ひき）がいなくなった…`);
+}
+async function useItemBattle(e){
+  const opts = ITEMS.map(t=>({label:`${t.name} ×${S.items[t.key]}`, desc:t.desc, disabled: S.items[t.key]<=0 || (t.key==='mitsu' && e.mitsu)}));
+  const c = await choose(opts, {title:'どうぐ', cls:'cmditem'});
+  if(c<0) return false;
+  if(c===0){ S.items.drink--; const b = S.hp; S.hp = Math.min(maxHp(), S.hp+25); updateB(e); hud(); await say(`スポーツドリンクをのんだ！ たいりょくが ${S.hp-b} 回復した。`); }
+  if(c===1){ S.items.mitsu--; e.mitsu = true; updateB(e); await say(`虫みつをぬった！ ${e.b.name}はあまいにおいにうっとりしている。`); }
+  return true;
+}
+/* 戦闘背景の絵（あれば）：スマホ縦なら縦長、それ以外は横長。なければ色のグラデーション */
+const BG_DIR = 'img/sprites/bg/';
+const portraitNow = ()=> TOUCH && innerHeight > innerWidth;
+function bgName(base){ const list = window.BG_IMAGES || [], a = base + (portraitNow() ? '_tate' : '_yoko'), b = base + (portraitNow() ? '_yoko' : '_tate');
+  return list.includes(a) ? a : list.includes(b) ? b : null; }
+const bgURL = n=> av(`${BG_DIR}${n}.${(window.BG_EXT||{})[n] || 'png'}`);
+let lastBgStyle = null;
+function battleBg(style){
+  lastBgStyle = style;
+  // 夜（19時〜）は夜の背景があればそれを使い、暗くするフィルターははずす
+  const nightArt = slotOf(S.min)==='yoru' && bgName('bg_' + style + '_yoru');
+  if(nightArt) battleEl.classList.remove('night');
+  const n = nightArt || bgName('bg_' + style);
+  battleEl.style.backgroundImage = n ? `url(${bgURL(n)})` : '';
+}
+/* 警告マーク（黄色い三角に「！」） */
+const WARN_ICON = '<svg class="warnicon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.2 L15.2 14.4 H0.8 Z" fill="#ffd23a" stroke="#1b130c" stroke-width="1.3" stroke-linejoin="round"/><rect x="7.1" y="5.2" width="1.8" height="5" rx=".6" fill="#1b130c"/><rect x="7.1" y="11.3" width="1.8" height="1.8" rx=".6" fill="#1b130c"/></svg>';
+/* 危ない虫（スズメバチ）：戦わずにしずかに逃げる。図鑑には「観察した」として記録 */
+async function dangerEncounter(id){
+  const b = BUGS[id], slot = slotOf(S.min);
+  battleEl.className = 'ov bg-' + AREAS[S.area].style + (slot==='yoru' ? ' night' : slot==='yu' ? ' dusk' : ''); battleBg(AREAS[S.area].style);
+  bSprite.src = spriteURL(id); scene = 'battle';
+  if(!imgOK[id] && imgReady[id]) imgReady[id].then(()=>{ if(scene==='battle') bSprite.src = spriteURL(id); });
+  await fade(()=>{ battleEl.hidden = false; $('bInfo').classList.add('danger'); $('bInfo').innerHTML = `<div class="row"><span>${esc(b.name)}</span></div><div class="row"><span class="warn">${WARN_ICON}キケン！ 近づかないで</span></div>`; battleEl.classList.add('alarm'); $('pInfo').hidden = true; $('pInfo').innerHTML = `<div class="row"><span>ぼく</span><span>Lv${S.lv}</span></div>`; });
+  await say(`ブーーン…！ ${b.name}だ！`);
+  await say('スズメバチはとても危ない！\nさわがず、手でふりはらわず、しずかにその場をはなれよう…。');
+  const first = !S.dex[id];
+  if(first){ S.dex[id] = {n:0, best:0, watched:true}; hud(); }
+  await say('そーっと、後ろに下がって にげた。ふう、あぶなかった…。' + (first ? `\n遠くから観察したので、昆虫図鑑に ${b.name} を記録した！` : ''));
+  await fade(()=>{ battleEl.hidden = true; battleEl.classList.remove('alarm'); $('bInfo').classList.remove('danger'); $('pInfo').hidden = false; scene = 'field'; S.min += 5; hud(); });
+}
+async function battle(id){
+  const b = BUGS[id], lv = b.lv + rint(0,2), k = 1 + 0.08*(lv - b.lv);
+  const e = {id, b, lv, maxhp:Math.round(b.hp*k), atk:Math.max(1, Math.round(b.atk*k)), mitsu:false}; e.hp = e.maxhp;
+  S.seen[id] = true;
+  if(b.danger) return dangerEncounter(id);   // スズメバチは戦わずに逃げる
+  const slot = slotOf(S.min);
+  battleEl.className = 'ov bg-' + AREAS[S.area].style + (slot==='yoru' ? ' night' : slot==='yu' ? ' dusk' : ''); battleBg(AREAS[S.area].style);
+  bSprite.src = spriteURL(id); scene = 'battle';
+  if(!imgOK[id] && imgReady[id]) imgReady[id].then(()=>{ if(scene==='battle') bSprite.src = spriteURL(id); });
+  await fade(()=>{ battleEl.hidden = false; updateB(e); });
+  await say(`あっ！ ${b.name}（Lv${lv}）があらわれた！` + (id==='kinkabuto' ? '\nまぶしい金色の光…！ これが大島の伝説の…！' : b.rank>=4 ? '\nめずらしい虫だ…！' : ''));
+  let result = null;
+  while(!result){
+    const c = await choose(['あみをふる','つかまえる','どうぐ','にげる'], {cls:'cmd', title:`${b.name}を どうする？`, cancel:false});
+    let turn = true;
+    if(c===0){
+      if(Math.random() < b.spd*0.05){ await say(`ブンッ！ ${b.name}にあみをよけられた！`); }
+      else {
+        let d = patk()*(0.85 + Math.random()*0.3); const crit = Math.random() < 1/12; if(crit) d *= 1.6; d = Math.max(1, Math.round(d));
+        // 網の必殺技：たおしてしまいそうな一撃ほど出やすい（ルールA「たおしてゲット」のときは、たおす一撃では出ない）
+        const ko = d >= e.hp, so = NETS[S.net].soft;
+        if(e.hp > 1 && (ko ? S.rule!=='A' && Math.random() < so.ko : Math.random() < so.any)){
+          e.hp = 1; e.stun = 1; fx(bSprite,'hit',450); updateB(e);
+          await say(`ひっさつ！「${SOFT_NAME}」！\n${b.name}をやさしくおさえこんだ！ のこりHP1！\n（いまがつかまえるチャンス！）`);
+        } else {   // ふつうの一撃
+        e.hp = Math.max(0, e.hp - d); fx(bSprite,'hit',450); updateB(e);
+        await say((crit ? 'クリーンヒット！ ' : '') + `${b.name}に ${d} のダメージ！`);
+        if(e.hp <= 0){
+          if(S.rule==='A'){ await getBug(e); }
+          else { await say(`${b.name}は弱って、どこかへ飛んでいってしまった…\n（HPを0にすると、つかまえられない）`); await gainExp(Math.round(expOf(e)/2)); }
+          result = 'end';
+        }
+        }
+      }
+    } else if(c===1){
+      if(S.box.length >= cap()){ await say('虫かごがいっぱいだ！\n虫具店で売るか、メニューからにがしてあげよう。'); turn = false; }
+      else {
+        const p = catchRate(e); fx($('netfx'),'go',900); await wait(700);
+        await say('えいっ！ あみをかぶせた！');
+        if(Math.random() < p){ await getBug(e); result = 'end'; }
+        else await say(`おしい！ ${b.name}はあみからにげだした！`);
+      }
+    } else if(c===2){ turn = await useItemBattle(e); }
+    else { await say('そっと、その場をはなれた…'); result = 'end'; }
+    if(result || !turn) continue;
+    // 虫のターン
+    if(e.stun){ e.stun--; await say(`${b.name}はひるんでいて、動けない！`); continue; }
+    const hpR = e.hp / e.maxhp;
+    if(Math.random() < b.spd*0.025 + (hpR < .35 ? .06 : 0)){ await say(`${b.name}は飛んでにげてしまった！`); result = 'end'; break; }
+    const d = Math.max(1, Math.round(e.atk*(0.8 + Math.random()*0.4)));
+    S.hp = Math.max(0, S.hp - d); fx(screenEl,'shake',300); updateB(e); hud();
+    await say(`${b.name}は${ATTACK[b.shape]}\n${d} のダメージをうけた！`);
+    if(S.hp <= 0){ await say('目の前がくらくらする…熱中症かも！\nいそいで家に帰って休もう。', 'boku'); result = 'faint'; }
+  }
+  await fade(()=>{ battleEl.hidden = true; scene = 'field'; S.min += BATTLE_MIN; hud(); });
+  if(result==='faint'){ await faintPenalty(); await sleep(true); }
+}
+
+/* =========================================================
+   虫ずもう（町の広場で、近所の子どもと虫どうしを勝負させる）
+   ========================================================= */
+const SUMO_CHAMP_PT = 10;   // チャンピオンになると自由研究に +10点
+const RIVALS = [
+  {key:'yuta',  name:'ゆうた（1年生）',               short:'ゆうた', bug:'abura',    lv:6,  money:100,  item:'drink', hi:'ぼくのセミ、つよいんだぞ！',              win:'うわーん、まけた〜！',            lose:'やったー！ セミの勝ち！'},
+  {key:'haruka',name:'はるか（3年生）',               short:'はるか', bug:'kamakiri', lv:10, money:200,  item:'mitsu', hi:'カマキリのカマ、なめないでよね。',        win:'…くやしい。でも、いい虫ね。',      lose:'ほらね、カマキリは最強なの。'},
+  {key:'kenta', name:'けんた（4年生・となりのクラス）', short:'けんた', bug:'nokogiri', lv:13, money:400,  item:'jueki', hi:'ノコギリのはさみで、まっぷたつだ！',      win:'まじかよ…！ 二学期、教えてくれよな。', lose:'へへん、となりのクラスの勝ちだな！'},
+  {key:'soma',  name:'そうま（5年生）',               short:'そうま', bug:'kabuto',   lv:16, money:700,  item:'note',  hi:'夏の王様カブトムシに勝てるかな？',        win:'王様がやられた…。きみ、やるなあ。',  lose:'王様の力、思い知ったか！'},
+  {key:'daichi',name:'だいち（6年生・ガキ大将）',       short:'だいち', bug:'miyama',   lv:20, money:1200, item:'jueki', hi:'おれのミヤマは、城山でいちばん強いぜ！',  win:'…おまえ、ただものじゃないな。',     lose:'ガッハッハ！ 出直してこい！'},
+  {key:'ren',   name:'れん（中学1年生・チャンピオン）',  short:'れん',   bug:'hirata',   lv:22, money:2000, item:'champ', hi:'チャンピオンの座は、ゆずらないよ。',      win:'参った。今日からきみがチャンピオンだ。', lose:'まだまだ。また挑戦しにおいで。'},
+];
+/* 虫のタイプ（虫ずもう用）：ちから・まもり（受けるダメージの倍率）・かいふく（ふんばるで回復する割合） */
+const TYPES = {
+  kouchu: {name:'甲虫',           atk:1.05, def:0.86, hp:1.08, heal:0.08},
+  chou:   {name:'チョウ',          atk:0.92, def:1.00, hp:0.98, heal:0.22},
+  tonbo:  {name:'トンボ',          atk:1.06, def:1.02, hp:0.94, heal:0.08},
+  batta:  {name:'バッタ・カマキリ', atk:1.08, def:0.96, hp:1.00, heal:0.11},
+  semi:   {name:'セミ',            atk:0.95, def:0.95, hp:1.02, heal:0.15},
+  hachi:  {name:'ハチ',            atk:1.15, def:1.05, hp:0.95, heal:0.06},
+  mizube: {name:'ホタル・アメンボ', atk:0.98, def:0.96, hp:1.04, heal:0.20},
+};
+const SHAPE_TYPE = {beetle:'kouchu', stag:'kouchu', jewel:'kouchu', longhorn:'kouchu', butterfly:'chou', dragonfly:'tonbo',
+  grass:'batta', mantis:'batta', cicada:'semi', bee:'hachi', firefly:'mizube', strider:'mizube'};
+const typeOf = b=> TYPES[SHAPE_TYPE[b.shape]];
+/* ひっさつわざ：mult いりょく／acc ねらい／open 使ったあとのスキ（受けるダメージ倍率）／pierce ふんばるをつきやぶる
+   blind 相手の攻撃が当たりにくくなる回数／weaken 相手のちから／poison どくのターン数／hits 回数 */
+const SP_MOVES = {
+  beetle:   {name:'ツノでなげとばし',   mult:2.0, acc:.70, open:1.5, info:'いりょくがとても大きい'},
+  stag:     {name:'大あごではさみなげ', mult:1.8, acc:.75, open:1.5, pierce:true, info:'ふんばっている相手にもきく'},
+  jewel:    {name:'にじいろビーム',     mult:1.6, acc:.85, open:1.4, info:'当たりやすい大わざ'},
+  longhorn: {name:'かみつきロック',     mult:1.5, acc:.85, open:1.4, pierce:true, info:'ふんばっている相手にもきく'},
+  butterfly:{name:'りんぷんふぶき',     mult:1.0, acc:.95, open:1.2, blind:2, info:'相手のこうげきが2回当たりにくくなる'},
+  dragonfly:{name:'きゅうこうかアタック', mult:1.7, acc:.90, open:1.25, info:'当たりやすく、スキが小さい'},
+  grass:    {name:'ジャンプキック',     mult:1.9, acc:.70, open:1.5, info:'いりょくが大きい'},
+  mantis:   {name:'カマのれんぞくぎり', mult:1.05, acc:.9, open:1.4, hits:2, info:'2回こうげきする'},
+  cicada:   {name:'ミンミン大音量',     mult:1.1, acc:.90, open:1.3, weaken:.8, info:'相手のちからを下げる'},
+  bee:      {name:'どくばりアタック',   mult:1.4, acc:.80, open:1.4, poison:3, info:'3ターンのあいだ、どくでダメージ'},
+  firefly:  {name:'ピカピカフラッシュ', mult:1.1, acc:1.0, open:1.2, blind:2, info:'相手のこうげきが2回当たりにくくなる'},
+  strider:  {name:'水しぶきスプラッシュ', mult:1.1, acc:.95, open:1.2, blind:2, info:'相手のこうげきが2回当たりにくくなる'},
+};
+const sumoNext = ()=> S.area==='town' && RIVALS.find((r,i)=>!(S.sumo||{})[r.key] && (i===0 || (S.sumo||{})[RIVALS[i-1].key]));
+function fighter(id, lv, mine){
+  // 虫ずもうの強さは「レベル×タイプ」で決まる（めずらしい虫ほどレベルが高いので強い）。ぼくのレベルが高いほど、おうえんで少し強くなる
+  const b = BUGS[id], t = typeOf(b), cheer = mine ? 1 + (S.lv-1)*0.02 : 1;
+  const maxhp = Math.round((28 + lv*4.2) * t.hp);
+  return {id, b, t, sp:SP_MOVES[b.shape], lv, maxhp, hp:maxhp, atk:(5 + lv*0.8) * t.atk * cheer, spd:b.spd,
+    guard:false, open:1, blind:0, weak:1, poison:0, lastGuard:false};
+}
+const mark = (v, hi, lo)=> v >= hi ? '◎' : v <= lo ? '△' : '○';
+const fstat = f=> `${f.t.name}タイプ　たいりょく${f.maxhp}　ちから${Math.round(f.atk)}\nまもり${mark(1/f.t.def, 1.12, 0.96)}　すばやさ${mark(f.spd, 4, 1)}　かいふく${mark(f.t.heal, 0.16, 0.08)}\nひっさつ：${f.sp.name}（${f.sp.info}）`;
+async function sumoRules(){
+  await talk('【虫ずもうのルール】\nつっこむ：ふつうのこうげき。\nひっさつわざ：つよいけど、つぎに動くまでスキができて、受けるダメージが1.5倍になる。',
+    'ふんばる：受けるダメージを大きくへらして、たいりょくを回復する。回復する量は虫のタイプでちがう。2回つづけると回復は半分。',
+    '【虫のタイプ】\n甲虫：ちから・まもりが強いけど、おそい。\nチョウ：よわいけど、ふんばるでたくさん回復。りんぷんで相手の攻撃をはずさせる。',
+    'トンボ：とても速くて、ひっさつわざが当たりやすい。\nバッタ・カマキリ：バランス型。カマキリは2回こうげき。',
+    'セミ：大音量で相手のちからを下げる。\nハチ：ちからが強く、どくでダメージをあたえる。\nホタル・アメンボ：目くらましと回復がとくい。',
+    'すばやさが高い虫が先に動く。相手のタイプを見て、作戦を立てよう！');
+}
+async function sumoMenu(){
+  S.sumo = S.sumo || {}; S.sumoDay = S.sumoDay || {};
+  await say('広場の切りかぶの上で、近所の子どもたちが虫ずもうをしている！');
+  if(!S.sumoRuleSeen){ S.sumoRuleSeen = true; await say('ゆうた「虫ずもう、はじめて？ やり方をおしえてあげるね！」'); await sumoRules(); }
+  while(true){
+    const opts = RIVALS.map((r,i)=>{
+      const won = S.sumo[r.key], locked = i>0 && !S.sumo[RIVALS[i-1].key], done = S.sumoDay[r.key]===S.day;
+      return {label: locked ? '？？？' : r.name,
+        note: locked ? '' : done ? '今日はおわり' : won ? `再戦 ${Math.round(r.money/4)}円` : `賞金 ${r.money}円`,
+        desc: locked ? '前の相手に勝つと、挑戦できるようになる' : `あいての虫：${BUGS[r.bug].name} Lv${r.lv}（${typeOf(BUGS[r.bug]).name}タイプ）` + (won ? '\n勝ったことがある。再戦は1日1回' : ''),
+        disabled: locked || done};
+    });
+    opts.unshift({label:'虫ずもうのルール', desc:'わざとタイプの説明'});   // いちばん上
+    opts.push({label:'やめる'});
+    // カーソルは「まだ勝っていない相手」→「今日たたかえる相手」の順で、えらべるところに合わせる
+    const can = RIVALS.map((r,j)=>!opts[j+1].disabled);
+    let start = RIVALS.findIndex((r,j)=>can[j] && !S.sumo[r.key]);
+    if(start<0) start = can.indexOf(true);
+    start = start<0 ? RIVALS.length + 1 : start + 1;   // 先頭はルールなので +1
+    const c0 = await choose(opts, {title:'虫ずもう', start});
+    if(c0===0){ await sumoRules(); continue; }
+    if(c0<0 || c0===RIVALS.length + 1) return;
+    const c = c0 - 1;
+    if(!S.box.length){ await say('虫かごに虫がいないと、虫ずもうに出られない…。'); return; }
+    const m = await choose(S.box.map(it=>({label:`${BUGS[it.id].name} Lv${it.lv}`, desc:fstat(fighter(it.id, it.lv, true))})), {title:'どの虫で勝負する？'});
+    if(m<0) continue;
+    await sumoBattle(RIVALS[c], S.box[m]);
+    hud();
+    if(S.min >= END_MIN) return;
+  }
+}
+async function sumoBattle(r, it){
+  const me = fighter(it.id, it.lv, true), foe = fighter(r.bug, r.lv, false), mSprite = $('mSprite');
+  const first = !S.sumo[r.key];
+  const upd = ()=>{
+    const fr = foe.hp/foe.maxhp, mr = me.hp/me.maxhp;
+    const st = f=> [f.open>1 ? '<span class="new">スキ</span>' : '', f.blind ? '<span class="lbl">めくらまし</span>' : '', f.weak<1 ? '<span class="lbl">ちから↓</span>' : '', f.poison ? '<span class="new">どく</span>' : ''].join(' ');
+    $('bInfo').classList.remove('isnew');
+    $('bInfo').innerHTML = `<div class="row"><span>${esc(r.short)}の${esc(foe.b.name)}</span></div><div class="row"><span class="lbl">Lv${foe.lv}・${foe.t.name}</span><span>${foe.hp}/${foe.maxhp}</span></div><span class="bar"><i class="${fr<.3?'low':''}" style="width:${fr*100}%"></i></span><div class="row">${st(foe)}</div>`;
+    $('pInfo').innerHTML = `<div class="row"><span>ぼくの${esc(me.b.name)}</span></div><div class="row"><span class="lbl">Lv${me.lv}・${me.t.name}</span><span>${me.hp}/${me.maxhp}</span></div><span class="bar"><i class="${mr<.3?'low':''}" style="width:${mr*100}%"></i></span><div class="row">${st(me)}</div>`;
+  };
+  battleEl.className = 'ov bg-town vs'; battleBg('town'); bSprite.src = spriteURL(foe.id); mSprite.src = spriteURL(me.id); scene = 'battle';
+  [[foe.id, bSprite], [me.id, mSprite]].forEach(([id, el])=>{ if(!imgOK[id] && imgReady[id]) imgReady[id].then(()=>{ if(scene==='battle') el.src = spriteURL(id); }); });
+  await fade(()=>{ battleEl.hidden = false; upd(); });
+  await say(`${r.short}「${r.hi}」`);
+  await say('はっけよーい……のこった！');
+  const name = (f)=> f===me ? `ぼくの${me.b.name}` : `${r.short}の${foe.b.name}`;
+  const act = async (a, d, cmd)=>{
+    a.open = 1;   // 自分が動いたら、ひっさつわざのスキはなくなる
+    if(cmd===2){   // ふんばる：タイプで回復量がちがう。2回つづけると半分
+      const h = Math.max(1, Math.round(a.maxhp * a.t.heal * (a.lastGuard ? 0.5 : 1))); a.hp = Math.min(a.maxhp, a.hp + h); a.lastGuard = true; upd();
+      await say(`${name(a)}は、ぐっとふんばった！（たいりょく+${h}）`); return;
+    }
+    a.lastGuard = false;
+    const sp = cmd===1, mv = a.sp, wname = sp ? mv.name + '！' : 'つっこみ！';
+    let hit = (sp ? mv.acc : .95) - d.spd*0.03 + a.spd*0.02;
+    if(a.blind){ hit *= 0.55; a.blind--; }
+    if(sp) a.open = mv.open;   // ひっさつわざを使うと、つぎに動くまでスキができる
+    if(Math.random() > hit){ upd(); await say(`${name(a)}の${wname}\n…ひらりとかわされた！`); return; }
+    const times = sp && mv.hits || 1; let total = 0;
+    for(let n=0; n<times; n++){
+      const guard = d.guard && !(sp && mv.pierce) ? 0.4 : 1;
+      total += Math.max(1, Math.round(a.atk * a.weak * (0.85 + Math.random()*0.3) * (sp ? mv.mult : 1) * d.t.def * guard * d.open));
+    }
+    d.hp = Math.max(0, d.hp - total); fx(d===me ? mSprite : bSprite, 'hit', 450); if(d===me) fx(screenEl,'shake',300);
+    const notes = [];
+    if(d.open > 1) notes.push('スキをつかれた！');
+    if(d.guard) notes.push(sp && mv.pierce ? 'ふんばりをつきやぶった！' : 'ふんばってダメージをへらした');
+    if(sp && mv.blind){ d.blind = mv.blind; notes.push(`${name(d)}は目がくらんだ！`); }
+    if(sp && mv.weaken){ d.weak = Math.max(0.6, d.weak * mv.weaken); notes.push(`${name(d)}のちからが下がった！`); }
+    if(sp && mv.poison){ d.poison = mv.poison; notes.push(`${name(d)}はどくをうけた！`); }
+    upd();
+    await say(`${name(a)}の${wname}${times>1 ? `（${times}回）` : ''}\n${total} のダメージ！ ${notes.join(' ')}`);
+  };
+  let result = null;
+  while(!result){
+    const c = await choose(['つっこむ', me.sp.name, 'ふんばる', 'こうさん'], {cls:'cmd', cancel:false, title:`ぼくの${me.b.name}、どうする？`, start:0});
+    if(c===3){ await say('「まいった！」…こうさんした。', 'boku'); result = 'lose'; break; }
+    // あいての作戦：回復がとくいな虫は弱るとふんばる。ふつうは3回に1回くらいひっさつわざ
+    const low = foe.hp < foe.maxhp*0.35, rnd = Math.random();
+    const fc = low && !foe.lastGuard && rnd < (foe.t.heal >= .14 ? .6 : .3) ? 2 : rnd < .33 ? 1 : rnd < .4 && !foe.lastGuard ? 2 : 0;
+    me.guard = c===2; foe.guard = fc===2;
+    const order = me.spd > foe.spd || (me.spd===foe.spd && Math.random() < .5) ? [[me,foe,c],[foe,me,fc]] : [[foe,me,fc],[me,foe,c]];
+    for(const [a,d,cmd] of order){
+      await act(a, d, cmd);
+      if(d.hp <= 0){ result = d===foe ? 'win' : 'lose'; await say(`${name(d)}は、切りかぶの外へころがり落ちた！\nしょうぶあり！`); break; }
+    }
+    for(const f of [me, foe]){   // ターンの終わりに、どくのダメージ
+      if(result || !f.poison) continue;
+      const pd = Math.max(1, Math.round(f.maxhp*0.06)); f.hp = Math.max(0, f.hp - pd); f.poison--; upd();
+      await say(`${name(f)}は、どくで ${pd} のダメージ！`);
+      if(f.hp <= 0){ result = f===foe ? 'win' : 'lose'; await say(`${name(f)}は、切りかぶの外へころがり落ちた！\nしょうぶあり！`); }
+    }
+  }
+  S.min += 20;
+  if(result==='win'){
+    await say(`${r.short}「${r.win}」`);
+    const money = first ? r.money : Math.round(r.money/4); S.money += money;
+    let msg = `虫ずもうに勝った！ 賞金 ${money}円 をもらった！`;
+    if(first){
+      if(r.item==='champ'){ S.sumoChamp = true; msg += `\n「虫ずもうチャンピオン」になった！（自由研究 +${SUMO_CHAMP_PT}点）`; }
+      else { const t = [...ITEMS, ...PHOTO_ITEMS].find(t=>t.key===r.item); S.items[r.item] = (S.items[r.item]||0) + 1; msg += `\nさらに ${t.name} をもらった！`; }
+    }
+    S.sumo[r.key] = (S.sumo[r.key]||0) + 1;
+    hud(); await say(msg, 'boku');
+    const nx = RIVALS[RIVALS.indexOf(r) + 1];
+    if(first && nx) await say(`つぎの相手「${nx.name}」と勝負できるようになった！`);
+    if(first && !nx) await say('虫ずもうの相手は、ぜんぶたおした！');
+  } else {
+    await say(`${r.short}「${r.lose}」`);
+  }
+  S.sumoDay[r.key] = S.day;   // 同じ相手とは1日1回
+  await fade(()=>{ battleEl.hidden = true; battleEl.className = 'ov'; scene = 'field'; hud(); });
+}
+
+/* =========================================================
+   図鑑
+   ========================================================= */
+function openDex(){
+  return new Promise(res=>{
+    const ids = Object.keys(BUGS), grid = $('dexGrid'), det = $('dexDetail'); let i = 0;
+    { const r = research(); $('dexCnt').textContent = `${dexCount()} / ${ids.length} しゅるい　自由研究 ${r.total}点（いまなら${endingOf(r).award}）`; }
+    const where = id=> Object.values(AREAS).filter(a=>a.bugs.includes(id)).map(a=>a.name).join('・');
+    const render = ()=>{
+      grid.innerHTML = ids.map((id,j)=>{ const got = S.dex[id], seen = S.seen[id];
+        return `<div class="c ${j===i?'sel':''}" data-j="${j}"><img alt="" src="${spriteURL(id, !got)}"><span class="no">No.${String(j+1).padStart(2,'0')}</span><br>${got||seen ? esc(BUGS[id].name) : '？？？'}</div>`; }).join('');
+      const id = ids[i], b = BUGS[id], got = S.dex[id], seen = S.seen[id];
+      det.innerHTML = `<div class="hd"><img alt="" src="${spriteURL(id, !got)}"><div><div>No.${String(i+1).padStart(2,'0')}</div><h3>${got||seen ? esc(b.name) : '？？？'}</h3><div class="stars">${got ? `<span class="rl">レア度</span> ${stars(b.rank)}` : ''}</div></div></div>`+
+        (got ? `<p>${fmt(b.desc)}</p>${INFO[id] ? `<h4>本物の虫のデータ</h4><dl class="real"><dt>なかま</dt><dd>${esc(INFO[id].ord)}</dd><dt>大きさ</dt><dd>${esc(INFO[id].size)}</dd><dt>日本でいる場所</dt><dd>${esc(INFO[id].range)}</dd><dt>見られる時期</dt><dd>${esc(INFO[id].season)}</dd><dt>飼いかた</dt><dd>${esc(INFO[id].care)}</dd></dl>` : ''}<h4>ゲームのきろく</h4><dl><dt>ゲームで出る場所</dt><dd>${esc(where(id))}</dd><dt>時間</dt><dd>${b.time.map(t=>SLOT_NAMES[t]).join('・')}</dd>${got.watched ? '<dt>きろく</dt><dd>遠くから観察した（危ないのでつかまえない）</dd>' : `<dt>つかまえた数</dt><dd>${got.n}ひき</dd><dt>さいこうLv</dt><dd>${got.best}</dd><dt>売り値のめやす</dt><dd>${b.price}円</dd>`}</dl><p class="note">※ゲームで出る場所と時間はゲーム用です。実際にその場所にいるとはかぎりません。本物の虫のデータ（大きさ・時期など）はおおよその目安です。</p>`
+             : seen ? `<p>見かけたけど、まだつかまえていない。</p>` : `<p>まだ見たことがない虫。</p>`) +
+        (()=>{ const r = realPhotoFor(b.shape); return r && r[1].img ? `<div class="real"><div>本物の${esc(PHOTO_CATS[r[0]].name)}の写真</div><img alt="" src="${r[1].img}"></div>` : ''; })();
+      grid.querySelector('.sel')?.scrollIntoView({block:'nearest'});
+    };
+    const close = ()=>{ uiHandler = null; $('dex').hidden = true; res(); };
+    uiHandler = k=>{
+      const cols = getComputedStyle(grid).gridTemplateColumns.split(' ').length;
+      if(k==='L') i--; else if(k==='R') i++; else if(k==='U') i -= cols; else if(k==='D') i += cols; else if(k==='B'||k==='M') return close(); else return;
+      i = clamp(i, 0, ids.length-1); render();
+    };
+    grid.onclick = ev=>{ const c = ev.target.closest('.c'); if(c){ i = +c.dataset.j; render(); } };
+    $('dexClose').onclick = close;
+    $('dex').hidden = false; render();
+  });
+}
+
+/* =========================================================
+   本物の虫を撮る（端末内AIで判定 → ごほうび）
+   ========================================================= */
+const PHOTO_KEY = KEY_PRE + 'munakata-photos-v1';
+const PHOTO_DAILY = 5;   // 1日（現実の日付）にごほうびがもらえる枚数
+const PHOTO_MIN = .25;   // 虫らしさがこれ以上なら「虫」と判定
+const MODEL_URL = 'https://storage.googleapis.com/tfjs-models/savedmodel/mobilenet_v2_1.0_224/model.json';
+const PHOTO_ITEMS = [
+  {key:'jueki', name:'樹液トラップ', desc:'今日いちにち、★3以上の虫が出やすくなる'},
+  {key:'note',  name:'観察ノート',   desc:'読むとけいけんち+40'},
+];
+/* AIのラベル（ImageNet）→ 本物の虫のなかま */
+const PHOTO_CATS = {
+  kabuto:    {name:'カブトムシ・クワガタのなかま', money:300, item:'jueki', shapes:['beetle','stag'], labels:['rhinoceros beetle']},
+  beetle:    {name:'甲虫のなかま',               money:120, item:'jueki', shapes:['beetle','stag','longhorn'], labels:['ground beetle','long-horned beetle','leaf beetle','dung beetle','weevil']},
+  hanmyo:    {name:'ハンミョウ',                 money:150, item:'note',  shapes:['jewel'], labels:['tiger beetle']},
+  tentou:    {name:'テントウムシ',               money:80,  item:'note',  shapes:[], labels:['ladybug']},
+  cicada:    {name:'セミ',                       money:100, item:'jueki', shapes:['cicada'], labels:['cicada']},
+  mantis:    {name:'カマキリ',                   money:150, item:'note',  shapes:['mantis'], labels:['mantis']},
+  dragonfly: {name:'トンボ',                     money:100, item:'note',  shapes:['dragonfly'], labels:['dragonfly','damselfly']},
+  batta:     {name:'バッタ・コオロギ',           money:80,  item:'note',  shapes:['grass'], labels:['grasshopper','cricket']},
+  chou:      {name:'チョウ',                     money:100, item:'note',  shapes:['butterfly'], labels:['admiral','ringlet','monarch','cabbage butterfly','sulphur butterfly','lycaenid']},
+  hachi:     {name:'ハチ（近づかないで！）',       money:0,   item:null,    shapes:[], labels:['bee']},
+  ari:       {name:'アリ',                       money:40,  item:null,    shapes:[], labels:['ant']},
+  hae:       {name:'ハエ',                       money:30,  item:null,    shapes:[], labels:['fly']},
+  sonota:    {name:'そのほかの虫',               money:60,  item:'note',  shapes:['strider','firefly'], labels:['walking stick','cockroach','leafhopper','lacewing']},
+};
+const LABEL2CAT = {}; Object.entries(PHOTO_CATS).forEach(([k,c])=>c.labels.forEach(l=>LABEL2CAT[l]=k));
+function loadPhotos(){ let p; try{ p = JSON.parse(localStorage.getItem(PHOTO_KEY)); }catch(e){} p = p || {}; p.cats = p.cats || {}; p.hashes = p.hashes || []; p.daily = p.daily || {date:'', n:0}; return p; }
+let photos = loadPhotos();
+function savePhotos(){ try{ localStorage.setItem(PHOTO_KEY, JSON.stringify(photos)); return true; }catch(e){ return false; } }
+const todayKey = ()=> new Date().toLocaleDateString('ja-JP');
+const photoLeft = ()=> photos.daily.date===todayKey() ? Math.max(0, PHOTO_DAILY - photos.daily.n) : PHOTO_DAILY;
+const realPhotoFor = shape=> Object.keys(PHOTO_CATS).map(k=>photos.cats[k] && PHOTO_CATS[k].shapes.includes(shape) ? [k,photos.cats[k]] : null).find(Boolean);
+
+function loadScript(src){ return new Promise((res,rej)=>{ const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = ()=>rej(new Error(src)); document.head.appendChild(s); }); }
+let aiModel = null;
+async function getModel(){
+  if(aiModel) return aiModel;
+  if(!window.tf) await loadScript('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js');
+  if(!window.mobilenet) await loadScript('https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1/dist/mobilenet.min.js');
+  aiModel = await mobilenet.load({version:2, alpha:1.0, modelUrl:MODEL_URL});
+  return aiModel;
+}
+function fileToImage(file){ return new Promise((res,rej)=>{ const u = URL.createObjectURL(file), im = new Image(); im.onload = ()=>res(im); im.onerror = rej; im.src = u; }); }
+function scaled(im, max){ const r = Math.min(1, max / Math.max(im.naturalWidth, im.naturalHeight)); const c = document.createElement('canvas');
+  c.width = Math.round(im.naturalWidth*r); c.height = Math.round(im.naturalHeight*r); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); return c; }
+function aHash(im){ const c = document.createElement('canvas'); c.width = c.height = 8; const g = c.getContext('2d'); g.drawImage(im, 0, 0, 8, 8);
+  const d = g.getImageData(0,0,8,8).data, v = []; for(let i=0;i<64;i++) v.push(d[i*4]*.3 + d[i*4+1]*.59 + d[i*4+2]*.11);
+  const avg = v.reduce((a,b)=>a+b, 0) / 64; return v.map(x=>x>avg ? 1 : 0).join(''); }
+const hamming = (a,b)=> [...a].reduce((n,ch,i)=>n + (ch!==b[i]), 0);
+
+function renderAlbum(){
+  const keys = Object.keys(PHOTO_CATS).filter(k=>k!=='hachi'), got = keys.filter(k=>photos.cats[k]).length;   // ハチはアルバムにのせない
+  $('albumCnt').textContent = `${got} / ${keys.length}`;
+  $('camCnt').textContent = `今日のこり ${photoLeft()}まい`;
+  $('album').innerHTML = keys.map(k=>{ const p = photos.cats[k];
+    return `<div class="a">${p ? `<img alt="" src="${p.img}">` : '<div class="no">？</div>'}${esc(PHOTO_CATS[k].name)}${p ? `<br><span style="color:#8a7a5a">${p.n}まい</span>` : ''}</div>`; }).join('');
+}
+function camResult(html){ $('camResult').innerHTML = html; }
+/* ---------- 宗像 虫とりスタンプラリー（位置情報） ----------
+   本物の虫の写真が成功したとき、スポットの近くにいればスタンプ。位置（緯度・経度）は保存も送信もしない。
+   pts：[緯度, 経度, 半径m]。細長い場所（松原・釣川）は点を何こかならべる。座標は国土地理院の地名検索より */
+const SPOTS = [
+  {key:'oshima',    name:'大島',       pts:[[33.90123,130.42265,3500]],
+   boost:{kinkabuto:3}, info:'ミアレカブトがさらに出やすくなる・乗船チケットが半額に', warn:'海やフェリーのりばでは、おうちの人からはなれないでね。'},
+  {key:'joyama',    name:'城山',       pts:[[33.81722,130.59393,1500]],
+   boost:{miyama:2.5, hirata:2.5, oomurasaki:2.5}, info:'ミヤマ・ヒラタクワガタ、オオムラサキが出やすくなる', warn:'山道はスズメバチやマムシに気をつけて。水分もしっかりとろう。'},
+  {key:'matsubara', name:'さつき松原', pts:[[33.85758,130.5156,1300],[33.8700,130.5260,1300],[33.8830,130.5337,900],[33.8495,130.4990,900]],
+   boost:{oniyanma:2.5, hanmyo:2.5}, info:'オニヤンマ、ハンミョウが出やすくなる', warn:'海に入るときは、かならずおうちの人といっしょにね。'},
+  {key:'taisha',    name:'宗像大社',   pts:[[33.83124,130.5143,700]],
+   boost:{kabuto:2, kokuwa:2, nokogiri:2, tamamushi:2}, info:'カブトムシ・クワガタ・タマムシが出やすくなる', warn:'神社の木や虫はたいせつに。境内では写真をとるだけにしよう。'},
+  {key:'tsurikawa', name:'釣川',       pts:[[33.84475,130.5043,500],[33.85238,130.50005,500],[33.826,130.530,600],[33.80647,130.55864,500]],
+   boost:{genji:2, ginyanma:2}, info:'ゲンジボタル、ギンヤンマが出やすくなる', warn:'川には子どもだけで入らないでね。'},
+  {key:'akama',     name:'赤間',       pts:[[33.80821,130.56945,1200],[33.80049,130.58264,1000]],
+   boost:{}, gift:'jueki', info:'樹液トラップがもらえる', warn:'車や自転車に気をつけてね。'},
+];
+const stampCount = ()=> SPOTS.filter(sp=>(photos.stamps||{})[sp.key]).length;
+function stampBoost(id){ let m = 1; for(const sp of SPOTS) if((photos.stamps||{})[sp.key] && sp.boost[id]) m *= sp.boost[id]; return m; }
+const ticketPrice = ()=> (photos.stamps||{}).oshima ? Math.round(TICKET.price/2) : TICKET.price;
+function distM(a, b, c, d){ const R = 6371000, r = Math.PI/180, x = (d-b)*r*Math.cos((a+c)/2*r), y = (c-a)*r; return Math.hypot(x, y) * R; }
+function nearSpot(lat, lon){
+  let best = null;
+  for(const sp of SPOTS) for(const [a, b, rad] of sp.pts){ const k = distM(lat, lon, a, b) / rad; if(k <= 1 && (!best || k < best.k)) best = {sp, k}; }
+  return best && best.sp;
+}
+function getPos(){
+  const t = QS.get('geo');   // 画面確認用：?geo=緯度,経度
+  if(t){ const [a, b] = t.split(',').map(Number); return Promise.resolve({lat:a, lon:b}); }
+  return new Promise((res, rej)=>{
+    if(!navigator.geolocation) return rej(new Error('none'));
+    navigator.geolocation.getCurrentPosition(p=>res({lat:p.coords.latitude, lon:p.coords.longitude}), rej, {enableHighAccuracy:true, timeout:12000, maximumAge:60000});
+  });
+}
+function renderStamps(){
+  photos.stamps = photos.stamps || {};
+  $('stampCnt').textContent = `${stampCount()} / ${SPOTS.length}`;
+  $('stamps').innerHTML = SPOTS.map(sp=>{ const g = photos.stamps[sp.key];
+    return `<div class="st ${g ? 'got' : ''}"><div class="ink">${g ? esc(sp.name) : '？'}</div><div><b>${esc(sp.name)}</b><br>${g ? `${esc(g.date)} ゲット` : esc(sp.info)}</div></div>`; }).join('');
+}
+function addResult(html){ const d = document.createElement('div'); d.className = 'stampbox'; d.innerHTML = html; $('camResult').appendChild(d); return d; }
+async function stampCheck(){
+  const box = addResult('いる場所をしらべています…');
+  let pos;
+  try{ pos = await getPos(); }
+  catch(e){ box.innerHTML = '位置情報がつかえませんでした。<br><small>スマホの設定で、このページ（Safari／Chrome）の位置情報が「許可」になっているか確かめてね。</small>'; return; }
+  const sp = nearSpot(pos.lat, pos.lon); pos = null;   // 位置そのものはすぐに捨てる
+  if(!sp){ box.innerHTML = '近くに、スタンプのある場所はなかったよ。<br><small>宗像大社・さつき松原・城山・大島・釣川・赤間で撮ると、スタンプがもらえるよ。</small>'; return; }
+  photos.stamps = photos.stamps || {};
+  if(photos.stamps[sp.key]){ box.innerHTML = `ここは「${esc(sp.name)}」！ スタンプはもう持っているよ（${esc(photos.stamps[sp.key].date)}）。`; return; }
+  // 安全の確認
+  const ok = await new Promise(res=>{
+    box.innerHTML = `ここは「<b>${esc(sp.name)}</b>」！ スタンプをおす前に…<br><b>おうちの人といっしょに来た？</b><br>
+      <button type="button" class="btn" id="stYes">いっしょに来た</button><button type="button" class="btn" id="stNo">子どもだけで来た</button>`;
+    $('stYes').onclick = ()=>res(true); $('stNo').onclick = ()=>res(false);
+  });
+  if(!ok){ box.innerHTML = `${esc(sp.name)}のスタンプは、<b>つぎにおうちの人といっしょに来たとき</b>におそう！<br><small>${esc(sp.warn)}</small>`; return; }
+  photos.stamps[sp.key] = {date:todayKey()};
+  if(!savePhotos()){ box.innerHTML = 'スタンプを保存できませんでした。'; return; }
+  let extra = '';
+  if(sp.gift){ const it = PHOTO_ITEMS.find(t=>t.key===sp.gift); S.items[sp.gift] = (S.items[sp.gift]||0) + 1; save(); extra = `<br>${esc(it.name)}をもらった！`; }
+  const all = stampCount() >= SPOTS.length;
+  box.innerHTML = `<b class="ok">「${esc(sp.name)}」のスタンプをゲット！</b>（${stampCount()}/${SPOTS.length}）<br>特典：${esc(sp.info)}${extra}<br>自由研究のフィールドワークに +3点${all ? '<br><b class="ok">スタンプぜんぶ集めた！ さらに +5点！</b>' : ''}<br><small>${esc(sp.warn)}</small>`;
+  renderStamps(); hud();
+}
+async function handlePhoto(file){
+  if(!file) return;
+  const im = await fileToImage(file).catch(()=>null);
+  if(!im){ camResult('<div class="txt ng">写真を読みこめなかった…。べつの写真でためしてね。</div>'); return; }
+  const thumb = scaled(im, 360).toDataURL('image/jpeg', .72);
+  const head = `<img alt="" src="${thumb}">`;
+  if(photoLeft() <= 0){ camResult(head + '<div class="txt ng big">今日のぶんはおしまい！</div><div class="txt">ごほうびは1日5まいまで。また明日、外で虫をさがしてみよう。</div>'); return; }
+  const h = aHash(im);
+  if(photos.hashes.some(x=>hamming(x,h) <= 4)){ camResult(head + '<div class="txt ng big">この写真はもう見せてもらったよ！</div><div class="txt">ちがう虫か、べつの角度で撮ってみよう。</div>'); return; }
+  camResult(head + '<div class="txt">AIが写真を調べているよ…<br><small>（はじめての時は準備に少し時間がかかります）</small></div>');
+  let preds;
+  try{ const model = await getModel(); preds = await model.classify(scaled(im, 448), 20); }
+  catch(e){ camResult(head + '<div class="txt ng">AIを読みこめなかった…。インターネットにつながっているか確かめて、もう一度ためしてね。</div>'); return; }
+  const score = {}; let total = 0;
+  preds.forEach(p=>{ const k = LABEL2CAT[p.className.split(',')[0].trim()]; if(k){ score[k] = (score[k]||0) + p.probability; total += p.probability; } });
+  const cat = Object.keys(score).sort((a,b)=>score[b]-score[a])[0];
+  if(!cat || total < PHOTO_MIN){
+    camResult(head + `<div class="txt ng big">うーん、虫が見つからないみたい…</div><div class="txt">虫に近づいて、虫が大きく写るように撮ってみよう。${cat ? `<br><small>（${esc(PHOTO_CATS[cat].name)}かも？ ${Math.round(total*100)}%）</small>` : ''}</div>`);
+    return;
+  }
+  if(cat==='hachi'){   // ハチに近づいて撮るのは危ないので、ごほうびは出さない
+    camResult(head + '<div class="txt"><div class="ng big">ハチかも！ 気をつけて！</div>ハチ（とくにスズメバチ）は、さされるととても危険です。<br>写真をとるために近づいたりしないでね。<br><small>ハチの写真では、ごほうびはもらえません。</small></div>');
+    return;
+  }
+  // ごほうび
+  const C = PHOTO_CATS[cat], first = !photos.cats[cat], gifts = [];
+  const money = C.money * (first ? 2 : 1); S.money += money; gifts.push(`おこづかい ${money}円${first ? '（はじめてボーナス2倍！）' : ''}`);
+  if(C.item && (first || Math.random() < .35)){ const it = PHOTO_ITEMS.find(t=>t.key===C.item); S.items[C.item] = (S.items[C.item]||0) + 1; gifts.push(`${it.name}（${it.desc}）`); }
+  if(cat==='kabuto' && !S.goldwing){ S.goldwing = true; gifts.push('金色のはね！ 大島の伝説の虫「ミアレカブト」が出やすくなった…！'); }
+  if(C.shapes.length){ C.shapes.forEach(s=>S.link[s] = S.day + 1); gifts.push(`ゲームの中で${C.name}が出やすくなった（明日まで）`); }
+  photos.cats[cat] = {img:thumb, n:(photos.cats[cat]?.n||0) + 1, date:todayKey()};
+  photos.hashes.push(h); if(photos.hashes.length > 300) photos.hashes.shift();
+  photos.daily = {date:todayKey(), n:(photos.daily.date===todayKey() ? photos.daily.n : 0) + 1};
+  if(!savePhotos()){ photos.cats[cat].img = ''; savePhotos(); }
+  save(); hud(); renderAlbum();
+  camResult(head + `<div class="txt"><div class="ok big">${esc(C.name)}だ！</div><small>AIのはんてい ${Math.round(score[cat]*100)}%</small>${first ? '<div>アルバムに登録された！</div>' : ''}<ul>${gifts.map(g=>`<li>${esc(g)}</li>`).join('')}</ul></div>`);
+  if($('geoOn').checked) await stampCheck();
+}
+['camIn','libIn'].forEach(id=>$(id).addEventListener('change', e=>{ const f = e.target.files[0]; e.target.value = ''; handlePhoto(f); }));
+function openCam(){
+  return new Promise(res=>{
+    camResult(''); renderAlbum(); renderStamps(); $('cam').hidden = false;
+    $('geoOn').checked = !!photos.geoOn; $('geoOn').onchange = ()=>{ photos.geoOn = $('geoOn').checked; savePhotos(); };
+    getModel().catch(()=>{});   // 先にAIを読みこんでおく
+    const close = ()=>{ uiHandler = null; $('cam').hidden = true; res(); };
+    uiHandler = k=>{ if(k==='B'||k==='M') close(); };
+    $('camClose').onclick = close;
+  });
+}
+
+/* =========================================================
+   タイトル・オープニング・エンディング
+   ========================================================= */
+/* ---------- タイトルのボタン：アプリにする方法・友だちに教える ---------- */
+const GAME_URL = location.origin + location.pathname.replace(/index\.html$/, '');
+const SHARE_TEXT = '宗像が舞台の虫とりRPG「むなかた虫とり日記」で、いっしょに虫とりしよう！';
+const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints > 1);
+const isAndroid = /Android/.test(navigator.userAgent);
+const isStandalone = ()=> matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+let installEvt = null;   // Androidのchromeは「インストール」ボタンを出せる
+addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); installEvt = e; });
+function openPanel(title, html){
+  return new Promise(res=>{
+    $('ipTitle').textContent = title; $('ipBody').innerHTML = html; $('infoPanel').hidden = false; $('infoPanel').scrollTop = 0;
+    const prev = uiHandler;
+    const close = ()=>{ $('infoPanel').hidden = true; uiHandler = prev; res(); };
+    uiHandler = k=>{ if(k==='B' || k==='M') close(); };
+    $('ipClose').onclick = close;
+  });
+}
+function installHTML(){
+  if(isStandalone()) return `<div class="box now"><b class="ok">もうアプリとして遊んでいます！</b><br>ホーム画面の「むなかた虫とり日記」のアイコンから、いつでも遊べます。</div>`;
+  const ios = `<ol><li><b>Safari</b>でこのページを開く<br><span class="note">LINEなど、ほかのアプリの中で開いているときは、メニューから「Safariで開く」をえらぶ</span></li>
+    <li>共有ボタン（四角から上やじるしが出ているマーク）をタップ<br><span class="note">iPhoneは画面の下、iPadは画面の右上にあります</span></li>
+    <li>「<b>ホーム画面に追加</b>」をえらぶ<br><span class="note">見つからないときは、メニューを下にスクロール</span></li>
+    <li>右上の「<b>追加</b>」をタップ → ホーム画面に「むなかた虫とり日記」のアイコンができる</li></ol>`;
+  const android = `<ol><li><b>Chrome</b>でこのページを開く</li><li>右上の「︙」（点が3つのボタン）をタップ</li>
+    <li>「<b>ホーム画面に追加</b>」または「<b>アプリをインストール</b>」をえらぶ</li><li>「追加」（または「インストール」）をタップ → ホーム画面にアイコンができる</li></ol>`;
+  const pc = `<ol><li>ChromeやEdgeで開く</li><li>アドレスバーの右はしにある「インストール」のマーク（画面に下やじるし）をクリック</li><li>「インストール」をクリック</li></ol>
+    <p class="note">マークがないときは、ブックマーク（お気に入り）に登録しておくと便利です。</p>`;
+  const quick = installEvt ? `<div class="acts"><button type="button" class="btn" id="doInstall">いますぐアプリにする</button></div>` : '';
+  const now = isIOS ? ['iPhone・iPad', ios] : isAndroid ? ['Androidのスマホ・タブレット', android] : ['パソコン', pc];
+  const others = [['iPhone・iPad', ios], ['Androidのスマホ・タブレット', android], ['パソコン', pc]].filter(o=>o[0] !== now[0]);
+  return `<p>ホーム画面に追加すると、アプリのように<b>全画面</b>で遊べて、アイコンからすぐに開けます。</p>${quick}
+    <div class="box now"><h3>いま使っている ${now[0]} のばあい</h3>${now[1]}</div>
+    ${others.map(o=>`<details><summary>${o[0]}のばあい</summary>${o[1]}</details>`).join('')}
+    <p class="note">※iPhone・iPadでは、Safariで遊んだセーブデータと、ホーム画面のアプリのセーブデータは別々になります。はじめからアプリで遊ぶのがおすすめです。</p>`;
+}
+async function showInstall(){
+  const p = openPanel('アプリにする方法', installHTML());
+  const b = $('doInstall'); if(b) b.onclick = async ()=>{ installEvt.prompt(); await installEvt.userChoice.catch(()=>{}); installEvt = null; b.textContent = 'ありがとう！'; b.disabled = true; };
+  await p;
+}
+async function showShare(){
+  const enc = encodeURIComponent(GAME_URL);
+  const html = `<p>このゲームのURLを、友だちやおうちの人に送ろう！</p>
+    <div class="acts">${navigator.share ? '<button type="button" class="btn" id="doShare">共有する</button>' : ''}
+      <a class="btn line" href="https://social-plugins.line.me/lineit/share?url=${enc}" target="_blank" rel="noopener">LINEで送る</a>
+      <button type="button" class="btn" id="doCopy">URLをコピー</button></div>
+    <div class="url" id="shareUrl">${esc(GAME_URL)}</div><div class="note" id="copyMsg"></div>
+    <div class="qr"><div id="qrBox" class="note">QRコードを作っています…</div><div class="note">となりにいる友だちは、カメラでこのQRコードを読みとってね</div></div>`;
+  const p = openPanel('友だちに教える', html);
+  const sh = $('doShare'); if(sh) sh.onclick = ()=> navigator.share({title:'むなかた虫とり日記', text:SHARE_TEXT, url:GAME_URL}).catch(()=>{});
+  $('doCopy').onclick = async ()=>{
+    try{ await navigator.clipboard.writeText(GAME_URL); $('copyMsg').textContent = 'コピーしました！ メッセージにはりつけて送ってね。'; }
+    catch(e){ const r = document.createRange(); r.selectNodeContents($('shareUrl')); const se = getSelection(); se.removeAllRanges(); se.addRange(r); $('copyMsg').textContent = 'URLをえらびました。コピーして送ってね。'; }
+  };
+  try{
+    if(!window.qrcode) await loadScript('https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js');
+    const q = qrcode(0, 'M'); q.addData(GAME_URL); q.make();
+    $('qrBox').outerHTML = `<img alt="ゲームのURLのQRコード" src="${q.createDataURL(8, 2)}">`;
+  }catch(e){ const qb = $('qrBox'); if(qb) qb.textContent = '（QRコードを作れませんでした。URLを送ってね）'; }
+  await p;
+}
+$('btnInstall').onclick = e=>{ e.stopPropagation(); showInstall(); };
+$('btnShare').onclick = e=>{ e.stopPropagation(); showShare(); };
+if(isStandalone()) $('btnInstall').textContent = 'アプリで遊んでいます';
+
+function titleArt(){
+  const el = $('titleScr'), n = bgName('title'), logo = el.querySelector('.logo'), hasLogo = (window.BG_IMAGES||[]).includes('title_logo');
+  el.classList.toggle('art', !!n); el.classList.toggle('fine', !!n && (window.BG_EXT||{})[n]==='jpg'); el.style.backgroundImage = n ? `url(${bgURL(n)})` : '';
+  if(hasLogo){ logo.src = av(BG_DIR + 'title_logo.png'); logo.hidden = false; el.querySelector('.t2').hidden = true; }
+}
+window.titleArt = titleArt; titleArt(); addEventListener('resize', titleArt);
+async function titleScreen(){
+  scene = 'title'; hud(); $('titleScr').hidden = false;
+  const has = !!loadRaw(), carry = loadCarry();
+  const opts = [{label:'はじめから'}, {label:'つづきから', disabled:!has}];
+  if(carry) opts.push({label:`引きつぎではじめる（小学${grade(carry.round)}年生の夏）`});
+  const c = await choose(opts, {cls:'title', cancel:false, start: has ? 1 : carry ? 2 : 0});
+  $('titleScr').hidden = true;
+  if(c===1){ try{ S = loadState(loadRaw()); }catch(e){ S = newState(); } scene = 'field'; hud(); await say(`${dateStr()} ${hhmm()}\nつづきから はじめます。`); }
+  else if(c===2){ S = newState(); Object.assign(S, {round:carry.round, lv:carry.lv, exp:carry.exp, net:carry.net, cage:carry.cage, shoes:carry.shoes,
+      items:Object.assign(newState().items, carry.items), money:carry.money + 300, goldwing:carry.goldwing, ticket:!!carry.ticket || carry.shoes >= 3});
+    if(S.shoes >= 3) S.shoes = 2;
+    S.hp = maxHp(); S.visited = Object.assign({town:true}, carry.visited); scene = 'field'; hud(); await introCarry(carry); }
+  else { S = newState(); scene = 'field'; hud(); await intro(); }
+}
+async function introCarry(c){
+  await talk(
+    [`${dateStr()}。小学${grade()}年生の夏休み、今年も虫とりの日がやってきた！`, 'boku'],
+    `去年の自由研究は「${c.lastAward}」（${c.lastScore}点）。\n自己ベストは ${c.best}点。今年はもっとすごい昆虫図鑑をつくるぞ！`,
+    `去年の道具は、ちゃんとしまってある。\nLv${S.lv}・${NETS[S.net].name}・${CAGES[S.cage].name}・${SHOES[S.shoes].name}\nお金 ${S.money}円（おこづかい300円をふくむ）`,
+    `図鑑は新しいノートでいちからつくりなおし。\n${dateStr(DAYS)}までの${DAYS}日間、がんばろう！`
+  );
+}
+async function intro(){
+  const touch = matchMedia('(hover:none),(pointer:coarse)').matches;
+  await talk(
+    [`${dateStr()}。いよいよ虫とりの日がやってきた！`, 'boku'],
+    ['7月21日に夏休みがはじまってから、がんばって宿題をほとんど終わらせた。\nのこりの夏休みは、虫とりに全力だ！', 'boku'],
+    'お母さん「宿題がんばったわね。でも夜9時までには帰ってくるのよ。\nはい、おこづかい300円。」',
+    `${dateStr(DAYS+1)}からは二学期がはじまる。\n${dateStr(DAYS)}までの${DAYS}日間で、宗像じゅうの虫をつかまえて昆虫図鑑を完成させよう！`,
+    '自由研究は「昆虫図鑑づくり」！\nたくさんの虫、めずらしい虫をのせるほど、二学期の発表で注目されるぞ。',
+    '町の広場の切りかぶでは、近所の子どもたちが「虫ずもう」をしているらしい。\nつかまえた虫で勝負して、賞金をかせごう！（子どもに話しかけるとはじまる）',
+    'つかまえた虫は、家のとなりの「虫具店」で売れる。\nお金をためて、いいあみ・虫かご・くつを買おう！',
+    '本物の虫を見つけたら、メニューの「本物の虫を撮る」で写真を見せてね。\nおこづかいや、お店では買えないアイテムがもらえるよ！',
+    touch ? '【そうさ】十字キー：いどう　A：けってい　B/メニュー：メニュー\n草むらを歩くと虫が出てくるよ。下の出口から町の外へ！'
+          : '【そうさ】やじるしキー：いどう　Z：けってい　X：メニュー\n草むらを歩くと虫が出てくるよ。下の出口から町の外へ！'
+  );
+}
+/* ---------- 自由研究「ぼくの昆虫図鑑」 ----------
+   点数 = レア度ポイント（図鑑にのった虫の★）＋ 本物の虫の写真 ＋ がんばり（つかまえた数） */
+const RANK_PT = [0, 1, 2, 4, 7, 12];   // ★1〜★5 の点数
+function research(){
+  const ids = Object.keys(S.dex).filter(id=>BUGS[id]);
+  const rare = ids.reduce((s,id)=>s + RANK_PT[BUGS[id].rank], 0);
+  const photo = Object.keys(photos.cats).length * 2;
+  const effort = Math.floor(Math.min(S.caughtTotal, 60) / 3);
+  const best = ids.filter(id=>!S.dex[id].watched).sort((a,b)=>BUGS[b].rank - BUGS[a].rank || BUGS[b].price - BUGS[a].price)[0];   // 観察しただけの虫（スズメバチ）はのぞく
+  const sumo = S.sumoChamp ? SUMO_CHAMP_PT : 0;
+  const nst = stampCount(), field = nst * 3 + (nst >= SPOTS.length ? 5 : 0);   // フィールドワーク：スタンプ1つ3点、ぜんぶで+5点
+  return {ids, species:ids.length, rare, photo, effort, sumo, field, nst, total:rare + photo + effort + sumo + field, best,
+    complete: ids.length >= Object.keys(BUGS).length, kin: !!S.dex.kinkabuto};
+}
+const ENDINGS = [
+  {key:'legend', min:Infinity, award:'宗像市長賞',      title:'伝説の虫とり王'},
+  {key:'hero',   min:110,      award:'金賞（学校代表）', title:'学校のヒーロー'},
+  {key:'star',   min:70,       award:'銀賞',            title:'クラスの虫とり名人'},
+  {key:'good',   min:35,       award:'銅賞',            title:'虫とりキッズ'},
+  {key:'normal', min:12,       award:'努力賞',          title:'虫とりビギナー'},
+  {key:'poor',   min:0,        award:'がんばったで賞',   title:'虫とり見習い'},
+];
+function endingOf(r){ if(r.complete || (r.kin && r.total >= 90)) return ENDINGS[0]; return ENDINGS.find(e=>r.total >= e.min); }
+function endingStory(e, r){
+  const best = r.best ? BUGS[r.best].name : '虫';
+  const open = [`${dateStr(DAYS+1)}。二学期のはじまりだ。`, `自由研究の「ぼくの昆虫図鑑」をかかえて、学校へ向かった。\n（図鑑：${r.species}しゅるい）`];
+  if(r.nst >= 3) open.push(r.nst >= SPOTS.length ? '夏休みに宗像じゅうの場所へ出かけて調べた「フィールドワーク」が、先生に大絶賛された！' : '本物の場所に出かけて調べた「フィールドワーク」も、先生にほめられた！');
+  if(S.sumoChamp) open.push('夏休みに虫ずもうチャンピオンになったことは、もう学校中のうわさになっていた！');
+  const body = {
+    legend:[
+      '教室に入ったとたん、クラス中が図鑑のまわりに集まって大さわぎになった！',
+      r.kin ? '「これ…ミアレカブト！？ 大島の伝説の虫、本当にいたの！？」\nみんなの目がまんまるになった。' : `「${Object.keys(BUGS).length}しゅるい、ぜんぶ！？」\nみんなの目がまんまるになった。`,
+      '先生があわてて校長先生をよんできて、全校集会で発表することになった。',
+      '数日後、新聞記者さんが取材に来た。\n「宗像の小学生、夏休みの大発見！」',
+      'ぼくの昆虫図鑑は、「海の道むなかた館」にかざられることになった。\nこの夏のことは、ずっとわすれない。',
+    ],
+    hero:[
+      '教室に入ったとたん、「見せて見せて！」とクラス中が集まってきた。',
+      `「${best}をつかまえたの！？ すげー！」\nとなりのクラスや、上級生まで見に来た。`,
+      '先生「こんなにりっぱな図鑑ははじめて見たよ。学校の代表として、市のコンクールに出そう！」',
+      'その日から、ぼくは「虫ハカセ」とよばれるようになった。\nいちやく学校のヒーローだ！',
+    ],
+    star:[
+      '休み時間になると、図鑑のまわりに人だかりができた。',
+      `「この${best}、どこでとったの？」「今度いっしょに連れてって！」`,
+      '先生「よく調べたね。とてもいい自由研究だ！」\n銀賞をもらった！',
+      'クラスでちょっとした人気者になった。\n来年はもっとすごい図鑑をつくるぞ！',
+    ],
+    good:[
+      '何人かの友だちが、図鑑を見に来てくれた。',
+      '「アブラゼミとクマゼミって、こんなにちがうんだ」\n友だちが感心している。',
+      '先生「ていねいに調べたね。」\n銅賞をもらった。',
+      'なかなかいい夏休みだった。\nでも、もっとめずらしい虫も見てみたかったな…。',
+    ],
+    normal:[
+      '図鑑を出したけど、ページはちょっとスカスカだった。',
+      'となりの席の子は、カブトムシとクワガタで図鑑をうめつくしていた…。',
+      '先生「来年はもっとたくさん見つけられるといいね。」\n努力賞をもらった。',
+      '来年こそ、宗像じゅうの虫をつかまえるぞ！',
+    ],
+    poor:[
+      '図鑑には、虫が少ししかのっていなかった…。',
+      '先生「…ええと、表紙の絵がとっても上手だね！」',
+      'クラスのみんなは、ほかの子の自由研究に夢中だ。',
+      'ぼくの夏休みって、いったい…。\n来年こそリベンジだ！',
+    ],
+  }[e.key];
+  return [...open, ...body];
+}
+async function ending(){
+  scene = 'end';
+  const r = research(), e = endingOf(r), lines = endingStory(e, r);
+  const el = $('endIn'); $('endScr').hidden = false;
+  const next = ()=> new Promise(res=>{ uiHandler = k=>{ if(k==='A'){ uiHandler = null; res(); } }; const b = $('endBtn'); if(b) b.onclick = ()=>{ uiHandler = null; res(); }; });
+  // おはなし（エンディングのイラストがあれば上に出す。伝説エンディングは、新聞の場面から2枚目）
+  const art = window.ENDING_ART || [];
+  const artURL = n=> art.includes(n) ? av(`img/sprites/ending/${n}.jpg`) : '';
+  const pics = e.key==='legend' ? ['legend_1', 'legend_2'] : [e.key];
+  pics.forEach(n=>{ if(artURL(n)) new Image().src = artURL(n); });   // 先に読みこんでおく
+  let pic = pics[0];
+  for(const l of lines){
+    if(e.key==='legend' && l.includes('新聞')) pic = pics[1];
+    const fi = faceImg(faceFor(l)), u = artURL(pic);
+    el.innerHTML = `<h2>二学期のはじまり</h2>${u ? `<img class="endart" alt="" src="${u}">` : ''}<div class="win story${fi ? ' withface' : ''}">${fi}<div class="mtxt">${fmt(l)}</div></div><button class="btn" id="endBtn">つぎへ ▼</button>`;
+    await next();
+  }
+  // 結果と、次の夏休みへの引きつぎ
+  const total = Object.keys(BUGS).length;
+  const prev = loadCarry(), boxValue = S.box.reduce((s,it)=>s + sellPrice(it), 0);
+  const best = Math.max(prev?.best || 0, r.total), newBest = !prev || r.total > (prev.best || 0);
+  const carry = {round:(S.round||1) + 1, lv:S.lv, exp:S.exp, net:S.net, cage:S.cage, shoes:S.shoes, items:S.items, money:S.money + boxValue,
+    goldwing:S.goldwing, ticket:S.ticket, visited:S.visited, best, lastScore:r.total, lastAward:e.award};
+  saveCarry(carry);
+  if(e.key==='poor') setGift(true);   // ひみつ：つぎの夏休み、虫具店のおじさんがいい道具をくれる
+  el.innerHTML = `<h2>自由研究「ぼくの昆虫図鑑」</h2>
+    <div class="win">
+      <div class="ttl">${esc(e.award)}</div>
+      <div class="dexs">${Object.keys(BUGS).map(id=>`<img alt="" title="${esc(BUGS[id].name)}" src="${spriteURL(id, !S.dex[id])}">`).join('')}</div>
+      <table class="score">
+        <tr><th>図鑑にのった虫</th><td>${r.species} / ${total} しゅるい</td></tr>
+        <tr><th>レア度ポイント</th><td>${r.rare} 点</td></tr>
+        <tr><th>本物の虫の写真</th><td>${r.photo} 点</td></tr>
+        <tr><th>がんばり（のべ ${S.caughtTotal}ひき）</th><td>${r.effort} 点</td></tr>
+        ${r.sumo ? `<tr><th>虫ずもうチャンピオン</th><td>${r.sumo} 点</td></tr>` : ''}
+        ${r.field ? `<tr><th>フィールドワーク（スタンプ ${r.nst}/${SPOTS.length}）</th><td>${r.field} 点</td></tr>` : ''}
+        <tr class="sum"><th>自由研究の点数</th><td>${r.total} 点</td></tr>
+      </table>
+      ${r.best ? `<div class="bestbug"><img alt="" src="${spriteURL(r.best)}"><span>いちばんすごい虫<br>${esc(BUGS[r.best].name)}<br><span class="lbl">レア度</span> ${stars(BUGS[r.best].rank)}</span></div>` : ''}
+      <div style="text-align:center;margin-top:10px">あなたの称号は…</div><div class="ttl">「${esc(e.title)}」</div>
+      ${r.kin ? '<p class="fic">※ミアレカブトは、このゲームのための架空の昆虫です。</p>' : ''}
+    </div>
+    <div class="win carry">
+      <div class="ttl">${newBest ? '自己ベスト更新！' : `自己ベスト ${best}点`}</div>
+      <div>次の夏休み（小学${grade(carry.round)}年生）に、引きつげるもの：</div>
+      <ul><li>レベル ${S.lv}</li><li>${esc(NETS[S.net].name)}・${esc(CAGES[S.cage].name)}・${esc(SHOES[S.shoes].name)}</li>
+        <li>どうぐ（スポーツドリンク${S.items.drink}・虫みつ${S.items.mitsu}・樹液トラップ${S.items.jueki||0}・観察ノート${S.items.note||0}${S.goldwing ? '・金色のはね' : ''}${S.ticket ? '・乗船チケット' : ''}）</li>
+        <li>お金 ${carry.money}円${boxValue ? `（虫かごにのこった${S.box.length}ひきを売った${boxValue}円をふくむ）` : ''}</li></ul>
+      <div class="lbl">タイトルの「引きつぎではじめる」から遊べます。図鑑はいちからつくりなおしです。</div>
+      ${e.key==='poor' ? '<div class="lbl" style="margin-top:.4em">……虫具店のおじさんが、なにか気にかけてくれているみたい。</div>' : ''}
+    </div>
+    <button class="btn" id="endBtn">タイトルへもどる</button>`;
+  await next();
+  $('endScr').hidden = true; clearSave(); S = newState();
+  await titleScreen();
+}
+
+/* =========================================================
+   起動
+   ========================================================= */
+requestAnimationFrame(loop);
+window.claude?.hot?.snapshot?.(()=>({save:JSON.stringify(S), scene}));
+function start(data){
+  if(data && data.save && data.scene==='field'){ try{ S = loadState(data.save); scene = 'field'; $('titleScr').hidden = true; hud(); return; }catch(e){} }
+  if(QS.get('panel')) setTimeout(()=> QS.get('panel')==='share' ? showShare() : QS.get('panel')==='cam' ? (photos.stamps = {oshima:{date:'2026/8/15'}, taisha:{date:'2026/8/18'}, akama:{date:'2026/8/13'}}, openCam()) : showInstall(), 700);   // 画面確認用
+  const demo = QS.get('demo');
+  if(demo){ S = newState(); scene = 'field'; $('titleScr').hidden = true; S.area = 'taisha'; S.x = 9; S.y = 9; if(QS.get('min')) S.min = +QS.get('min'); if(QS.get('area')) S.area = QS.get('area'); if(QS.get('dir')) S.dir = QS.get('dir'); hud(); layout();
+    if(demo==='battle'){ run(()=>battle(QS.get('id') || 'kabuto')); for(let k=0;k<+(QS.get('skip')||0);k++) setTimeout(()=>press('A'), 1000 + k*250); }
+    else if(demo==='dex'){ Object.keys(BUGS).slice(0, +(QS.get('n')||12)).forEach(id=>S.dex[id] = {n:1, best:BUGS[id].lv}); S.seen.kokuwa = true; if(QS.has('hachi')) S.dex.suzumebachi = {n:0, best:0, watched:true}; setTimeout(()=>{ run(openDex); if(QS.has('hachi')) setTimeout(()=>{ for(let k=0;k<26;k++) press('R'); }, 300); if(QS.get('pick')) setTimeout(()=>{ for(let k=0;k<+QS.get('pick');k++) press('R'); }, 300); }, 600); }
+    else if(demo==='menu') run(fieldMenu);
+    else if(demo==='sumo'){ S.area = 'town'; S.x = 13; S.y = 10; S.dir = 'U'; S.box = [{id:QS.get('id')||'kokuwa', lv:12}]; hud();
+      if(QS.has('fight')) run(()=>sumoBattle(RIVALS[+QS.get('fight')||0], S.box[0])); else run(()=>say('7月…')); }
+    else if(demo==='items'){ Object.assign(S.items, {jueki:2, note:1}); S.goldwing = true; run(itemMenu); }
+    else if(demo==='shop') run(()=>buyGear('cage'));
+    else if(demo==='shopmain'){ S.area = 'town'; run(shop); }
+    else if(demo==='talk') run(()=>say(QS.get('t') || '', QS.get('face') || undefined));
+    else if(demo==='box'){ S.box = Array.from({length:14}, (_,k)=>({id:['abura','kabuto','genji','ageha'][k%4], lv:k+3})); run(boxMenu); }
+    else if(demo==='end'){ const n = +(QS.get('n')||10); Object.keys(BUGS).slice(0, n).forEach(id=>S.dex[id] = {n:1, best:BUGS[id].lv}); if(QS.has('kin')) S.dex.kinkabuto = {n:1, best:25};
+      S.caughtTotal = n*2; run(ending); const skip = +(QS.get('skip')||0); for(let k=0;k<skip;k++) setTimeout(()=>press('A'), 300 + k*120); }
+    else run(()=>say(`${dateStr()}。いよいよ虫とりの日がやってきた！`));
+    return; }
+  run(titleScreen);
+}
+window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+</script>
