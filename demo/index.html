@@ -542,7 +542,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-0128';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-0133';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -609,7 +609,7 @@ function audioInit(){
   actx = new AC();
   aMaster = actx.createGain(); aMaster.gain.value = .55; aMaster.connect(actx.destination);
   aBgm = actx.createGain(); aBgm.gain.value = .32; aBgm.connect(aMaster);
-  aSe = actx.createGain(); aSe.gain.value = .7; aSe.connect(aMaster);
+  aSe = actx.createGain(); aSe.gain.value = .4;   // BGMが静かなので、効果音もひかえめに aSe.connect(aMaster);
   for(const d of [.125, .25, .5]){   // 矩形波（デューティ比 12.5%・25%・50%）
     const N = 40, re = new Float32Array(N), im = new Float32Array(N);
     for(let n=1;n<N;n++) re[n] = 2/(n*Math.PI) * Math.sin(n*Math.PI*d);
