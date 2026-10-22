@@ -538,7 +538,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-0053';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-0059';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -1145,6 +1145,7 @@ function clockSVG(m=S.min){
     hand(ha, 9.5, 3.2, night ? '#f7f1df' : '#2b2118') + hand(ma, 14, 2, night ? '#f7f1df' : '#2b2118') + `<circle cx="20" cy="20" r="2" fill="#c8402e"/></svg>`;
 }
 function hud(){
+  hudEl.hidden = scene==='title';   // タイトル画面では上の情報欄（黒いグラデーション）ごと消す
   if(scene==='title'){ hudEl.innerHTML = ''; return; }
   const r = S.hp / maxHp();
   hudEl.innerHTML = `<div class="hrow"><span class="date">${dateStr()}</span><span class="day">${S.day}/${DAYS}日目</span><span class="time">${clockSVG()}${hhmm()} ${SLOT_NAMES[slotOf(S.min)]}</span></div>`+
