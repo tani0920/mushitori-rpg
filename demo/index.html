@@ -614,12 +614,13 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.3.0';
-const BUILD = '20261023-2301';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-2356';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.3.0', date:'2026-10-23', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
     '虫具店で虫を「売る」のをやめて、「とどける」とお礼にどんぐりがもらえるようにした',
     'フィールドと主人公の絵を、くっきりした絵にかえた（町はアスファルトの道と、いまふうの家・お店・自動販売機など。宗像大社には石だたみの参道、池や川や海には岸）',
+    'バトルのルールBの名前を「追いかけてつかまえる」にした。HPが0になった虫は「おどろいて」飛んでいくようにした',
     '虫具店や家から出るとき、ぱっと下にうつらずに、歩いて出るようにした',
     '虫具店を、ガラスのショーウィンドウがある新しいお店の絵にした。ゆうたは切りかぶの上に立つようにした',
     '主人公の家も、自転車と朝顔のある新しい家の絵にした',
@@ -2211,7 +2212,7 @@ async function itemMenu(){
 async function ruleMenu(){
   const c = await choose([
     {label:'A：たおしてゲット', note: S.rule==='A'?'いまこれ':''},
-    {label:'B：弱らせてつかまえる', note: S.rule==='B'?'いまこれ':''}],
+    {label:'B：追いかけてつかまえる', note: S.rule==='B'?'いまこれ':''}],
     {title:'バトルのルール', msg:'A：虫のHPを0にしたらゲット。かんたんでそうかい。\nB：HPを減らして「つかまえる」。HPを0にすると虫はにげてしまう。', start: S.rule==='A'?0:1});
   if(c===0) S.rule = 'A'; if(c===1) S.rule = 'B';
 }
@@ -2514,7 +2515,7 @@ async function battle(id){
         await say((crit ? 'クリーンヒット！ ' : '') + `${b.name}に ${d} のダメージ！`);
         if(e.hp <= 0){
           if(S.rule==='A'){ await getBug(e); }
-          else { await say(`${b.name}は弱って、どこかへ飛んでいってしまった…\n（HPを0にすると、つかまえられない）`); await gainExp(Math.round(expOf(e)/2)); }
+          else { await say(`${b.name}はおどろいて、どこかへ飛んでいってしまった…\n（HPを0にすると、つかまえられない）`); await gainExp(Math.round(expOf(e)/2)); }
           result = 'end';
         }
         }
