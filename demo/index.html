@@ -614,12 +614,15 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.3.0';
-const BUILD = '20261024-0002';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261024-0025';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.3.0', date:'2026-10-23', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
     '虫具店で虫を「売る」のをやめて、「とどける」とお礼にどんぐりがもらえるようにした',
     'フィールドと主人公の絵を、くっきりした絵にかえた（町はアスファルトの道と、いまふうの家・お店・自動販売機など。宗像大社には石だたみの参道、池や川や海には岸）',
+    '「虫にやさしく」をテーマに、バトルの「ダメージ」を「あみでおいこんだ！ HPが〇へった！」に。虫ずもうも「HPが〇へった！」に',
+    '「虫とりのやくそく」を、はじめて虫をつかまえたとき・虫かごがいっぱいになったとき・虫を持って家でねるとき・エンディングで教えるようにした',
+    '虫をにがすと「もとの場所へ かえっていった。元気でね！」と出るようにした',
     'バトルのルールの名前を、A「すぐにゲット」・B「追いかけてつかまえる」にした。HPが0になった虫は「おどろいて」飛んでいくようにした',
     '虫具店や家から出るとき、ぱっと下にうつらずに、歩いて出るようにした',
     '虫具店を、ガラスのショーウィンドウがある新しいお店の絵にした。ゆうたは切りかぶの上に立つようにした',
@@ -1682,9 +1685,9 @@ async function showAllMaps(){
    ゲーム状態
    ========================================================= */
 function newState(){ return {day:1, min:START_MIN, lv:1, exp:0, hp:24, money:300, net:0, cage:0, shoes:0, items:{drink:1, mitsu:0, jueki:0, note:0},
-  box:[], dex:{}, seen:{}, visited:{town:true}, area:'town', x:3, y:5, dir:'D', rule:'B', warned:false, caughtTotal:0,
+  box:[], dex:{}, seen:{}, visited:{town:true}, area:'town', x:3, y:5, dir:'D', rule:'B', warned:false, caughtTotal:0, yk:{},
   goldwing:false, ticket:false, trapDay:0, link:{}, round:1, sumo:{}, sumoDay:{}, sumoChamp:false}; }
-function loadState(json){ const d = newState(), s = Object.assign(d, JSON.parse(json)); s.items = Object.assign(newState().items, s.items); s.link = s.link || {}; s.sumo = s.sumo || {}; if(s.shoes >= 3){ s.shoes = 2; s.ticket = true; }   // 前のバージョンのマリンシューズ → 乗船チケット
+function loadState(json){ const d = newState(), s = Object.assign(d, JSON.parse(json)); s.items = Object.assign(newState().items, s.items); s.link = s.link || {}; s.sumo = s.sumo || {}; s.yk = s.yk || {}; if(s.shoes >= 3){ s.shoes = 2; s.ticket = true; }   // 前のバージョンのマリンシューズ → 乗船チケット
    s.sumoDay = s.sumoDay || {}; return s; }
 let S = newState();
 const maxHp = ()=> 24 + (S.lv-1)*6;
@@ -2138,6 +2141,7 @@ async function home(){
   await walkOut();
 }
 async function sleep(faint){
+  if(!faint && S.box.length && !S.yk.cool){ S.yk.cool = 1; await say('ねる前に、虫かごを げんかんの すずしい場所に おいた。\n【虫とりのやくそく】\n虫かごは、日の当たらない、すずしい場所においてあげよう。'); }
   if(S.day >= DAYS){ await ending(); return; }
   track('day_start', {day: S.day + 1});
   // 子守歌を聴きながら暗いまま少し待ち、朝になったら遠くでニワトリが鳴く
@@ -2195,7 +2199,7 @@ async function boxMenu(){
     if(c<0) return;
     const it = S.box[c];
     const y = await choose(['にがす','やめる'], {msg:`${BUGS[it.id].name}（Lv${it.lv}）をどうする？`, cls:'side'});
-    if(y===0){ S.box.splice(c,1); await say(`${BUGS[it.id].name}をにがしてあげた。元気でね！`); }
+    if(y===0){ S.box.splice(c,1); await say(`${BUGS[it.id].name}は、もとの場所へ かえっていった。元気でね！`); }
   }
 }
 async function itemMenu(){
@@ -2348,6 +2352,9 @@ async function getBug(e){
   se('catch');
   await say(`やったー！ ${e.b.name}をつかまえた！`, 'boku');
   if(first) await say(`こん虫ずかんに ${e.b.name} が登録された！`);
+  // 虫とりのやくそく：はじめてのときに、ひとことずつ教える（夏休みごとに1回）
+  if(!S.yk.hold){ S.yk.hold = 1; await say('【虫とりのやくそく】\n虫は、力を入れずに、そっと持とうね。'); }
+  if(S.box.length >= cap() && !S.yk.full){ S.yk.full = 1; await say('虫かごがいっぱいになった！\n【虫とりのやくそく】\n虫かごに、たくさん入れすぎないようにしよう。'); }
   await gainExp(expOf(e));
   return true;
 }
@@ -2512,7 +2519,7 @@ async function battle(id){
         } else {   // ふつうのいちげき
         await netSwing(true);
         e.hp = Math.max(0, e.hp - d); fx(bSprite,'hit',450); updateB(e); se(crit ? 'crit' : 'hit');
-        await say((crit ? 'クリーンヒット！ ' : '') + `${b.name}に ${d} のダメージ！`);
+        await say(crit ? `ナイス！ うまくおいこんだ！\n${b.name}のHPが ${d} へった！` : `${b.name}を じりじり おいこんだ！\nHPが ${d} へった！`);   // 虫をたたくのではなく、あみで追いこむ
         if(e.hp <= 0){
           if(S.rule==='A'){ await getBug(e); }
           else { await say(`${b.name}はおどろいて、どこかへ飛んでいってしまった…\n（HPを0にすると、つかまえられない）`); await gainExp(Math.round(expOf(e)/2)); }
@@ -2540,7 +2547,7 @@ async function battle(id){
     if(Math.random() < b.spd*0.025 + (hpR < .35 ? .06 : 0)){ se('run'); await say(`${b.name}は飛んでにげてしまった！`); result = 'end'; break; }
     const d = Math.max(1, Math.round(e.atk*(0.8 + Math.random()*0.4)));
     S.hp = Math.max(0, S.hp - d); fx(screenEl,'shake',300); se('damage'); updateB(e); hud();
-    await say(`${b.name}は${ATTACK[b.shape]}\n${d} のダメージをうけた！`);
+    await say(`${b.name}は${ATTACK[b.shape]}\nぼくのHPが ${d} へった！`);
     if(S.hp <= 0){ se('faint'); await say('目の前がくらくらする…ねっちゅうしょうかも！\nいそいで家に帰って休もう。', 'boku'); result = 'faint'; }
   }
   await fade(()=>{ battleEl.hidden = true; netReset(); scene = 'field'; S.min += BATTLE_MIN; hud(); });
@@ -2584,7 +2591,7 @@ const SP_MOVES = {
   grass:    {name:'ジャンプキック',     mult:1.9, acc:.70, open:1.5, info:'いりょくが大きい'},
   mantis:   {name:'カマのれんぞくぎり', mult:1.05, acc:.9, open:1.4, hits:2, info:'2回こうげきする'},
   cicada:   {name:'ミンミン大音量',     mult:1.1, acc:.90, open:1.3, weaken:.8, info:'相手のちからを下げる'},
-  bee:      {name:'どくばりアタック',   mult:1.4, acc:.80, open:1.4, poison:3, info:'3ターンのあいだ、どくでダメージ'},
+  bee:      {name:'どくばりアタック',   mult:1.4, acc:.80, open:1.4, poison:3, info:'3ターンのあいだ、どくでHPがへる'},
   firefly:  {name:'ピカピカフラッシュ', mult:1.1, acc:1.0, open:1.2, blind:2, info:'相手のこうげきが2回当たりにくくなる'},
   strider:  {name:'水しぶきスプラッシュ', mult:1.1, acc:.95, open:1.2, blind:2, info:'相手のこうげきが2回当たりにくくなる'},
 };
@@ -2599,11 +2606,11 @@ function fighter(id, lv, mine){
 const mark = (v, hi, lo)=> v >= hi ? '◎' : v <= lo ? '△' : '○';
 const fstat = f=> `${f.t.name}タイプ　たいりょく${f.maxhp}　ちから${Math.round(f.atk)}\nまもり${mark(1/f.t.def, 1.12, 0.96)}　すばやさ${mark(f.spd, 4, 1)}　かいふく${mark(f.t.heal, 0.16, 0.08)}\nひっさつ：${f.sp.name}（${f.sp.info}）`;
 async function sumoRules(){
-  await talk('【虫ずもうのルール】\nつっこむ：ふつうのこうげき。\nひっさつわざ：つよいけど、つぎに動くまでスキができて、受けるダメージが1.5倍になる。',
-    'ふんばる：受けるダメージを大きくへらして、たいりょくを回復する。回復する量は虫のタイプでちがう。2回つづけると回復は半分。',
+  await talk('【虫ずもうのルール】\nつっこむ：ふつうのこうげき。\nひっさつわざ：つよいけど、つぎに動くまでスキができて、HPのへりかたが1.5倍になる。',
+    'ふんばる：HPのへりかたを大きくへらして、たいりょくを回復する。回復する量は虫のタイプでちがう。2回つづけると回復は半分。',
     '【虫のタイプ】\nこうちゅう：ちから・まもりが強いけど、おそい。\nチョウ：よわいけど、ふんばるでたくさん回復。りんぷんで相手のこうげきをはずさせる。',
     'トンボ：とても速くて、ひっさつわざが当たりやすい。\nバッタ・カマキリ：バランス型。カマキリは2回こうげき。',
-    'セミ：大音量で相手のちからを下げる。\nハチ：ちからが強く、どくでダメージをあたえる。\nホタル・アメンボ：目くらましと回復がとくい。',
+    'セミ：大音量で相手のちからを下げる。\nハチ：ちからが強く、どくで相手のHPをへらす。\nホタル・アメンボ：目くらましと回復がとくい。',
     'すばやさが高い虫が先に動く。相手のタイプを見て、作戦を立てよう！');
 }
 async function sumoMenu(){
@@ -2674,12 +2681,12 @@ async function sumoBattle(r, it){
     d.hp = Math.max(0, d.hp - total); fx(d===me ? mSprite : bSprite, 'hit', 450); if(d===me) fx(screenEl,'shake',300); se(d===me ? 'damage' : 'hit');
     const notes = [];
     if(d.open > 1) notes.push('スキをつかれた！');
-    if(d.guard) notes.push(sp && mv.pierce ? 'ふんばりをつきやぶった！' : 'ふんばってダメージをへらした');
+    if(d.guard) notes.push(sp && mv.pierce ? 'ふんばりをつきやぶった！' : 'ふんばって、HPがへるのをおさえた');
     if(sp && mv.blind){ d.blind = mv.blind; notes.push(`${name(d)}は目がくらんだ！`); }
     if(sp && mv.weaken){ d.weak = Math.max(0.6, d.weak * mv.weaken); notes.push(`${name(d)}のちからが下がった！`); }
     if(sp && mv.poison){ d.poison = mv.poison; notes.push(`${name(d)}はどくをうけた！`); }
     upd();
-    await say(`${name(a)}の${wname}${times>1 ? `（${times}回）` : ''}\n${total} のダメージ！ ${notes.join(' ')}`);
+    await say(`${name(a)}の${wname}${times>1 ? `（${times}回）` : ''}\n${name(d)}のHPが ${total} へった！ ${notes.join(' ')}`);
   };
   let result = null;
   while(!result){
@@ -2697,7 +2704,7 @@ async function sumoBattle(r, it){
     for(const f of [me, foe]){   // ターンの終わりに、どくのダメージ
       if(result || !f.poison) continue;
       const pd = Math.max(1, Math.round(f.maxhp*0.06)); f.hp = Math.max(0, f.hp - pd); f.poison--; upd();
-      await say(`${name(f)}は、どくで ${pd} のダメージ！`);
+      await say(`${name(f)}は、どくで HPが ${pd} へった！`);
       if(f.hp <= 0){ result = f===foe ? 'win' : 'lose'; await say(`${name(f)}は、切りかぶの外へころがり落ちた！\nしょうぶあり！`); }
     }
   }
@@ -3151,7 +3158,7 @@ function endingStory(e, r){
 }
 async function ending(){
   scene = 'end';
-  const r = research(), e = endingOf(r), lines = endingStory(e, r); endKey = e.key;
+  const r = research(), e = endingOf(r), lines = endingStory(e, r).concat(['夏休みにつかまえた虫たちは、かんさつがおわったら、みんな もとの場所にかえしてあげた。\n【虫とりのやくそく】\nかんさつがおわったら、つかまえた場所にかえしてあげよう。']); endKey = e.key;
   track('game_ending', {ending:e.key, score:r.total, species:r.species, round:S.round||1});
   const el = $('endIn'); $('endScr').hidden = false;
   const next = ()=> new Promise(res=>{ uiHandler = k=>{ if(k==='A'){ uiHandler = null; res(); } }; const b = $('endBtn'); if(b) b.onclick = ()=>{ uiHandler = null; res(); }; });
