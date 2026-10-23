@@ -552,7 +552,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-1316';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-1322';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -1817,12 +1817,16 @@ function loop(ts){
 const NPC_PAL = Object.assign({}, PC, {h:'#2f6fd0', b:'#2f6fd0', t:'#f0d040', u:'#c84030', p:'#3a3a3a', g:'#c84030'});   // 青い帽子・黄色いシャツの子
 /* 町の切りかぶの子（ゆうた）：img/sprites/npc_yuta.png の4コマ（立つ・右手をふる・立つ・左手をふる）をくり返す */
 let npcSheet = null;
-if(window.HAS_NPC_YUTA){ const im = new Image(); im.onload = ()=>{ npcSheet = im; }; im.src = av('img/sprites/npc_yuta.png'); }
+if(window.HAS_NPC_YUTA || USE_HD){ const im = new Image(); im.onload = ()=>{ npcSheet = im; }; im.src = av(USE_HD && HD_K === 4 ? 'img/sprites/npc_yuta_hd.png' : 'img/sprites/npc_yuta.png'); }
 function drawNpc(tx, ty, ts){
   const px = tx*TS, py = ty*TS - 4, bob = npcSheet ? 0 : (Math.floor(ts/400) % 2 ? -1 : 0);
-  if(npcSheet) ctx.drawImage(npcSheet, (Math.floor(ts/350) % 4) * 16, 0, 16, 16, px, py, 16, 16);
+  if(npcSheet){
+    const F = npcSheet.height, D = 16 * PL_SCALE;   // F = 絵の1コマの大きさ（くっきり版は64）。主人公と同じ大きさの比で、足の位置はそろえる
+    ctx.drawImage(npcSheet, (Math.floor(ts/350) % 4) * F, 0, F, F, px + 8 - D/2, py + 16 - D, D, D);
+  }
   else P_FRONT.forEach((r,y)=>[...r].forEach((ch,i)=>{ if(ch==='.') return; ctx.fillStyle = NPC_PAL[ch]; ctx.fillRect(px + 2 + i, py + y + bob, 1, 1); }));
-  if(sumoNext()){ ctx.fillStyle = '#fff'; ctx.fillRect(px+6, py-9+bob, 5, 8); ctx.fillStyle = '#e04030'; ctx.fillRect(px+8, py-8+bob, 1, 4); ctx.fillRect(px+8, py-3+bob, 1, 1); }   // 「！」
+  if(sumoNext()){ const up = npcSheet ? 16 * PL_SCALE - 16 : 0;   // 大きく描いたぶん、「！」も上に
+    ctx.fillStyle = '#fff'; ctx.fillRect(px+6, py-9+bob-up, 5, 8); ctx.fillStyle = '#e04030'; ctx.fillRect(px+8, py-8+bob-up, 1, 4); ctx.fillRect(px+8, py-3+bob-up, 1, 1); }   // 「！」
 }
 /* 主人公の歩きの絵（img/sprites/player.png：横3コマ＝立ち・右足・左足、たて4段＝下・左・右・上、1コマ16ドット） */
 const USE_PLAYER_ART = true;    // true：img/sprites/player.png の主人公／false：プログラムで描いたシンプルな主人公
