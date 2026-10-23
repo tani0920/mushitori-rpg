@@ -69,6 +69,15 @@ header small{color:var(--mute);font-size:12px}
 ruby.fr rt{font-size:.5em;letter-spacing:0;font-weight:400;opacity:.9}
 .updBar{position:fixed;left:12px;right:12px;margin:0 auto;width:fit-content;top:calc(env(safe-area-inset-top,0px) + 6px);z-index:10000;display:flex;align-items:center;justify-content:center;gap:.6em;white-space:nowrap;background:#14284af0;color:#fff;border:2px solid var(--sun);border-radius:10px;padding:.4em .5em .4em .9em;box-shadow:0 4px 12px #0008;font-size:13px}
 .updBar button{font:inherit;background:var(--sun);color:#1b130c;border:0;border-radius:6px;padding:.35em .8em;cursor:pointer;white-space:nowrap}
+.updAsk{position:fixed;inset:0;z-index:10001;display:flex;align-items:center;justify-content:center;background:#0008;padding:16px}
+.updAsk .box{background:#14284a;color:#fff;border:2px solid var(--sun);border-radius:12px;padding:1em 1.1em;max-width:22em;font-size:15px;line-height:1.7;box-shadow:0 6px 18px #000a}
+.updAsk .box b{color:var(--sun)}
+.updAsk .row{display:flex;flex-direction:column;gap:.5em;margin-top:.9em}
+.updAsk button{font:inherit;border:0;border-radius:8px;padding:.6em .8em;cursor:pointer}
+.updAsk .go{background:var(--sun);color:#1b130c}
+.updAsk .later{background:#ffffff22;color:#fff}
+.updAsk .pri{background:var(--sun);color:#1b130c}   /* バトル中は「あとで」のほうを目立たせる */
+.updAsk .sub{background:#ffffff22;color:#fff}
 #hud .time{display:inline-flex;align-items:center;gap:.3em}
 #hud .clock{width:1.9em;height:1.9em;flex:none;filter:drop-shadow(0 1px 1px #0008)}
 #hud .hrow{display:contents}
@@ -621,7 +630,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.3.0';
-const BUILD = '20261024-0318';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261024-0325';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.3.0', date:'2026-10-23', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -630,6 +639,7 @@ const CHANGELOG = [
     '「虫にやさしく」をテーマに、バトルの「ダメージ」を「あみでおいこんだ！ HPが〇へった！」に。虫ずもうも「HPが〇へった！」に',
     '「虫とりのやくそく」を、はじめて虫をつかまえたとき・虫かごがいっぱいになったとき・虫を持って家でねるとき・エンディングで教えるようにした',
     '虫ずもうのわざの名前を、すもうらしく（はさみなげ・れんぞくカマおし・がっちりロック・ジャンプおしだし）。けんたのセリフもやさしくした',
+    '「こうしんする」を押したとき、「セーブをわすれずに！」と出して、セーブしてからこうしんできるようにした',
     'オプションに「ボタンの高さ」を足した。十字キーとA・Bボタンを、それぞれ5だんかいで上げられる（iPadなどのタブレットは、はじめから少し上）',
     'どんぐりが足りなくて買えないものは、お店のリストで少しうすく、ねだんを赤っぽく出すようにした',
     'iPadなどで「写真をとる」を開いたとき、画面が固まって「とじる」がきかないことがあったのを直した',
@@ -1075,8 +1085,19 @@ async function checkUpdate(){
     updShown = true;
     const b = document.createElement('div'); b.className = 'updBar';
     b.innerHTML = `<span>新しいバージョンがあります</span><button type="button">こうしんする</button>`;
-    b.querySelector('button').onclick = ()=>{ if(typeof scene !== 'undefined' && scene === 'field') save();   // 歩いているときは、いまの場所をセーブしてから
-      location.replace(location.pathname + '?u=' + encodeURIComponent(j.build)); };
+    const go = ()=> location.replace(location.pathname + '?u=' + encodeURIComponent(j.build));
+    b.querySelector('button').onclick = ()=>{
+      const sc = typeof scene !== 'undefined' ? scene : 'title', battleNow = sc === 'battle' || !$('battle').hidden;
+      if(sc === 'title' || sc === 'end'){ go(); return; }   // タイトル画面なら、消えるものはない
+      // こうしんする前に「セーブを忘れずに」：歩いているときはセーブしてから、バトルやお店のとちゅうなら、あとでにしてもらう
+      const a = document.createElement('div'); a.className = 'updAsk';
+      a.innerHTML = !battleNow
+        ? `<div class="box"><b>セーブをわすれずに！</b><br>こうしんすると、ページを読みこみなおします。<br>いまの場所をセーブしてから、こうしんしますか？<div class="row"><button type="button" class="go">セーブして、こうしんする</button><button type="button" class="later">あとで</button></div></div>`
+        : `<div class="box"><b>セーブをわすれずに！</b><br>バトルのとちゅうは、セーブできません。<br>こうしんすると、さいごにセーブしたところからになります。<br>バトルがおわったら、メニューの「セーブ」をしてから、こうしんしてね。<div class="row"><button type="button" class="later pri">あとで（バトルにもどる）</button><button type="button" class="go sub">それでも、こうしんする</button></div></div>`;
+      a.querySelector('.go').onclick = ()=>{ if(!battleNow) save(); go(); };
+      a.querySelector('.later').onclick = ()=> a.remove();
+      document.body.appendChild(a);
+    };
     document.body.appendChild(b);
   }catch(e){}
 }
