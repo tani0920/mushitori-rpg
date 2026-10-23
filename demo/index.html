@@ -420,7 +420,7 @@ body.touch:not(.land) #hud .clock{width:2.4em;height:2.4em;margin:-.3em 0}
 body.touch.land #hud{font-size:clamp(13px,3.8vmin,18px)}
 body.touch.land #hud .bar{width:80px}
 body.touch #pad{position:absolute;left:0;right:0;bottom:0;z-index:3;display:flex;align-items:flex-end;pointer-events:none;
-  padding:0 max(14px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 16px) max(14px,env(safe-area-inset-left,0px))}
+  padding:0 max(14px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 6px) max(14px,env(safe-area-inset-left,0px))}   /* 下のすきまは少なめ（ボタンをできるだけ下に） */
 body.touch .dpad,body.touch .ab{pointer-events:auto}
 body.touch .dpad{--c:clamp(56px,8.5vmin,80px);grid-template-columns:repeat(3,var(--c));grid-template-rows:repeat(3,var(--c));touch-action:none;
   background:radial-gradient(circle,#0004 0 62%,transparent 63%);border-radius:50%}
@@ -437,7 +437,7 @@ body.touch #pad .ab [data-k=A]{background:#8a3e2288!important}
 body.touch #pad .ab button.on{background:#f7f1df44!important;color:#fff}
 /* しばらくさわらないと、ボタンをうすくする（さわるとすぐにもどる） */
 body.touch #pad{transition:opacity .5s}
-body.touch #pad.idle{opacity:.35}
+body.touch #pad.idle{opacity:.6}
 body.touch .ab [data-k=M]{font-size:14px!important;padding:8px 10px}
 body.touch #screen .ov{font-size:clamp(15px,4.4vmin,30px)}
 body.touch .win{border-width:3px;padding:.5em .8em;line-height:1.55}
@@ -500,6 +500,8 @@ body.touch.land .binfo{font-size:.75em}
 body.touch.land #bInfo{left:calc(var(--sideL) + 8px)}
 /* 横向き：虫は「上の情報欄」と「下のメッセージ欄」のあいだの、上下まん中に置く */
 body.touch.land #battle{--free:calc(100% - var(--hudH) - 4.4em - 30px);--mid:calc(var(--hudH) + var(--free) / 2)}
+body.touch.land #bInfo{left:max(8px,env(safe-area-inset-left,0px));width:26%;max-width:15em}   /* 横向き：名前のわくは画面のはしへ（ボタンは下のすみだけなので、上はあいている） */
+body.touch.land #pInfo{right:max(8px,env(safe-area-inset-right,0px));width:22%;max-width:12em}
 body.touch.land #bWrap{--w:min(56vh,30vw);width:var(--w);top:max(calc(var(--hudH) + .4em), calc(var(--mid) - var(--w) * .4))}   /* まん中より少しだけ下（上の名前のわくに頭がかくれないように） */
 body.touch.land #battle.vs #bWrap{--w:min(34vh,22vw);width:var(--w);left:calc(var(--sideL) + 6%);top:max(calc(var(--hudH) + 4.2em), calc(var(--mid) - var(--w) * .8))}
 body.touch.land #battle.vs #mWrap{--w:min(34vh,22vw);width:var(--w);right:calc(var(--sideR) + 6%);top:max(calc(var(--hudH) + 5.6em), calc(var(--mid) - var(--w) * .2))}
@@ -604,7 +606,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-2211';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-2228';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -615,7 +617,8 @@ const CHANGELOG = [
     '主人公の家も、自転車と朝顔のある新しい家の絵にした',
     '虫が出るときの演出を、はじめての虫・めずらしい虫・伝説の虫でかえた（頭の上に「！」、黒いかげから色がつく、キラキラ、金色の光など。めずらしい虫は、2回目からはすぐ出る）',
     '主人公とゆうたの頭の上の吹き出しを、絵にした',
-    'スマホのボタンを、目立ちすぎないすける丸にした。しばらくさわらないと、うすくなる',
+    'スマホのボタンを、目立ちすぎないすける丸にした。しばらくさわらないと、少しうすくなる（戦闘中はうすくならない）',
+    'スマホ横向きの戦闘で、虫と自分の名前のわくを画面のはしによせて、虫が見やすいようにした',
     '戦闘で、虫とりあみの絵が動くようにした（あみをふる・かぶせる・もぞもぞ・つかまえた・ふんわりあみ）。あみは買ったものによって絵と色がかわる。こども用は赤、竹はうすい竹の色、名人は金色',
     '赤間の町の戦闘画面の背景を、アスファルトの道といまふうの家の町にした',
     'メニューの「本物の虫の写真」の名前を、みじかく「写真をとる」にした',
@@ -1905,7 +1908,7 @@ window.addEventListener('blur', ()=>{ heldKeys.length = 0; held = null; });
 })();
 /* ボタンを4秒さわらないと、うすくする。画面のどこかをさわれば、すぐにこくもどる */
 (()=>{ const padEl = $('pad'); let t = null;
-  const wake = ()=>{ padEl.classList.remove('idle'); clearTimeout(t); t = setTimeout(()=>padEl.classList.add('idle'), 4000); };
+  const wake = ()=>{ padEl.classList.remove('idle'); clearTimeout(t); t = setTimeout(()=>{ if(scene!=='battle') padEl.classList.add('idle'); else wake(); }, 4000); };   // 戦闘中はうすくしない（コマンドをえらぶので）
   addEventListener('pointerdown', wake, {capture:true, passive:true}); wake(); })();
 document.querySelectorAll('.ab button').forEach(b=>{
   b.addEventListener('pointerdown', e=>{ e.preventDefault(); b.classList.add('on'); press(b.dataset.k); });
