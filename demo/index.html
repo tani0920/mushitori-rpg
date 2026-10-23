@@ -552,7 +552,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-1257';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-1301';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -1333,7 +1333,8 @@ const tileAtIdx = (g, i, X, Y, sh = tileSheet)=> g.drawImage(sh, (i%4)*TSRC, Mat
 /* タイルセット2（くっきり版だけ・img/sprites/tiles2_hd.png）：いまふうの町と、神社の参道
    1段目：アスファルト 歩道 参道の石だたみ 玉砂利／2段目：家の屋根（こげ茶） お店の屋根（青） 家の壁（窓） 家の玄関
    3段目：緑のひさし お店のショーウィンドウ お店の入口 お店の壁（ポスター）／4段目：自動販売機 電柱 郵便ポスト 花だん */
-let tileSheet2 = null, objSheet = null;
+let tileSheet2 = null, objSheet = null, signImg = null;
+if(USE_HD && HD_K === 4){ const im = new Image(); im.onload = ()=>{ signImg = im; }; im.src = av('img/sprites/sign_hd.png'); }   // お店の看板
 if(USE_HD && HD_K === 4){ const im = new Image(); im.onload = ()=>{ tileSheet2 = im; for(const k in layerCache) delete layerCache[k]; }; im.src = av('img/sprites/tiles2_hd.png'); }
 // 町の物（img/sprites/objects_hd.png：背景が透明な、自動販売機・電柱・郵便ポスト・花だん。1コマ＝はば1マス×高さ2マス）
 // 地面の上にそのまま置いて描く（電柱などは、上のマスまで高くのびる）
@@ -1834,7 +1835,13 @@ function draw(ts){
   ctx.save(); ctx.translate(-Math.round(camX), -Math.round(camY));
   try{   // とちゅうで失敗しても、カメラのずれ（translate）がたまらないように、かならず restore する（たまると、マップが画面の外にずれて真っ暗になる）
   ctx.drawImage(mapLayer(S.area), 0, 0, MW, MH);
-  if(S.area==='town'){ ctx.fillStyle = '#fbf8ef'; ctx.fillRect(12*TS+20, 2*TS+4, 40, 9); ctx.fillStyle = '#284f82'; ctx.font = '8px sans-serif'; ctx.textBaseline = 'top'; ctx.fillText('虫具店', 12*TS+28, 2*TS+4); }
+  if(S.area==='town' && signImg){   // くっきり版：カブトムシのかざりがついた木の看板（はば52×高さ13.5）に、文字はゲームの中で書く
+    const sx = 12*TS + 14, sy = 2*TS + 1;
+    ctx.drawImage(signImg, sx, sy, 52, 13.5);
+    ctx.fillStyle = '#3a2614'; ctx.font = 'bold 6.6px "Hiragino Maru Gothic ProN","Hiragino Sans",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('虫具店', sx + 27, sy + 8.4); ctx.textAlign = 'left';
+  }
+  else if(S.area==='town'){ ctx.fillStyle = '#fbf8ef'; ctx.fillRect(12*TS+20, 2*TS+4, 40, 9); ctx.fillStyle = '#284f82'; ctx.font = '8px sans-serif'; ctx.textBaseline = 'top'; ctx.fillText('虫具店', 12*TS+28, 2*TS+4); }
   if(S.area==='town') maps.town.forEach((r,y)=>r.forEach((t,x)=>{ if(t==='K') drawNpc(x, y, ts); }));
   if(objSheet) hdObjects(ctx, maps[S.area], false, py);
   drawPlayer(px, py, ts);
