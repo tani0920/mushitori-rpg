@@ -630,7 +630,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.3.0';
-const BUILD = '20261024-0325';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261024-0346';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.3.0', date:'2026-10-23', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -639,6 +639,7 @@ const CHANGELOG = [
     '「虫にやさしく」をテーマに、バトルの「ダメージ」を「あみでおいこんだ！ HPが〇へった！」に。虫ずもうも「HPが〇へった！」に',
     '「虫とりのやくそく」を、はじめて虫をつかまえたとき・虫かごがいっぱいになったとき・虫を持って家でねるとき・エンディングで教えるようにした',
     '虫ずもうのわざの名前を、すもうらしく（はさみなげ・れんぞくカマおし・がっちりロック・ジャンプおしだし）。けんたのセリフもやさしくした',
+    'オプションに「じどうセーブ」を足した。ONだと、ほかのアプリに切りかえたとき、歩いているところならセーブする（はじめはON）',
     '「こうしんする」を押したとき、「セーブをわすれずに！」と出して、セーブしてからこうしんできるようにした',
     'オプションに「ボタンの高さ」を足した。十字キーとA・Bボタンを、それぞれ5だんかいで上げられる（iPadなどのタブレットは、はじめから少し上）',
     'どんぐりが足りなくて買えないものは、お店のリストで少しうすく、ねだんを赤っぽく出すようにした',
@@ -1825,6 +1826,14 @@ const dexCount = ()=> Object.keys(S.dex).length;
 function save(){ if(new URLSearchParams(location.search).has('demo')) return;   // 確認用のURL（?demo=…）で遊んだときは、ほんとうのセーブを上書きしない
   try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){} }
 function loadRaw(){ try{ return localStorage.getItem(SAVE_KEY); }catch(e){ return null; } }
+/* じどうセーブ（オプション）：ほかのアプリに切りかえたとき、歩いているところならセーブする。
+   iPadやスマホは、うしろにまわしたページを消して、もどったときに読みこみなおすことがあるので */
+const AUTO_KEY = 'munakata-autosave-v1';
+let autoSave = (()=>{ try{ return localStorage.getItem(AUTO_KEY) !== 'off'; }catch(e){ return true; } })();   // はじめは ON
+function setAutoSave(on){ autoSave = on; try{ localStorage.setItem(AUTO_KEY, on ? 'on' : 'off'); }catch(e){} }
+function autoSaveNow(){ if(!autoSave || typeof scene === 'undefined' || scene !== 'field' || !$('battle').hidden) return; save(); }   // バトル中・タイトル・エンディングではしない
+document.addEventListener('visibilitychange', ()=>{ if(document.hidden) autoSaveNow(); });
+addEventListener('pagehide', autoSaveNow);
 function clearSave(){ try{ localStorage.removeItem(SAVE_KEY); }catch(e){} }
 /* クリアしたときの引きつぎデータ（次の夏休みに持っていけるもの） */
 const CARRY_KEY = KEY_PRE + 'munakata-mushitori-carry-v1';
@@ -2236,12 +2245,13 @@ async function optionMenu(){
   optIdx = 0;
   while(true){
     const touch = document.body.classList.contains('touch');   // 「ボタンの高さ」は、画面にボタンが出ているときだけ
-    const keys = ['rule','furi','bgm','se', ...(touch ? ['pad'] : []), 'priv','title','back'];
-    const lbl = {rule:'ルール', furi:`ふりがな：${furiMode ? 'たくさん' : 'ふつう'}`, bgm:`BGM：${sndPref.bgm ? 'ON' : 'OFF'}`, se:`効果音：${sndPref.se ? 'ON' : 'OFF'}`, pad:'ボタンの高さ', priv:'プライバシーについて', title:'タイトルにもどる', back:'もどる'};
+    const keys = ['rule','furi','bgm','se','auto', ...(touch ? ['pad'] : []), 'priv','title','back'];
+    const lbl = {rule:'ルール', furi:`ふりがな：${furiMode ? 'たくさん' : 'ふつう'}`, bgm:`BGM：${sndPref.bgm ? 'ON' : 'OFF'}`, se:`効果音：${sndPref.se ? 'ON' : 'OFF'}`, auto:`じどうセーブ：${autoSave ? 'ON' : 'OFF'}`, pad:'ボタンの高さ', priv:'プライバシーについて', title:'タイトルにもどる', back:'もどる'};
     const ci = await choose(keys.map(k=>lbl[k]), {title:'オプション', cls:'side', start:optIdx});
     optIdx = Math.max(0, ci);
-    const c = ci < 0 ? -1 : {rule:0, furi:1, bgm:2, se:3, priv:4, title:5, back:6, pad:7}[keys[ci]];
+    const c = ci < 0 ? -1 : {rule:0, furi:1, bgm:2, se:3, priv:4, title:5, back:6, pad:7, auto:8}[keys[ci]];
     if(c===7){ await padMenu(); continue; }
+    if(c===8){ setAutoSave(!autoSave); await say(autoSave ? 'じどうセーブを「ON」にしました。\nほかのアプリに切りかえたとき、歩いているところならセーブします。\n（バトル中はセーブしません）' : 'じどうセーブを「OFF」にしました。\nセーブは、メニューの「セーブ」で自分でしてね。'); continue; }
     if(c<0 || c===6) return;
     if(c===2){ setSnd('bgm', !sndPref.bgm); continue; }
     if(c===3){ setSnd('se', !sndPref.se); if(sndPref.se) se('ok'); continue; }
