@@ -500,9 +500,10 @@ body.touch.land .binfo{font-size:.75em}
 body.touch.land #bInfo{left:calc(var(--sideL) + 8px)}
 /* 横向き：虫は「上の情報欄」と「下のメッセージ欄」のあいだの、上下まん中に置く */
 body.touch.land #battle{--free:calc(100% - var(--hudH) - 4.4em - 30px);--mid:calc(var(--hudH) + var(--free) / 2)}
-body.touch.land #bInfo{left:max(8px,env(safe-area-inset-left,0px));width:26%;max-width:15em}   /* 横向き：名前のわくは画面のはしへ（ボタンは下のすみだけなので、上はあいている） */
-body.touch.land #pInfo{right:max(8px,env(safe-area-inset-right,0px));width:22%;max-width:12em}
-body.touch.land #bWrap{--w:min(56vh,30vw);width:var(--w);top:max(calc(var(--hudH) + .4em), calc(var(--mid) - var(--w) * .4))}   /* まん中より少しだけ下（上の名前のわくに頭がかくれないように） */
+body.touch.land .binfo{font-size:.92em}   /* 横向き：まん中があいたぶん、名前のわくと虫を1.15倍に */
+body.touch.land #bInfo{left:max(8px,env(safe-area-inset-left,0px));width:30%;max-width:15em}   /* 横向き：名前のわくは画面のはしへ（ボタンは下のすみだけなので、上はあいている） */
+body.touch.land #pInfo{right:max(8px,env(safe-area-inset-right,0px));width:25%;max-width:12em}
+body.touch.land #bWrap{--w:min(64vh,34.5vw);width:var(--w);top:max(calc(var(--hudH) + .4em), calc(var(--mid) - var(--w) * .4))}   /* まん中より少しだけ下（上の名前のわくに頭がかくれないように） */
 body.touch.land #battle.vs #bWrap{--w:min(34vh,22vw);width:var(--w);left:calc(var(--sideL) + 6%);top:max(calc(var(--hudH) + 4.2em), calc(var(--mid) - var(--w) * .8))}
 body.touch.land #battle.vs #mWrap{--w:min(34vh,22vw);width:var(--w);right:calc(var(--sideR) + 6%);top:max(calc(var(--hudH) + 5.6em), calc(var(--mid) - var(--w) * .2))}
 body.touch.land #battle.vs .vsmark{top:calc(var(--mid) - .6em)}
@@ -606,7 +607,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-2228';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-2233';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
