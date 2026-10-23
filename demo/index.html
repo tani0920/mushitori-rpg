@@ -492,14 +492,14 @@ body.touch #dexDetail{font-size:15px}
 body.touch #dexDetail dl{font-size:14px}
 /* ===== スマホ横向き ===== */
 body.touch.land #screen .ov{font-size:clamp(13px,4vmin,20px)}
-body.touch.land .dpad{--c:clamp(46px,12vh,64px)}
-body.touch.land .ab{--b:clamp(56px,15vh,76px);gap:8px}
+body.touch.land .dpad{--c:clamp(56px,14.5vh,72px)}   /* 横向きも、縦向きと同じくらいの大きさに（小さいと押しにくい） */
+body.touch.land .ab{--b:clamp(68px,17.5vh,88px);gap:10px}
 body.touch.land #pad{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 8px)}
 body.touch.land #msg{min-height:4.4em;max-height:38%;bottom:8px}
 body.touch.land #menu{max-height:calc(100% - var(--hudH) - 4.4em - 26px)}
 body.touch.land #menu.side,body.touch.land #menu.map{max-height:calc(100% - var(--hudH) - 14px)}
 body.touch.land #menu li{padding-top:.12em;padding-bottom:.12em}
-body.touch.land #menu:not(.cmd):not(.title):not(.map){min-width:11em;right:max(8px,env(safe-area-inset-right,0px));max-height:calc(100% - var(--hudH) - 15vh - 24px)}   /* 横向き：メニューは中身のはばだけにして、画面の右はしへ（下のA・Bボタンにはかからない高さまで） */
+body.touch.land #menu:not(.cmd):not(.title):not(.map){min-width:11em;right:max(8px,env(safe-area-inset-right,0px));max-height:calc(100% - var(--hudH) - 17.5vh - 26px)}   /* 横向き：メニューは中身のはばだけにして、画面の右はしへ（下のA・Bボタンにはかからない高さまで） */
 body.touch.land #menu:not(.cmd):not(.title):not(.map) li{padding-top:.05em;padding-bottom:.05em}
 body.touch.land #menu.cmditem{bottom:calc(4.4em + 18px)}
 body.touch.land #menu.cmd{bottom:8px;min-height:4.4em}
@@ -614,7 +614,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-2240';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-2242';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
