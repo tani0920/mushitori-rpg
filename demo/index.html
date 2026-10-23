@@ -613,10 +613,10 @@ const KEY_PRE = window.DEMO ? 'demo-' : '';   // デモ版は本番のセーブ�
 const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
-const GAME_VER = '0.2.1';
-const BUILD = '20261023-2247';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const GAME_VER = '0.3.0';
+const BUILD = '20261023-2301';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
-  {v:'0.2.1', date:'2026-10-22', items:[
+  {v:'0.3.0', date:'2026-10-23', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
     '虫具店で虫を「売る」のをやめて、「とどける」とお礼にどんぐりがもらえるようにした',
     'フィールドと主人公の絵を、くっきりした絵にかえた（町はアスファルトの道と、いまふうの家・お店・自動販売機など。宗像大社には石だたみの参道、池や川や海には岸）',
@@ -835,11 +835,9 @@ const SE = {   // 虫とりの音は、虫に気づかれないような・い�
   rarebug:[['t', 0, 1568, .14, .06, 0, [.005, .5, .5]], ['t', 0, 2093, .14, .05, 0, [.005, .5, .5]], ['t', 0, 2637, .9, .05, 0, [.005, .4, .85]]],   // ちりりん（鈴）
   legend: [['t', 0, 200, .2, .32, 70, [.004, 0, .18]], ['r', .06], ['t', 0, 180, .5, .22, 60, [.004, 0, .16]]],   // どくんっ…（そのあと、しーん）
 };
-let seCount = 0, seErr = '';
 function se(name){
   if(!sndPref.se || !actx || actx.state === 'closed') return;
   if(actx.state !== 'running') actx.resume().catch(()=>{});
-  seCount++;
   // iPhone は音の処理をまとめて先に進めるので、「今すぐ」だと短い音が鳴る前に終わってしまう。少し先に予約する
   let t = actx.currentTime + Math.max(.06, (actx.baseLatency || 0) * 2);
   for(const s of SE[name] || []){
@@ -847,7 +845,7 @@ function se(name){
     try{
       if(s[0] === 'n'){ aHit(aSe, s[1], t, s[3], s[2], s[4]); t += s[2]; continue; }
       aTone(aSe, s[0] === 't' ? 'tri' : s[1], s[2], t, s[3], s[4], s[5], s[6]);
-    }catch(e){ seErr = String(e && e.message || e).slice(0, 60); }
+    }catch(e){}
     t += s[3];
   }
 }
@@ -863,7 +861,7 @@ function seSleep(){   // ド ラ ソ ファー ソ ミ ファー（約3秒）
   try{
     let at = t; for(const [n, d] of [[72,.32],[69,.32],[67,.32],[65,.64],[67,.32],[64,.32],[65,1.3]]){ aTone(aSe, .125, mhz(n), at, d * .95, .1, null, [.04, .6, .3]); at += d; }
     aTone(aSe, 'tri', mhz(53), t, 1.9, .14, null, [.1, .8, .5]); aTone(aSe, 'tri', mhz(48), t + 1.92, 1.9, .12, null, [.1, .8, 1]);
-  }catch(e){ seErr = String(e && e.message || e).slice(0, 60); }
+  }catch(e){}
 }
 function seCrow(delay){   // 矩形波2つを少しずらして重ね、のどのふるえを足す。遠くで鳴くように高い音をけずって、うすい山びこ
   if(!seReady()) return;
@@ -894,7 +892,7 @@ function seCrow(delay){   // 矩形波2つを少しずらして重ね、のど�
       const l = actx.createOscillator(), lg = actx.createGain();   // のどのふるえ
       l.frequency.value = 38; lg.gain.value = .03; l.connect(lg); lg.connect(g.gain); l.start(a); l.stop(a + len);
     }
-  }catch(e){ seErr = String(e && e.message || e).slice(0, 60); }
+  }catch(e){}
 }
 /* 虫の音（時間帯で変わる）と風鈴。曲の音量（BGM）といっしょにON/OFFする */
 function ambLfo(g, rate, depth, t, end){   // 音量をふるわせる（虫の羽の音）
@@ -3029,8 +3027,7 @@ function showPrivacy(){
   return p;
 }
 function showChangelog(){
-  setTimeout(()=>{ const b = $('seTest'); if(b) b.onclick = ()=>{ audioUnlock(); se('catch'); }; }, 0);
-  return openPanel('こうしん情報', `<p>いま遊んでいるのは <b>ver ${GAME_VER}</b>${window.DEMO ? '（デモ版）' : ''} です。<br><small>公開番号 ${esc(BUILD)}　／　音：${actx ? esc(actx.state) : 'まだ'}・BGM ${sndPref.bgm ? 'ON' : 'OFF'}・効果音 ${sndPref.se ? 'ON' : 'OFF'}（${seCount}回${seErr ? '・エラー ' + esc(seErr) : ''}）${actx ? `・${actx.sampleRate}Hz・遅れ${Math.round((actx.baseLatency||0)*1000)}/${Math.round((actx.outputLatency||0)*1000)}ms` : ''}</small><br><button type="button" class="btn" id="seTest">効果音をテスト</button></p>
+  return openPanel('こうしん情報', `<p>いま遊んでいるのは <b>ver ${GAME_VER}</b>${window.DEMO ? '（デモ版）' : ''} です。<br><small>公開番号 ${esc(BUILD)}</small></p>
     ${errLog.length ? `<p class="note">エラーの記録（新しい順）：<br>${errLog.slice().reverse().map(x=>`<small>${esc(x.t)}・${esc(x.b)}・${esc(x.sc)}・${esc(x.where)}：${esc(x.msg)}</small>`).join('<br>')}</p>` : ''}
     <p class="note">新しいバージョンが出ているのに古い番号のままのときは、ページを開きなおしてね。</p>
     <div class="chlog">${CHANGELOG.map((c,i)=>`<h3>ver ${esc(c.v)}${i===0 ? '<span class="now">いまのバージョン</span>' : ''}<small>${esc(c.date)}</small></h3><ul>${c.items.map(t=>`<li>${esc(t)}</li>`).join('')}</ul>`).join('')}</div>`);
