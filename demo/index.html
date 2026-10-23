@@ -552,7 +552,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-0943';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-0946';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -796,10 +796,10 @@ function seCrow(delay){   // 矩形波2つを少しずらして重ね、のど�
     dl.delayTime.value = .32; fb.gain.value = .25; out.connect(dl); dl.connect(fb); fb.connect(dl); fb.connect(aSe);
     setTimeout(()=>{ fb.gain.value = 0; out.disconnect(); fb.disconnect(); }, (delay + 4) * 1000);   // 山びこを止める
     const SY = [   // [はじまり, 長さ, 音の高さの動き [時刻の割合, Hz]...]
-      [0,   .09, [[0, 520], [1, 640]]],                          // コ
-      [.13, .09, [[0, 700], [1, 760]]],                          // ケ
-      [.26, .12, [[0, 640], [1, 840]]],                          // コッ
-      [.44, .8,  [[0, 820], [.18, 990], [.6, 930], [1, 620]]],   // コー
+      [0,    .1,  [[0, 560], [1, 640]]],                                     // コッ（短く切る）
+      [.27,  .12, [[0, 700], [1, 780]]],                                     // ケ（ひと呼吸おいて）
+      [.54,  .1,  [[0, 680], [1, 780]]],                                     // コッ
+      [.86,  1.4, [[0, 820], [.12, 900], [.85, 1050], [1, 1010]]],           // コーーー（タメてから、のばしながら少しずつ上がる）
     ];
     for(const [st, len, pts] of SY){
       const a = t + st, g = actx.createGain(); g.connect(lp);
