@@ -499,8 +499,9 @@ body.touch.land #msg{min-height:4.4em;max-height:38%;bottom:8px}
 body.touch.land #menu{max-height:calc(100% - var(--hudH) - 4.4em - 26px)}
 body.touch.land #menu.side,body.touch.land #menu.map{max-height:calc(100% - var(--hudH) - 14px)}
 body.touch.land #menu li{padding-top:.12em;padding-bottom:.12em}
-body.touch.land #menu:not(.cmd):not(.title):not(.map){min-width:11em;right:max(8px,env(safe-area-inset-right,0px));max-height:calc(100% - var(--hudH) - 17.5vh - 26px)}   /* 横向き：メニューは中身のはばだけにして、画面の右はしへ（下のA・Bボタンにはかからない高さまで） */
-body.touch.land #menu:not(.cmd):not(.title):not(.map) li{padding-top:.05em;padding-bottom:.05em}
+body.touch.land #menu:not(.cmd):not(.title):not(.map){min-width:11em;right:max(8px,env(safe-area-inset-right,0px));max-height:calc(100% - var(--hudH) - var(--abH,17.5vh) - 22px)}   /* 横向き：メニューは中身のはばだけにして、画面の右はしへ（下のA・Bボタンにはかからない高さまで） */
+body.touch.land #menu:not(.cmd):not(.title):not(.map){font-size:.94em}
+body.touch.land #menu:not(.cmd):not(.title):not(.map) li{padding-top:.03em;padding-bottom:.03em}
 body.touch.land #menu.cmditem{bottom:calc(4.4em + 18px)}
 body.touch.land #menu.cmd{bottom:8px;min-height:4.4em}
 body.touch.land .binfo{font-size:.75em}
@@ -614,7 +615,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-2242';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-2245';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -1957,6 +1958,7 @@ function layout(){
   st.setProperty('--padH', padH + 'px');
   st.setProperty('--sideL', land ? (dp.right - r.left + 6) + 'px' : '0px');
   st.setProperty('--sideR', land ? (r.right - ab.left + 6) + 'px' : '0px');
+  st.setProperty('--abH', (r.bottom - ab.top) + 'px');   // 画面の下から、A・Bボタンの上のはしまで（横向きのメニューを、ここより上で止める）
 }
 addEventListener('resize', layout);
 /* スマホを回したとき、画面の大きさが確定してからもう一度ととのえる（縦横比がくずれないように） */
