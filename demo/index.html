@@ -166,13 +166,13 @@ body.touch.land #msg .face{width:3.6em;height:3.6em}
 #netfx{position:absolute;left:5%;top:-30%;width:90%;aspect-ratio:1;border-radius:50%;border:4px solid #fff;opacity:0;z-index:3;
   background:repeating-linear-gradient(45deg,#fff8 0 2px,transparent 2px 9px),repeating-linear-gradient(-45deg,#fff8 0 2px,transparent 2px 9px)}
 #netfx.go{animation:net .7s ease-out forwards}
-/* 虫とりあみの絵（くっきり版）：#netSwing＝ふるあみ（5本の横ならび）、#netCatch＝つかまえる3コマ（かぶせた・もぞもぞ・つかまえた） */
+/* 虫とりあみの絵（くっきり版）：#netSwing＝ふるあみ（5本の横ならび）、#netCatch＝つかまえる3コマ（かぶせた・もぞもぞ・つかまえた。たて5段＝あみの種類） */
 #netSwing{position:absolute;left:12%;top:18%;width:100%;aspect-ratio:1;background:0 0/500% 100% no-repeat;opacity:0;z-index:3;pointer-events:none;transform-origin:78% 92%}
 #netSwing.miss{animation:netSwing .6s ease-in-out forwards}
 #netSwing.hit{animation:netHit .7s ease-in-out forwards}
 @keyframes netSwing{0%{opacity:0;transform:rotate(80deg)}15%{opacity:1}50%{transform:rotate(0)}85%{opacity:1}100%{opacity:0;transform:rotate(-75deg)}}
 @keyframes netHit{0%{opacity:0;transform:rotate(80deg)}15%{opacity:1}42%{transform:rotate(-3deg)}50%{transform:rotate(1deg) translateY(3%)}70%{opacity:1;transform:rotate(0) translateY(3%)}100%{opacity:0;transform:rotate(55deg)}}
-#netCatch{position:absolute;left:-15%;top:-36%;width:130%;aspect-ratio:1;background:0 0/300% 100% no-repeat;opacity:0;z-index:3;pointer-events:none;transform-origin:50% 80%}
+#netCatch{position:absolute;left:-15%;top:-36%;width:130%;aspect-ratio:1;background:0 0/300% 500% no-repeat;opacity:0;z-index:3;pointer-events:none;transform-origin:50% 80%}
 #netCatch.f1{background-position-x:50%}
 #netCatch.f2{background-position-x:100%}
 #netCatch.drop{animation:netDrop .5s cubic-bezier(.3,.7,.4,1) forwards}
@@ -595,7 +595,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-2114';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-2130';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -606,7 +606,7 @@ const CHANGELOG = [
     '主人公の家も、自転車と朝顔のある新しい家の絵にした',
     '虫が出るときの演出を、はじめての虫・めずらしい虫・伝説の虫でかえた（頭の上に「！」、黒いかげから色がつく、キラキラ、金色の光など。めずらしい虫は、2回目からはすぐ出る）',
     '主人公とゆうたの頭の上の吹き出しを、絵にした',
-    '戦闘で、虫とりあみの絵が動くようにした（あみをふる・かぶせる・もぞもぞ・つかまえた・ふんわりあみ）。あみは買ったものによって絵がかわる',
+    '戦闘で、虫とりあみの絵が動くようにした（あみをふる・かぶせる・もぞもぞ・つかまえた・ふんわりあみ）。あみは買ったものによって絵と色がかわる。こども用は赤、竹はうすい竹の色、名人は金色',
     '赤間の町の戦闘画面の背景を、アスファルトの道といまふうの家の町にした',
     'メニューの「本物の虫の写真」の名前を、みじかく「写真をとる」にした',
     'タイトル画面にバージョンと「こうしん情報」を出すようにした',
@@ -2414,10 +2414,8 @@ function drawEncFx(px, py, ts){   // 頭の上の吹き出し
   ctx.fillStyle = encFx.gold ? '#c8901a' : '#e04030'; ctx.font = 'bold 8px "Hiragino Maru Gothic ProN","Hiragino Sans",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillText(encFx.text, px + 8, by + 5.4); ctx.textAlign = 'left';
 }
-/* 虫とりあみのアニメーション（くっきり版）。あみの絵は img/sprites/nets_hd.png（いまのあみ）と catch_net_hd.png（つかまえる3コマ）
-   つかまえる3コマは、いまは「こども用あみ」の絵だけなので、ほかのあみは色を少しかえて代わりにする */
+/* 虫とりあみのアニメーション（くっきり版）。あみの絵は img/sprites/nets_hd.png（5本）と catch_net_hd.png（つかまえる3コマ×5本） */
 const NET_ART = USE_HD && HD_K === 4;
-const CATCH_TINT = ['', 'sepia(.7) saturate(.9) hue-rotate(-12deg)', 'grayscale(1) brightness(1.15)', 'grayscale(1) brightness(.5) contrast(1.6)', 'saturate(1.3) drop-shadow(0 0 4px #ffe680)'];
 if(NET_ART){ $('netSwing').style.backgroundImage = `url(${av('img/sprites/nets_hd.png')})`; $('netCatch').style.backgroundImage = `url(${av('img/sprites/catch_net_hd.png')})`; }
 function netReset(){ $('netSwing').className = ''; $('netCatch').className = ''; bSprite.classList.remove('dodge', 'jumpout', 'inbag'); }
 async function netSwing(hit){   // あみをふる：画面の右から、虫の上をふわっと通る（よけられたら、虫がひょいとよける）
@@ -2427,7 +2425,7 @@ async function netSwing(hit){   // あみをふる：画面の右から、虫の
   if(!hit) setTimeout(()=>fx(bSprite, 'dodge', 560), 200);
   await wait(hit ? 330 : 600);
 }
-const netSet = cls => { const n = $('netCatch'); n.className = ''; void n.offsetWidth; n.className = cls; n.style.filter = CATCH_TINT[S.net] || ''; };
+const netSet = cls => { const n = $('netCatch'); n.className = ''; void n.offsetWidth; n.className = cls; n.style.backgroundPositionY = (S.net * 25) + '%'; };   // いまのあみの段
 async function netCatchStart(){   // かぶせる → 中で虫がもぞもぞ
   netSet('drop'); await wait(520);
   netSet('on wig');
