@@ -552,7 +552,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-1113';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-1120';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -1337,11 +1337,73 @@ function drawTileImg(g, m, x, y, st){
   if(t==='K'){ px('#7a5a3a',1,11,14,4); px('#9a7a52',2,11,12,2); }                                     // 切りかぶの土俵
   return true;
 }
+/* くっきり版だけ：タイルのさかいめが、定規で線を引いたようにまっすぐ見えないようにする */
+const hash = (x, y, k)=>{ const v = Math.sin(x*12.9898 + y*78.233 + k*37.719) * 43758.5453; return v - Math.floor(v); };   // いつも同じになる「でたらめ」
+// 地面の種類と強さ：強いほうが、弱いほうへ、ぎざぎざにはみ出す（草むら＞草地＞土の道＞砂浜＞水）
+function groundOf(m, x, y, st){
+  const t = (m[y]||[])[x];
+  if(t==null) return null;
+  if(t==='"') return {i:1, p:4};
+  if(t===',' || t==='J' || t==='o') return {i:0, p:3};
+  if(t==='T') return st==='matsubara' || st==='oshima' ? {i:3, p:1} : {i:0, p:3};
+  if(t==='.' || t==='E' || t==='K' || t==='r') return {i:2, p:2};
+  if(t==='s') return {i:3, p:1};
+  if(t==='~') return {i:5, p:0};
+  if((t==='H' || t==='S' || t==='D' || t==='P') && !['H','S','D','P'].includes((m[y+1]||[])[x])) return {i:0, p:3, wall:1};   // 建物の足もとの草
+  return null;   // 田んぼ・屋根など：さかいめはそのまま
+}
+const isFloor = t=> t===',' || t==='"' || t==='.' || t==='E' || t==='K' || t==='s' || t==='~';   // はみ出しを受ける（上にかいてもよい）マス
+function hdEdges(g, m, st){
+  const D = [[0,-1],[1,0],[0,1],[-1,0]];   // 上・右・下・左
+  for(let y=0;y<H;y++) for(let x=0;x<W;x++){
+    const t = m[y][x]; if(!isFloor(t)) continue;
+    const me = groundOf(m, x, y, st); if(!me) continue;
+    const X = x*TS, Y = y*TS;
+    D.forEach(([dx, dy], side)=>{
+      const nb = groundOf(m, x+dx, y+dy, st); if(!nb || nb.p <= me.p) return;
+      const deep = nb.wall ? 2.2 : 3.2;   // どのくらいはみ出すか（1マス＝16）
+      g.save(); g.beginPath();
+      // マスのふちにそって、ぎざぎざの線を引く（となりのマスと同じ「でたらめ」を使うので、さかいめでつながる）
+      const pts = [];
+      for(let k=0;k<=8;k++){
+        const a = k*2, ex = side===1 ? x+1 : side===3 ? x : x, ey = side===2 ? y+1 : side===0 ? y : y;
+        const d = deep * (.35 + .65*hash(ex*8 + (side%2 ? 0 : k), ey*8 + (side%2 ? k : 0), side%2)) * (k===0 || k===8 ? .3 : 1);
+        if(side===0) pts.push([X + a, Y + d]); else if(side===2) pts.push([X + a, Y + TS - d]);
+        else if(side===1) pts.push([X + TS - d, Y + a]); else pts.push([X + d, Y + a]);
+      }
+      if(side===0){ g.moveTo(X, Y); pts.forEach(p=>g.lineTo(p[0], p[1])); g.lineTo(X+TS, Y); }
+      if(side===2){ g.moveTo(X, Y+TS); pts.forEach(p=>g.lineTo(p[0], p[1])); g.lineTo(X+TS, Y+TS); }
+      if(side===1){ g.moveTo(X+TS, Y); pts.forEach(p=>g.lineTo(p[0], p[1])); g.lineTo(X+TS, Y+TS); }
+      if(side===3){ g.moveTo(X, Y); pts.forEach(p=>g.lineTo(p[0], p[1])); g.lineTo(X, Y+TS); }
+      g.closePath(); g.clip(); tileAtIdx(g, nb.i, X, Y); g.restore();
+    });
+    // 角：ななめのマスだけが強いときは、角を丸く少しだけはみ出させる
+    [[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([dx, dy])=>{
+      const nb = groundOf(m, x+dx, y+dy, st); if(!nb || nb.p <= me.p) return;
+      const a = groundOf(m, x+dx, y, st), b = groundOf(m, x, y+dy, st);
+      if((a && a.p >= nb.p) || (b && b.p >= nb.p)) return;
+      const r = 2.5 + 1.5*hash(x+dx*.5, y+dy*.5, 7), cx = X + (dx>0 ? TS : 0), cy = Y + (dy>0 ? TS : 0);
+      g.save(); g.beginPath(); g.arc(cx, cy, r, 0, Math.PI*2); g.clip(); tileAtIdx(g, nb.i, X, Y); g.restore();
+    });
+  }
+}
+// 屋根が2段あるとき、下の段のてっぺんに、もう1本むね（いちばん上の線）が出ないようにする
+function hdRoofs(g, m){
+  for(let y=1;y<H;y++) for(let x=0;x<W;x++){
+    const t = m[y][x]; if((t!=='H' && t!=='S') || m[y-1][x]!==t) continue;
+    const dn = (m[y+1]||[])[x]; if(!(dn===t || dn==='D' || dn==='P')) continue;   // 屋根のマスだけ
+    const i = t==='H' ? 9 : 12, sx = (i%4)*TSRC, sy = Math.floor(i/4)*TSRC, cut = Math.round(TSRC*.3);
+    // 絵の下の7割（むねのない部分）を、マスの上から下までならべる
+    g.drawImage(tileSheet, sx, sy + cut, TSRC, TSRC - cut, x*TS, y*TS, TS, TS*(TSRC - cut)/TSRC);
+    g.drawImage(tileSheet, sx, sy + cut, TSRC, cut, x*TS, y*TS + TS*(TSRC - cut)/TSRC, TS, TS*cut/TSRC);
+  }
+}
 function mapLayer(id){
   if(layerCache[id]) return layerCache[id];
   const c = document.createElement('canvas'); c.width = W*TS*HD_K; c.height = H*TS*HD_K; const g = c.getContext('2d'), m = maps[id], st = AREAS[id].style;
   g.scale(HD_K, HD_K);
   for(let y=0;y<H;y++) for(let x=0;x<W;x++) if(!(tileSheet && drawTileImg(g, m, x, y, st))) drawTile(g, m, x, y, st);
+  if(tileSheet && HD_K > 1){ hdRoofs(g, m); hdEdges(g, m, st); }   // くっきり版：屋根のつなぎ目と、地面のさかいめを自然にする
   if(tileSheet){   // 鳥居とおやしろは2マスのまん中に1つだけ置く
     for(let y=0;y<H;y++) for(let x=0;x<W;x++){
       const t = m[y][x]; if((t!=='r' && t!=='J') || m[y][x-1]===t) continue;
