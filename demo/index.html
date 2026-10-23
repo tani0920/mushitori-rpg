@@ -318,6 +318,15 @@ img[src^="img/"]{image-rendering:auto!important}   /* ChatGPTで作った細か�
 #endScr .story{font-size:18px;line-height:1.9;min-height:7.5em;text-align:left}
 #endScr .endart{width:100%;max-width:100%;aspect-ratio:3/2;object-fit:cover;border:3px solid var(--edge);border-radius:6px;box-shadow:0 0 0 2px var(--win);image-rendering:auto;height:auto}
 #endScr .in{max-width:640px!important}
+/* よこ画面のおはなし：スクロールしないよう、絵を左・文を右にならべて画面に収める（さいごの点数の画面は、いままでどおりスクロール） */
+@media (orientation:landscape){
+  #endScr>.in.storypg{max-width:none!important;height:100%;margin:0;display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto;gap:8px 18px;align-items:center}
+  #endScr .storypg h2{grid-column:1/-1;font-size:22px}
+  #endScr .storypg .endart{grid-row:2/4;width:min(58vw,(100dvh - 100px) * 1.5);height:auto;align-self:center;justify-self:end}   /* 絵の形（3:2）はそのまま、画面の高さに合わせる */
+  #endScr .storypg .story{grid-column:2;min-height:0;max-height:100%;overflow-y:auto;font-size:17px;line-height:1.8}
+  #endScr .storypg #endBtn{grid-column:2;justify-self:center}
+  #endScr .storypg:not(:has(.endart)) .story,#endScr .storypg:not(:has(.endart)) #endBtn{grid-column:1/-1}
+}
 #endScr .dexs{display:grid;grid-template-columns:repeat(auto-fill,minmax(36px,1fr));gap:4px;margin:10px 0;background:#f3ead2;border-radius:4px;padding:6px}
 #endScr .dexs img{width:100%;height:auto;aspect-ratio:1}
 #endScr .score{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;margin-top:6px}
@@ -542,7 +551,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-0855';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-0908';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -561,6 +570,7 @@ const CHANGELOG = [
     'バトルのコマンドを、左に「あみをふる・つかまえる」、右に「どうぐ・にげる」のならびにした',
     'スマホのたて画面で、タイトルの上のほうと、遊んでいるときの日付・時間を見やすくした',
     'エンディングの点数の画面で、画面の向きを変えると上にもどれなくなる不具合を直した',
+    'よこ画面のエンディングで、絵を左・おはなしを右にならべて、スクロールしなくても見られるようにした',
     'スタンプラリーで、まだ出会っていない虫の名前を「？？？」にふせるようにした',
     'ミアレカブトのずかんの説明を読みやすくした',
     'アプリのアイコンを作り直したときに、古いアイコンが残らないようにした']},
@@ -2615,12 +2625,14 @@ async function ending(){
   const pics = e.key==='legend' ? ['legend_1', 'legend_2'] : [e.key];
   pics.forEach(n=>{ if(artURL(n)) new Image().src = artURL(n); });   // 先に読みこんでおく
   let pic = pics[0];
+  el.classList.add('storypg');
   for(const l of lines){
     if(e.key==='legend' && l.includes('新聞')) pic = pics[1];
     const fi = faceImg(faceFor(l)), u = artURL(pic);
     el.innerHTML = `<h2>二学期のはじまり</h2>${u ? `<img class="endart" alt="" src="${u}">` : ''}<div class="win story${fi ? ' withface' : ''}">${fi}<div class="mtxt">${fmt(l)}</div></div><button class="btn" id="endBtn">つぎへ ▼</button>`;
     await next();
   }
+  el.classList.remove('storypg');
   // 結果と、次の夏休みへの引きつぎ
   const total = Object.keys(BUGS).length;
   const prev = loadCarry(), boxValue = S.box.reduce((s,it)=>s + sellPrice(it), 0);
