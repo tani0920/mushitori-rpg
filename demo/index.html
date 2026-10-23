@@ -429,17 +429,6 @@ body.touch #pad button.on{background:#4a6f55ee}
 body.touch .ab{--b:clamp(68px,10vmin,96px);grid-template-columns:var(--b) var(--b);gap:12px}
 body.touch .ab [data-k=A],body.touch .ab [data-k=B]{width:var(--b);height:var(--b);font-size:22px}
 body.touch .ab [data-k=A]{background:#8a3e22dd!important}
-/* ドット絵のボタン：十字キーは .dpad の背景に1枚の絵（押した向きで絵をかえる）、ボタン自体はすきとおらせて、さわる場所だけにする */
-body.touch .dpad{background:var(--pad-dpad) center/96% no-repeat;border-radius:0;image-rendering:pixelated;opacity:.92}   /* 絵はさわれる広さより小さめにかく（目立ちすぎないように。さわれる広さは今までどおり） */
-body.touch .dpad[data-on=U]{background-image:var(--pad-dpadU)}
-body.touch .dpad[data-on=D]{background-image:var(--pad-dpadD)}
-body.touch .dpad[data-on=L]{background-image:var(--pad-dpadL)}
-body.touch .dpad[data-on=R]{background-image:var(--pad-dpadR)}
-body.touch #pad .dpad button,body.touch #pad .dpad button.on{background:transparent;border:0;box-shadow:none;color:transparent}
-body.touch #pad .ab button{border:0;box-shadow:none;color:transparent;image-rendering:pixelated;background:var(--pad-a) center/132% no-repeat!important;opacity:.92}
-body.touch #pad .ab [data-k=A].on{background-image:var(--pad-aOn)!important}
-body.touch #pad .ab [data-k=B]{background-image:var(--pad-b)!important}
-body.touch #pad .ab [data-k=B].on{background-image:var(--pad-bOn)!important}
 body.touch .ab [data-k=M]{font-size:14px!important;padding:8px 10px}
 body.touch #screen .ov{font-size:clamp(15px,4.4vmin,30px)}
 body.touch .win{border-width:3px;padding:.5em .8em;line-height:1.55}
@@ -606,7 +595,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-2205';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-2207';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -617,7 +606,6 @@ const CHANGELOG = [
     '主人公の家も、自転車と朝顔のある新しい家の絵にした',
     '虫が出るときの演出を、はじめての虫・めずらしい虫・伝説の虫でかえた（頭の上に「！」、黒いかげから色がつく、キラキラ、金色の光など。めずらしい虫は、2回目からはすぐ出る）',
     '主人公とゆうたの頭の上の吹き出しを、絵にした',
-    'スマホの十字キーとA・Bボタンを、ドット絵にした（押したところが沈んで見える）',
     '戦闘で、虫とりあみの絵が動くようにした（あみをふる・かぶせる・もぞもぞ・つかまえた・ふんわりあみ）。あみは買ったものによって絵と色がかわる。こども用は赤、竹はうすい竹の色、名人は金色',
     '赤間の町の戦闘画面の背景を、アスファルトの道といまふうの家の町にした',
     'メニューの「本物の虫の写真」の名前を、みじかく「写真をとる」にした',
@@ -1886,13 +1874,10 @@ document.addEventListener('keydown', e=>{
 });
 document.addEventListener('keyup', e=>{ const k = KEYMAP[e.key]; const i = heldKeys.indexOf(k); if(i>=0) heldKeys.splice(i,1); held = heldKeys[heldKeys.length-1] || null; });
 window.addEventListener('blur', ()=>{ heldKeys.length = 0; held = null; });
-/* スマホのボタンのドット絵（img/sprites/pad/：十字キーは押した向きごと、A・Bは押した絵も）。CSS の変数に入れて、ボタンの背景にする */
-[['dpad','dpad'],['dpadU','dpad_U'],['dpadD','dpad_D'],['dpadL','dpad_L'],['dpadR','dpad_R'],['a','a'],['aOn','a_on'],['b','b'],['bOn','b_on']].forEach(([v, f])=>{
-  const u = av(`img/sprites/pad/${f}.png`); new Image().src = u; document.documentElement.style.setProperty('--pad-' + v, `url(${u})`); });
 /* 十字キー：押しっぱなしで歩き続ける。指をすべらせて向きを変えられる */
 (()=>{
   const pad = document.querySelector('.dpad'); let pid = null, cur = null, repT = null;
-  const light = k=>{ pad.querySelectorAll('button').forEach(b=>b.classList.toggle('on', b.dataset.k===k)); pad.dataset.on = k || ''; };   // data-on：押している向きの絵にかえる
+  const light = k=> pad.querySelectorAll('button').forEach(b=>b.classList.toggle('on', b.dataset.k===k));
   const setDir = k=>{
     if(k===cur) return; cur = k; held = k; light(k); clearTimeout(repT);
     if(!k) return;
