@@ -569,7 +569,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-2050';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-2054';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -1998,13 +1998,16 @@ function draw(ts){
     ctx.fillText('虫具店', sx + 27, sy + 8.4); ctx.textAlign = 'left';
   }
   else if(S.area==='town'){ ctx.fillStyle = '#fbf8ef'; ctx.fillRect(12*TS+20, 2*TS+4, 40, 9); ctx.fillStyle = '#284f82'; ctx.font = '8px sans-serif'; ctx.textBaseline = 'top'; ctx.fillText('虫具店', 12*TS+28, 2*TS+4); }
-  if(S.area==='town') maps.town.forEach((r,y)=>r.forEach((t,x)=>{ if(t==='K'){ drawStump(ctx, x, y); drawNpc(x, y, ts); } }));
+  // 切りかぶとゆうた：主人公より下の行にいるときは、主人公の手前にかく（主人公が後ろを通る）
+  const kids = front => { if(S.area==='town') maps.town.forEach((r,y)=>r.forEach((t,x)=>{ if(t==='K' && (y*TS > py) === front){ drawStump(ctx, x, y); drawNpc(x, y, ts); } })); };
+  kids(false);
   if(S.area==='town') drawTownBld(ctx, false, py);
   if(objSheet) hdObjects(ctx, maps[S.area], false, py);
   drawPlayer(px, py, ts);
-  drawEncFx(px, py, ts);
   if(S.area==='town') drawTownBld(ctx, true, py);
   if(objSheet) hdObjects(ctx, maps[S.area], true, py);
+  kids(true);
+  drawEncFx(px, py, ts);   // 吹き出しは、いちばん上に
   } finally { ctx.restore(); }
   const slot = slotOf(S.min);
   if(slot==='yoru'){ ctx.fillStyle = 'rgba(10,20,70,.48)'; ctx.fillRect(0,0,VW,VH);
