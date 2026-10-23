@@ -552,7 +552,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-1856';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-2017';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -560,6 +560,7 @@ const CHANGELOG = [
     'フィールドと主人公の絵を、くっきりした絵にかえた（町はアスファルトの道と、いまふうの家・お店・自動販売機など。宗像大社には石だたみの参道、池や川や海には岸）',
     '虫具店や家から出るとき、ぱっと下にうつらずに、歩いて出るようにした',
     '虫具店を、ガラスのショーウィンドウがある新しいお店の絵にした。ゆうたは切りかぶの上に立つようにした',
+    '主人公の家も、自転車と朝顔のある新しい家の絵にした',
     '赤間の町の戦闘画面の背景を、アスファルトの道といまふうの家の町にした',
     'メニューの「本物の虫の写真」の名前を、みじかく「写真をとる」にした',
     'タイトル画面にバージョンと「こうしん情報」を出すようにした',
@@ -1381,19 +1382,25 @@ if(USE_HD && HD_K === 4){ const im = new Image(); im.onload = ()=>{ tileSheet2 =
 // 町の物（img/sprites/objects_hd.png：背景が透明な、自動販売機・電柱・郵便ポスト・花だん。1コマ＝はば1マス×高さ2マス）
 // 地面の上にそのまま置いて描く（電柱などは、上のマスまで高くのびる）
 const OBJ_IDX = {V:0, U:1, X:2, F:3};
-// 虫具店を1けん丸ごとかいた絵（img/sprites/shop_hd.png：はば5マス）と、ゆうたが立つ切りかぶ（img/sprites/stump_hd.png）
-let shopImg = null, stumpImg = null;
+// 虫具店と主人公の家を1けん丸ごとかいた絵（img/sprites/shop_hd.png：はば5マス、house_hd.png：はば4マス）と、ゆうたが立つ切りかぶ（img/sprites/stump_hd.png）
+let shopImg = null, houseImg = null, stumpImg = null;
 if(USE_HD && HD_K === 4){ const im = new Image(); im.onload = ()=>{ shopImg = im; for(const k in layerCache) delete layerCache[k]; }; im.src = av('img/sprites/shop_hd.png'); }
+if(USE_HD && HD_K === 4){ const im = new Image(); im.onload = ()=>{ houseImg = im; for(const k in layerCache) delete layerCache[k]; }; im.src = av('img/sprites/house_hd.png'); }
 if(USE_HD && HD_K === 4){ const im = new Image(); im.onload = ()=>{ stumpImg = im; for(const k in layerCache) delete layerCache[k]; }; im.src = av('img/sprites/stump_hd.png'); }
-const SHOP = {x:12, y:2, w:5, h:3};   // 町のお店のマス（横5×たて3）
-function drawShop(g, front, py){   // 主人公より手前の行なら front=true のときにかく（屋根の上の行を歩くと、主人公は屋根のうしろにかくれる）
-  if(!shopImg || ((SHOP.y + SHOP.h - 1)*TS > py) !== front) return;
-  const X = SHOP.x*TS, W5 = SHOP.w*TS, Hh = W5 * shopImg.height / shopImg.width, Y = (SHOP.y + SHOP.h)*TS - Hh;
-  g.fillStyle = 'rgba(20,25,35,.22)'; g.fillRect(X + 4, (SHOP.y + SHOP.h)*TS - 1, W5 - 4, 2);   // 地面に落ちるかげ
-  g.drawImage(shopImg, X, Y, W5, Hh);
-  // 屋根の白い看板（絵の横 23〜79%・たて 36〜47%）に「虫具店」と書く
-  g.fillStyle = '#284f82'; g.font = 'bold 6.4px "Hiragino Maru Gothic ProN","Hiragino Sans",sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
-  g.fillText('虫具店', X + W5 * .51, Y + Hh * .418); g.textAlign = 'left';
+// 町の建物のマス（お店：横5×たて3、家：横4×たて3）。絵が読みこめたら、そのマスの下はアスファルトにして、絵を上に置く
+const TOWN_BLD = [{x:12, y:2, w:5, h:3, img:()=>shopImg, sign:true}, {x:2, y:2, w:4, h:3, img:()=>houseImg}];
+const bldImgOf = t => t==='S' || t==='P' ? shopImg : t==='H' || t==='D' ? houseImg : null;
+function drawTownBld(g, front, py){   // 主人公より手前の行なら front=true のときにかく（屋根の上の行を歩くと、主人公は屋根のうしろにかくれる）
+  for(const b of TOWN_BLD){
+    const im = b.img(); if(!im || ((b.y + b.h - 1)*TS > py) !== front) continue;
+    const X = b.x*TS, Wb = b.w*TS, Hh = Wb * im.height / im.width, Y = (b.y + b.h)*TS - Hh;
+    g.fillStyle = 'rgba(20,25,35,.22)'; g.fillRect(X + 4, (b.y + b.h)*TS - 1, Wb - 4, 2);   // 地面に落ちるかげ
+    g.drawImage(im, X, Y, Wb, Hh);
+    if(!b.sign) continue;
+    // 屋根の白い看板（絵の横 23〜79%・たて 36〜47%）に「虫具店」と書く
+    g.fillStyle = '#284f82'; g.font = 'bold 6.4px "Hiragino Maru Gothic ProN","Hiragino Sans",sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText('虫具店', X + Wb * .51, Y + Hh * .418); g.textAlign = 'left';
+  }
 }
 function drawStump(g, x, y){   // 切りかぶ：上の面に、ゆうたの足がのる
   if(!stumpImg) return false;
@@ -1413,7 +1420,7 @@ function modernIdx(m, x, y, st){   // タイルセット2を使うマスなら�
   const t = m[y][x], down = (m[y+1]||[])[x];
   if(st==='town'){
     if(t==='.' || t==='E' || t==='K') return 0;   // アスファルトの道
-    if(shopImg && (t==='S' || t==='P')) return 0;   // お店の絵があれば、下はアスファルト（お店はあとで上に置く）
+    if(bldImgOf(t)) return 0;   // お店や家の絵があれば、下はアスファルト（建物はあとで上に置く）
     if(t==='H') return down==='H' || down==='D' ? 4 : 6;
     if(t==='D') return 7;
     if(t==='S') return down==='S' || down==='P' ? 5 : (x % 2 ? 9 : 11);   // お店の壁：ショーウィンドウとポスターをこうごに
@@ -1530,7 +1537,7 @@ function hdRoofs(g, m, st){
 }
 // いまふうの家とお店：屋根が平らな模様なので、むね・軒のかげ・地面へのかげをかいて、立体に見せる
 function hdBuildings(g, m, st){
-  const seen = new Set(), isB = (x, y)=> (shopImg && st==='town' ? 'HD' : 'HSDP').includes((m[y]||[])[x] || '#') && modernIdx(m, x, y, st) != null;   // お店の絵があれば、お店はのぞく
+  const seen = new Set(), isB = (x, y)=>{ const t = (m[y]||[])[x] || '#'; return 'HSDP'.includes(t) && !(st==='town' && bldImgOf(t)) && modernIdx(m, x, y, st) != null; };   // 絵がある建物はのぞく
   for(let y=0;y<H;y++) for(let x=0;x<W;x++){
     if(!isB(x, y) || seen.has(x + ',' + y)) continue;
     let x0 = x, x1 = x, y0 = y, y1 = y; const st2 = [[x, y]];   // つながっている建物のマスをまとめて、その四角を出す
@@ -1588,8 +1595,8 @@ async function showAllMaps(){
     g.scale(HD_K, HD_K);
     if(objSheet) hdObjects(g, maps[id], true, -999);   // 町の物
     if(id==='town') maps.town.forEach((r,y)=>r.forEach((t,x)=>{ if(t==='K') drawStump(g, x, y); }));
-    if(id==='town' && shopImg) drawShop(g, true, -999);
-    else if(id==='town' && signImg){ const sx = 12*TS + 14, sy = 2*TS + 1; g.drawImage(signImg, sx, sy, 52, 13.5);
+    if(id==='town') drawTownBld(g, true, -999);
+    if(id==='town' && signImg && !shopImg){ const sx = 12*TS + 14, sy = 2*TS + 1; g.drawImage(signImg, sx, sy, 52, 13.5);
       g.fillStyle = '#3a2614'; g.font = 'bold 6.6px "Hiragino Maru Gothic ProN","Hiragino Sans",sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('虫具店', sx + 27, sy + 8.4); }
     const a = document.createElement('a');
     a.href = location.pathname + '?' + keep.concat(['touch', 'demo=field', 'area=' + id]).join('&');
@@ -1952,7 +1959,7 @@ function draw(ts){
   ctx.save(); ctx.translate(-Math.round(camX), -Math.round(camY));
   try{   // とちゅうで失敗しても、カメラのずれ（translate）がたまらないように、かならず restore する（たまると、マップが画面の外にずれて真っ暗になる）
   ctx.drawImage(mapLayer(S.area), 0, 0, MW, MH);
-  if(S.area==='town' && shopImg){}   // お店の絵があれば、看板はお店といっしょにかく（drawShop）
+  if(S.area==='town' && shopImg){}   // お店の絵があれば、看板はお店といっしょにかく（drawTownBld）
   else if(S.area==='town' && signImg){   // くっきり版：カブトムシのかざりがついた木の看板（はば52×高さ13.5）に、文字はゲームの中で書く
     const sx = 12*TS + 14, sy = 2*TS + 1;
     ctx.drawImage(signImg, sx, sy, 52, 13.5);
@@ -1961,10 +1968,10 @@ function draw(ts){
   }
   else if(S.area==='town'){ ctx.fillStyle = '#fbf8ef'; ctx.fillRect(12*TS+20, 2*TS+4, 40, 9); ctx.fillStyle = '#284f82'; ctx.font = '8px sans-serif'; ctx.textBaseline = 'top'; ctx.fillText('虫具店', 12*TS+28, 2*TS+4); }
   if(S.area==='town') maps.town.forEach((r,y)=>r.forEach((t,x)=>{ if(t==='K'){ drawStump(ctx, x, y); drawNpc(x, y, ts); } }));
-  if(S.area==='town') drawShop(ctx, false, py);
+  if(S.area==='town') drawTownBld(ctx, false, py);
   if(objSheet) hdObjects(ctx, maps[S.area], false, py);
   drawPlayer(px, py, ts);
-  if(S.area==='town') drawShop(ctx, true, py);
+  if(S.area==='town') drawTownBld(ctx, true, py);
   if(objSheet) hdObjects(ctx, maps[S.area], true, py);
   } finally { ctx.restore(); }
   const slot = slotOf(S.min);
