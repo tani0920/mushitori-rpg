@@ -552,7 +552,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-1126';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-1129';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -1658,7 +1658,7 @@ cv.addEventListener('contextrestored', ()=>{ ctx.imageSmoothingEnabled = false; 
 const QS = new URLSearchParams(location.search);   // ?touch でスマホ表示、?demo=field|battle|menu で画面確認用
 const TOUCH = matchMedia('(hover:none),(pointer:coarse)').matches || QS.has('touch');
 if(TOUCH) document.body.classList.add('touch');
-let hudI = 0;   // HUDの高さ（マップ座標）
+let hudI = 0, padI = 0;   // HUDの高さ・下のボタンのところの高さ（マップ座標）
 function layout(){
   if(!TOUCH){ if(cv.width!==320*HD_K){ cv.width = 320*HD_K; cv.height = 240*HD_K; ctx.imageSmoothingEnabled = false; } return; }
   const r = screenEl.getBoundingClientRect(); if(!r.width || !r.height) return;
@@ -1674,7 +1674,9 @@ function layout(){
   hudI = hudH / s;
   const st = screenEl.style;
   st.setProperty('--hudH', hudH + 'px');
-  st.setProperty('--padH', land ? '0px' : (r.bottom - Math.min(dp.top, ab.top) + 6) + 'px');
+  const padH = land ? 0 : r.bottom - Math.min(dp.top, ab.top) + 6;
+  padI = padH / s;
+  st.setProperty('--padH', padH + 'px');
   st.setProperty('--sideL', land ? (dp.right - r.left + 6) + 'px' : '0px');
   st.setProperty('--sideR', land ? (r.right - ab.left + 6) + 'px' : '0px');
 }
@@ -1743,7 +1745,8 @@ function draw(ts){
   ctx.setTransform(HD_K, 0, 0, HD_K, 0, 0);   // ここから下は、1マス16の大きさで考える（HDのときは4倍にしてかく）
   const MW = W*TS, MH = H*TS, VW = cv.width / HD_K, VH = cv.height / HD_K;
   const camX = MW <= VW ? -(VW-MW)/2 : clamp(px + 8 - VW/2, 0, MW - VW);
-  const camY = MH <= VH - hudI ? -hudI : clamp(py + 8 - (VH + hudI)/2, -hudI, MH - VH);
+  // タテ画面では、上のHUDと下のボタンのあいだのまん中に主人公を置く（メッセージの枠がボタンのすぐ上に出るので、主人公にかぶらないように）
+  const camY = MH <= VH - hudI - padI ? -hudI : clamp(py + 8 - (VH + hudI - padI)/2, -hudI, MH - VH + padI);
   ctx.fillStyle = '#17261d'; ctx.fillRect(0, 0, VW, VH);
   ctx.save(); ctx.translate(-Math.round(camX), -Math.round(camY));
   try{   // とちゅうで失敗しても、カメラのずれ（translate）がたまらないように、かならず restore する（たまると、マップが画面の外にずれて真っ暗になる）
