@@ -497,8 +497,9 @@ body.touch.land #screen .ov{font-size:clamp(15px,4.4vmin,30px)}   /* 横向き�
 body.touch.land .dpad{--c:clamp(56px,14.5vh,72px)}   /* 横向きも、縦向きと同じくらいの大きさに（小さいと押しにくい） */
 body.touch.land .ab{--b:clamp(68px,17.5vh,88px);gap:10px}
 body.touch.land #pad{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 8px)}
-/* iPadなどのタブレット：両手で画面のよこを持つので、いちばん下だと指がとどきにくい。ボタンを少し上にあげる（スマホはいままでどおり下） */
-@media (min-width:600px) and (min-height:600px){body.touch #pad,body.touch.land #pad{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 9vh)}}
+/* ボタンの高さ：オプションの「ボタンの高さ」で、十字キーとA・Bを別々に上げられる（タブレットは最初から少し上） */
+body.touch #pad .dpad{margin-bottom:var(--dpY,0px)}
+body.touch #pad .ab{margin-bottom:var(--abY,0px)}
 body.touch.land #msg{min-height:4.4em;max-height:38%;bottom:8px}
 body.touch.land #menu{max-height:calc(100% - var(--hudH) - 4.4em - 26px)}
 body.touch.land #menu.side,body.touch.land #menu.map{max-height:calc(100% - var(--hudH) - 14px)}
@@ -620,7 +621,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.3.0';
-const BUILD = '20261024-0258';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261024-0318';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.3.0', date:'2026-10-23', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -629,7 +630,7 @@ const CHANGELOG = [
     '「虫にやさしく」をテーマに、バトルの「ダメージ」を「あみでおいこんだ！ HPが〇へった！」に。虫ずもうも「HPが〇へった！」に',
     '「虫とりのやくそく」を、はじめて虫をつかまえたとき・虫かごがいっぱいになったとき・虫を持って家でねるとき・エンディングで教えるようにした',
     '虫ずもうのわざの名前を、すもうらしく（はさみなげ・れんぞくカマおし・がっちりロック・ジャンプおしだし）。けんたのセリフもやさしくした',
-    'iPadなどのタブレットでは、コントローラーを少し上にあげて、持ちやすく・押しやすくした',
+    'オプションに「ボタンの高さ」を足した。十字キーとA・Bボタンを、それぞれ5だんかいで上げられる（iPadなどのタブレットは、はじめから少し上）',
     'どんぐりが足りなくて買えないものは、お店のリストで少しうすく、ねだんを赤っぽく出すようにした',
     'iPadなどで「写真をとる」を開いたとき、画面が固まって「とじる」がきかないことがあったのを直した',
     'iPadの虫ずもうで、ぼくの虫の数字がわくからはみ出ていたのを直した',
@@ -1044,6 +1045,25 @@ function audioUnlock(){
 ['pointerdown','touchend','keydown'].forEach(ev=> addEventListener(ev, audioUnlock, {capture:true, passive:true}));
 document.addEventListener('visibilitychange', ()=>{ if(!actx) return; if(document.hidden){ bgmStop(); actx.suspend(); if(TOUCH) aStale = true; } else if(!aStale) actx.resume().then(bgmUpdate).catch(()=>{}); });
 addEventListener('pageshow', e=>{ if(e.persisted && actx && TOUCH) aStale = true; });
+/* ボタンの高さ（スマホ・タブレットの持ち方は人それぞれなので、オプションで十字キーとA・Bを別々に上げられる） */
+const PAD_KEY = 'munakata-pad-v1', PAD_LV = [0, 3, 6, 9, 13], PAD_LV_NAME = ['いちばん下','ひくめ','ふつう','たかめ','もっとたかめ'];
+const isTablet = ()=> Math.min(screen.width, screen.height) >= 600;
+const padPref = (()=>{ const d = isTablet() ? {d:1, a:3} : {d:0, a:0};   // タブレットは、十字キーはひくめ・A・Bはたかめから
+  try{ return Object.assign(d, JSON.parse(localStorage.getItem(PAD_KEY)) || {}); }catch(e){ return d; } })();
+function applyPad(){ const b = document.body.style; b.setProperty('--dpY', PAD_LV[padPref.d] + 'vh'); b.setProperty('--abY', PAD_LV[padPref.a] + 'vh'); if(typeof layout === 'function') layout(); }
+function setPad(k, v, save=true){ padPref[k] = v; if(save){ try{ localStorage.setItem(PAD_KEY, JSON.stringify(padPref)); }catch(e){} } applyPad(); }
+async function padMenu(){
+  let i = 0;
+  while(true){
+    const c = await choose([`十字キー：${PAD_LV_NAME[padPref.d]}`, `A・Bボタン：${PAD_LV_NAME[padPref.a]}`, 'はじめの高さにもどす', 'もどる'],
+      {title:'ボタンの高さ', cls:'side', start:i, msg:'えらぶたびに、ボタンの高さがかわるよ。\n押しやすい高さにしてね。'});
+    i = Math.max(0, c);
+    if(c<0 || c===3) return;
+    if(c===0) setPad('d', (padPref.d + 1) % PAD_LV.length);
+    if(c===1) setPad('a', (padPref.a + 1) % PAD_LV.length);
+    if(c===2){ try{ localStorage.removeItem(PAD_KEY); }catch(e){} const d = isTablet() ? {d:1, a:3} : {d:0, a:0}; setPad('d', d.d, false); setPad('a', d.a, false); }
+  }
+}
 function setSnd(kind, on){ sndPref[kind] = on; saveSnd(); if(kind === 'bgm') bgmUpdate(); }
 
 let updShown = false;
@@ -1977,6 +1997,7 @@ function layout(){
   st.setProperty('--abH', (r.bottom - ab.top) + 'px');   // 画面の下から、A・Bボタンの上のはしまで（横向きのメニューを、ここより上で止める）
 }
 addEventListener('resize', layout);
+applyPad();   // ボタンの高さ（オプション）を反映してから、画面をはかりなおす
 /* スマホを回したとき、画面の大きさが確定してからもう一度ととのえる（縦横比がくずれないように） */
 function relayout(){ layout(); [80, 250, 600].forEach(ms=>setTimeout(()=>{ layout(); if(window.titleArt) titleArt(); if(scene==='battle' && lastBgStyle) battleBg(lastBgStyle); }, ms)); }
 addEventListener('orientationchange', relayout);
@@ -2193,8 +2214,13 @@ let optIdx = 0;
 async function optionMenu(){
   optIdx = 0;
   while(true){
-    const c = await choose(['ルール',`ふりがな：${furiMode ? 'たくさん' : 'ふつう'}`,`BGM：${sndPref.bgm ? 'ON' : 'OFF'}`,`効果音：${sndPref.se ? 'ON' : 'OFF'}`,'プライバシーについて','タイトルにもどる','もどる'], {title:'オプション', cls:'side', start:optIdx});
-    optIdx = Math.max(0, c);
+    const touch = document.body.classList.contains('touch');   // 「ボタンの高さ」は、画面にボタンが出ているときだけ
+    const keys = ['rule','furi','bgm','se', ...(touch ? ['pad'] : []), 'priv','title','back'];
+    const lbl = {rule:'ルール', furi:`ふりがな：${furiMode ? 'たくさん' : 'ふつう'}`, bgm:`BGM：${sndPref.bgm ? 'ON' : 'OFF'}`, se:`効果音：${sndPref.se ? 'ON' : 'OFF'}`, pad:'ボタンの高さ', priv:'プライバシーについて', title:'タイトルにもどる', back:'もどる'};
+    const ci = await choose(keys.map(k=>lbl[k]), {title:'オプション', cls:'side', start:optIdx});
+    optIdx = Math.max(0, ci);
+    const c = ci < 0 ? -1 : {rule:0, furi:1, bgm:2, se:3, priv:4, title:5, back:6, pad:7}[keys[ci]];
+    if(c===7){ await padMenu(); continue; }
     if(c<0 || c===6) return;
     if(c===2){ setSnd('bgm', !sndPref.bgm); continue; }
     if(c===3){ setSnd('se', !sndPref.se); if(sndPref.se) se('ok'); continue; }
