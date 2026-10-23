@@ -497,6 +497,8 @@ body.touch.land #screen .ov{font-size:clamp(15px,4.4vmin,30px)}   /* 横向き�
 body.touch.land .dpad{--c:clamp(56px,14.5vh,72px)}   /* 横向きも、縦向きと同じくらいの大きさに（小さいと押しにくい） */
 body.touch.land .ab{--b:clamp(68px,17.5vh,88px);gap:10px}
 body.touch.land #pad{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 8px)}
+/* iPadなどのタブレット：両手で画面のよこを持つので、いちばん下だと指がとどきにくい。ボタンを少し上にあげる（スマホはいままでどおり下） */
+@media (min-width:600px) and (min-height:600px){body.touch #pad,body.touch.land #pad{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 9vh)}}
 body.touch.land #msg{min-height:4.4em;max-height:38%;bottom:8px}
 body.touch.land #menu{max-height:calc(100% - var(--hudH) - 4.4em - 26px)}
 body.touch.land #menu.side,body.touch.land #menu.map{max-height:calc(100% - var(--hudH) - 14px)}
@@ -618,7 +620,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.3.0';
-const BUILD = '20261024-0253';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261024-0258';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.3.0', date:'2026-10-23', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -627,6 +629,7 @@ const CHANGELOG = [
     '「虫にやさしく」をテーマに、バトルの「ダメージ」を「あみでおいこんだ！ HPが〇へった！」に。虫ずもうも「HPが〇へった！」に',
     '「虫とりのやくそく」を、はじめて虫をつかまえたとき・虫かごがいっぱいになったとき・虫を持って家でねるとき・エンディングで教えるようにした',
     '虫ずもうのわざの名前を、すもうらしく（はさみなげ・れんぞくカマおし・がっちりロック・ジャンプおしだし）。けんたのセリフもやさしくした',
+    'iPadなどのタブレットでは、コントローラーを少し上にあげて、持ちやすく・押しやすくした',
     'どんぐりが足りなくて買えないものは、お店のリストで少しうすく、ねだんを赤っぽく出すようにした',
     'iPadなどで「写真をとる」を開いたとき、画面が固まって「とじる」がきかないことがあったのを直した',
     'iPadの虫ずもうで、ぼくの虫の数字がわくからはみ出ていたのを直した',
