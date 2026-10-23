@@ -435,6 +435,11 @@ body.touch #pad .dpad button.on{background:radial-gradient(circle,#f7f1df33 0 45
 body.touch #pad .ab button{border-radius:50%;background:#0004!important;border:1.5px solid #f7f1df88;box-shadow:none;color:#f7f1dfdd}
 body.touch #pad .ab [data-k=A]{background:#8a3e2288!important}
 body.touch #pad .ab button.on{background:#f7f1df44!important;color:#fff}
+/* 戦闘中は背景の絵が暗いところもあるので、ボタンを少しこくする（すけ具合を15%ほど下げる） */
+body.touch.inbattle .dpad{background:radial-gradient(circle,#0000006b 0 62%,transparent 63%)}
+body.touch.inbattle #pad .dpad button{color:#f7f1dff2}
+body.touch.inbattle #pad .ab button{background:#0000006b!important;border-color:#f7f1dfad}
+body.touch.inbattle #pad .ab [data-k=A]{background:#8a3e22ad!important}
 /* しばらくさわらないと、ボタンをうすくする（さわるとすぐにもどる） */
 body.touch #pad{transition:opacity .5s}
 body.touch #pad.idle{opacity:.6}
@@ -494,6 +499,8 @@ body.touch.land #msg{min-height:4.4em;max-height:38%;bottom:8px}
 body.touch.land #menu{max-height:calc(100% - var(--hudH) - 4.4em - 26px)}
 body.touch.land #menu.side,body.touch.land #menu.map{max-height:calc(100% - var(--hudH) - 14px)}
 body.touch.land #menu li{padding-top:.12em;padding-bottom:.12em}
+body.touch.land #menu:not(.cmd):not(.title):not(.map){min-width:11em;right:max(8px,env(safe-area-inset-right,0px));max-height:calc(100% - var(--hudH) - 15vh - 24px)}   /* 横向き：メニューは中身のはばだけにして、画面の右はしへ（下のA・Bボタンにはかからない高さまで） */
+body.touch.land #menu:not(.cmd):not(.title):not(.map) li{padding-top:.05em;padding-bottom:.05em}
 body.touch.land #menu.cmditem{bottom:calc(4.4em + 18px)}
 body.touch.land #menu.cmd{bottom:8px;min-height:4.4em}
 body.touch.land .binfo{font-size:.75em}
@@ -607,7 +614,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-2233';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-2240';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -1907,6 +1914,8 @@ window.addEventListener('blur', ()=>{ heldKeys.length = 0; held = null; });
   pad.addEventListener('pointerup', end); pad.addEventListener('pointercancel', end); pad.addEventListener('lostpointercapture', end);
   pad.addEventListener('contextmenu', e=>e.preventDefault());
 })();
+/* 戦闘画面が出ているあいだ、body に inbattle をつける（ボタンを少しこくする） */
+(()=>{ const bt = $('battle'); new MutationObserver(()=>document.body.classList.toggle('inbattle', !bt.hidden)).observe(bt, {attributes:true, attributeFilter:['hidden']}); })();
 /* ボタンを4秒さわらないと、うすくする。画面のどこかをさわれば、すぐにこくもどる */
 (()=>{ const padEl = $('pad'); let t = null;
   const wake = ()=>{ padEl.classList.remove('idle'); clearTimeout(t); t = setTimeout(()=>{ if(scene!=='battle') padEl.classList.add('idle'); else wake(); }, 4000); };   // 戦闘中はうすくしない（コマンドをえらぶので）
