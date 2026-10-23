@@ -552,7 +552,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-0950';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-1031';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -794,25 +794,28 @@ function seCrow(delay){   // 矩形波2つを少しずらして重ね、のど�
     const t = actx.currentTime + delay, out = actx.createGain(), lp = actx.createBiquadFilter(), dl = actx.createDelay(1), fb = actx.createGain();
     out.gain.value = .5; lp.type = 'lowpass'; lp.frequency.value = 1600; lp.connect(out); out.connect(aSe);
     dl.delayTime.value = .32; fb.gain.value = .25; out.connect(dl); dl.connect(fb); fb.connect(dl); fb.connect(aSe);
-    setTimeout(()=>{ fb.gain.value = 0; out.disconnect(); fb.disconnect(); }, (delay + 5) * 1000);   // 山びこを止める（鳴き声は約2.7秒）
-    const SY = [   // [はじまり, 長さ, 音の高さの動き [時刻の割合, Hz]...]
-      [0,    .1,  [[0, 560], [1, 640]]],                                     // コッ（短く切る）
-      [.4,   .12, [[0, 700], [1, 780]]],                                     // ケ（0.3秒おいて）
-      [.82,  .1,  [[0, 680], [1, 780]]],                                     // コッ（0.3秒おいて）
-      [1.32, 1.4, [[0, 820], [.12, 900], [.85, 1050], [1, 1010]]],           // コーーー（0.4秒タメてから、のばしながら少しずつ上がる）
+    setTimeout(()=>{ fb.gain.value = 0; out.disconnect(); fb.disconnect(); }, (delay + 5) * 1000);   // 山びこを止める（鳴き声は約2.1秒）
+    const SY = [   // [はじまり, 長さ, 音の高さの動き [割合, Hz]..., 大きさの動き [割合, 大きさ]...]（NHKの効果音の鳴き方を手本にした）
+      [0,   .26, [[0, 500], [.25, 525], [1, 505]],                                      [[0, 0], [.08, .7], [.7, .65], [1, 0]]],             // コッ（低め）
+      [.38, .16, [[0, 720], [.3, 750], [1, 740]],                                       [[0, 0], [.1, 1], [.75, .9], [1, 0]]],               // ケ（高く、いちばん大きい）
+      [.57, .15, [[0, 470], [1, 520]],                                                  [[0, 0], [.15, .55], [.85, .6], [1, .3]]],           // コ（低く、すぐ次へつながる）
+      [.71, 1.4, [[0, 700], [.08, 745], [.35, 745], [.6, 716], [.8, 680], [.92, 635], [1, 480]], [[0, .3], [.05, .9], [.4, .85], [.75, .5], [.93, .3], [1, 0]]],   // ーーー（高くのばし、ゆっくり下がって消える）
     ];
-    for(const [st, len, pts] of SY){
+    for(const [st, len, pts, vols] of SY){
       const a = t + st, g = actx.createGain(); g.connect(lp);
-      g.gain.setValueAtTime(0, a); g.gain.linearRampToValueAtTime(.16, a + .015);
-      g.gain.setValueAtTime(.16, a + len * .75); g.gain.linearRampToValueAtTime(0, a + len);
+      g.gain.setValueAtTime(vols[0][1] * .16, a);
+      for(const [k, v] of vols.slice(1)) g.gain.linearRampToValueAtTime(v * .16, a + Math.max(.005, len * k));
       for(const [w, det] of [[.25, 1], [.125, 1.008]]){
         const o = actx.createOscillator(); o.setPeriodicWave(aWaves[w]);
         o.frequency.setValueAtTime(pts[0][1] * det, a);
         for(const [k, f] of pts.slice(1)) o.frequency.linearRampToValueAtTime(f * det, a + len * k);
         o.connect(g); o.start(a); o.stop(a + len + .02);
       }
-      const l = actx.createOscillator(), lg = actx.createGain();
-      l.frequency.value = 38; lg.gain.value = .035; l.connect(lg); lg.connect(g.gain); l.start(a); l.stop(a + len);
+      const n = actx.createBufferSource(), nf = actx.createBiquadFilter(), ng = actx.createGain();   // かすれ（息の音）
+      n.buffer = aNoise; nf.type = 'bandpass'; nf.frequency.value = 1400; nf.Q.value = .8; ng.gain.value = .35;
+      n.connect(nf); nf.connect(ng); ng.connect(g); n.start(a, Math.random() * .5); n.stop(a + len + .02);
+      const l = actx.createOscillator(), lg = actx.createGain();   // のどのふるえ
+      l.frequency.value = 38; lg.gain.value = .03; l.connect(lg); lg.connect(g.gain); l.start(a); l.stop(a + len);
     }
   }catch(e){ seErr = String(e && e.message || e).slice(0, 60); }
 }
