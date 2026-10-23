@@ -552,7 +552,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-1254';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-1257';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -1448,12 +1448,36 @@ function hdRoofs(g, m, st){
     g.drawImage(tileSheet, sx, sy + cut, TSRC, cut, x*TS, y*TS + TS*(TSRC - cut)/TSRC, TS, TS*cut/TSRC);
   }
 }
+// いまふうの家とお店：屋根が平らな模様なので、むね・軒のかげ・地面へのかげをかいて、立体に見せる
+function hdBuildings(g, m, st){
+  const seen = new Set(), isB = (x, y)=> 'HSDP'.includes((m[y]||[])[x] || '#') && modernIdx(m, x, y, st) != null;
+  for(let y=0;y<H;y++) for(let x=0;x<W;x++){
+    if(!isB(x, y) || seen.has(x + ',' + y)) continue;
+    let x0 = x, x1 = x, y0 = y, y1 = y; const st2 = [[x, y]];   // つながっている建物のマスをまとめて、その四角を出す
+    while(st2.length){ const [a, b] = st2.pop(); const k = a + ',' + b; if(seen.has(k) || !isB(a, b)) continue; seen.add(k);
+      x0 = Math.min(x0, a); x1 = Math.max(x1, a); y0 = Math.min(y0, b); y1 = Math.max(y1, b); st2.push([a+1, b], [a-1, b], [a, b+1], [a, b-1]); }
+    const X0 = x0*TS, X1 = (x1+1)*TS, Y0 = y0*TS, YW = y1*TS, Y1 = (y1+1)*TS, RY = Y0 + (YW - Y0)*.42;   // YW＝壁の上（軒）、RY＝むね
+    g.fillStyle = 'rgba(20,25,35,.22)';   // 地面に落ちるかげ（右と下）
+    g.fillRect(X1, Y0 + 4, 3, Y1 - Y0 - 2); g.fillRect(X0 + 4, Y1, X1 - X0 - 1, 2);
+    g.fillStyle = 'rgba(0,0,0,.2)'; g.fillRect(X0, Y0, X1 - X0, RY - Y0);   // むねより奥の屋根（向こうがわにかたむく面）は暗く
+    let gr = g.createLinearGradient(0, RY, 0, YW);   // 手前の屋根：むねのあたりは明るく、軒に近づくほど少し暗く
+    gr.addColorStop(0, 'rgba(255,255,255,.16)'); gr.addColorStop(1, 'rgba(0,0,0,.1)');
+    g.fillStyle = gr; g.fillRect(X0, RY, X1 - X0, YW - RY);
+    g.fillStyle = 'rgba(255,255,255,.45)'; g.fillRect(X0, RY - .7, X1 - X0, .9);   // むね（いちばん高いところ）の光
+    g.fillStyle = 'rgba(0,0,0,.35)'; g.fillRect(X0, RY + .2, X1 - X0, .5);
+    g.fillStyle = 'rgba(0,0,0,.6)'; g.fillRect(X0 - .5, YW - .4, X1 - X0 + 1, 1);   // 軒の線（屋根のはしが、壁より手前に出ている）
+    gr = g.createLinearGradient(0, YW + .6, 0, YW + 4);   // 軒の下の、壁に落ちるかげ
+    gr.addColorStop(0, 'rgba(0,0,0,.38)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = gr; g.fillRect(X0, YW + .6, X1 - X0, 3.4);
+    g.strokeStyle = 'rgba(0,0,0,.45)'; g.lineWidth = .6; g.strokeRect(X0 + .3, Y0 + .3, X1 - X0 - .6, YW - Y0 - .3);   // 屋根のふち
+  }
+}
 function mapLayer(id){
   if(layerCache[id]) return layerCache[id];
   const c = document.createElement('canvas'); c.width = W*TS*HD_K; c.height = H*TS*HD_K; const g = c.getContext('2d'), m = maps[id], st = AREAS[id].style;
   g.scale(HD_K, HD_K);
   for(let y=0;y<H;y++) for(let x=0;x<W;x++) if(!(tileSheet && drawTileImg(g, m, x, y, st))) drawTile(g, m, x, y, st);
-  if(tileSheet && HD_K > 1){ hdRoofs(g, m, st); hdEdges(g, m, st); }   // くっきり版：屋根のつなぎ目と、地面のさかいめを自然にする
+  if(tileSheet && HD_K > 1){ hdRoofs(g, m, st); hdEdges(g, m, st); if(tileSheet2) hdBuildings(g, m, st); }   // くっきり版：屋根のつなぎ目と、地面のさかいめを自然にする
   if(tileSheet){   // 鳥居とおやしろは2マスのまん中に1つだけ置く
     for(let y=0;y<H;y++) for(let x=0;x<W;x++){
       const t = m[y][x]; if((t!=='r' && t!=='J') || m[y][x-1]===t) continue;
