@@ -569,7 +569,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-2033';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-2039';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -2346,26 +2346,22 @@ async function dangerEncounter(id){
 }
 /* 虫が出るときの演出の強さ：ふつう（もう知っている虫）／はじめて（ずかんにない虫）／レア（★4以上）／伝説（ミアレカブト） */
 const encTier = id => id==='kinkabuto' ? 'legend' : BUGS[id].rank >= 4 ? 'rare' : !S.dex[id] ? 'first' : 'normal';
-let encFx = null, encHush = false;   // encFx：フィールドで主人公の頭の上に出す吹き出しと、足もとの草のゆれ。encHush：伝説のとき、曲を止めて虫の声だけにする
+let encFx = null, encHush = false;   // encFx：フィールドで主人公の頭の上に出す吹き出し。encHush：伝説のとき、曲を止めて虫の声だけにする
 async function encounterIntro(tier){   // フィールドで、戦闘に入る前（主人公は立ち止まる）
   if(tier==='normal' || scene!=='field') return;
   const t0 = performance.now();
-  if(tier==='first'){ encFx = {t0, text:'！', shake:.6}; se('newbug'); await wait(650); }
-  else if(tier==='rare'){ encFx = {t0, text:'', shake:1}; await wait(500); encFx = {t0, text:'！！', bounce:true, shake:1.4}; se('rarebug'); await wait(750); }
-  else {   // 伝説：曲が止まって虫の声だけ…草がゆれて、「…？」→「！！」
-    encHush = true; encFx = {t0, text:'', shake:.5}; await wait(700);
-    encFx = {t0, text:'…？', shake:.8, gold:true}; await wait(900);
-    encFx = {t0, text:'！！', bounce:true, shake:1.6, gold:true}; se('legend'); await wait(800);
+  if(tier==='first'){ encFx = {t0, text:'！'}; se('newbug'); await wait(650); }
+  else if(tier==='rare'){ await wait(400); encFx = {t0, text:'！！', bounce:true}; se('rarebug'); await wait(750); }   // 一瞬立ち止まってから
+  else {   // 伝説：曲が止まって虫の声だけ…「…？」→「！！」
+    encHush = true; await wait(700);
+    encFx = {t0, text:'…？', gold:true}; await wait(900);
+    encFx = {t0, text:'！！', bounce:true, gold:true}; se('legend'); await wait(800);
   }
   encFx = null;
 }
-function drawEncFx(px, py, ts){   // 足もとの草のゆれと、頭の上の吹き出し
+function drawEncFx(px, py, ts){   // 頭の上の吹き出し
   if(!encFx) return;
-  const t = (ts - encFx.t0) / 1000, sw = Math.sin(t * 26) * encFx.shake;
-  ctx.strokeStyle = encFx.gold ? '#e8c84a' : '#4f9a2e'; ctx.lineWidth = 1.1; ctx.lineCap = 'round';
-  for(const [dx, h] of [[-3, 5], [1, 6.5], [5, 4.5], [16, 5.5], [19, 4]]){   // 左と右の草むらが、さわさわゆれる
-    const bx = px + dx, by = py + 16; ctx.beginPath(); ctx.moveTo(bx, by); ctx.quadraticCurveTo(bx + sw * .6, by - h * .6, bx + sw * 1.4, by - h); ctx.stroke(); }
-  if(!encFx.text) return;
+  const t = (ts - encFx.t0) / 1000;
   const top = 16 - 16 * PL_SCALE, by = py + top - 12 - (encFx.bounce ? Math.abs(Math.sin(t * 9)) * 2.5 : 0), w = encFx.text.length * 5 + 6, bx = px + 8 - w/2;
   ctx.fillStyle = '#fff'; ctx.strokeStyle = '#2b2118'; ctx.lineWidth = .8;
   ctx.beginPath(); ctx.roundRect ? ctx.roundRect(bx, by, w, 10, 3) : ctx.rect(bx, by, w, 10); ctx.fill(); ctx.stroke();
