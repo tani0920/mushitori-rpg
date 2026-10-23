@@ -552,7 +552,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-1239';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-1242';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -1339,9 +1339,10 @@ if(USE_HD && HD_K === 4){ const im = new Image(); im.onload = ()=>{ tileSheet2 =
 // 地面の上にそのまま置いて描く（電柱などは、上のマスまで高くのびる）
 const OBJ_IDX = {V:0, U:1, X:2, F:3};
 if(USE_HD && HD_K === 4){ const im = new Image(); im.onload = ()=>{ objSheet = im; for(const k in layerCache) delete layerCache[k]; }; im.src = av('img/sprites/objects_hd.png'); }
-function hdObjects(g, m){
+function hdObjects(g, m, front, py){   // front=false：主人公より奥の物、true：主人公より手前の物
   for(let y=0;y<H;y++) for(let x=0;x<W;x++){
     const i = OBJ_IDX[m[y][x]]; if(i==null) continue;
+    if((y*TS > py) !== front) continue;   // 主人公より下の行にある物は、主人公の手前にかく（主人公が後ろを通る）
     g.fillStyle = 'rgba(0,0,0,.22)'; g.beginPath(); g.ellipse(x*TS + 8, y*TS + 14.5, 6.5, 2, 0, 0, Math.PI*2); g.fill();   // 足もとの影
     g.drawImage(objSheet, i*64, 0, 64, 128, x*TS, y*TS + TS - 32, 16, 32);
   }
@@ -1452,7 +1453,7 @@ function mapLayer(id){
   const c = document.createElement('canvas'); c.width = W*TS*HD_K; c.height = H*TS*HD_K; const g = c.getContext('2d'), m = maps[id], st = AREAS[id].style;
   g.scale(HD_K, HD_K);
   for(let y=0;y<H;y++) for(let x=0;x<W;x++) if(!(tileSheet && drawTileImg(g, m, x, y, st))) drawTile(g, m, x, y, st);
-  if(tileSheet && HD_K > 1){ hdRoofs(g, m, st); hdEdges(g, m, st); if(objSheet) hdObjects(g, m); }   // くっきり版：屋根のつなぎ目と、地面のさかいめを自然にする
+  if(tileSheet && HD_K > 1){ hdRoofs(g, m, st); hdEdges(g, m, st); }   // くっきり版：屋根のつなぎ目と、地面のさかいめを自然にする
   if(tileSheet){   // 鳥居とおやしろは2マスのまん中に1つだけ置く
     for(let y=0;y<H;y++) for(let x=0;x<W;x++){
       const t = m[y][x]; if((t!=='r' && t!=='J') || m[y][x-1]===t) continue;
@@ -1776,9 +1777,12 @@ if(USE_PLAYER_ART && window.HAS_PLAYER){ const im = new Image(); im.onload = ()=
   for(let r=0;r<4;r++){ let low = 0; for(let y=0;y<F;y++) for(let x=0;x<im.width;x++) if(d[((r*F+y)*im.width + x)*4 + 3] > 0) low = Math.max(low, y); footRow[r] = low; }
   playerSheet = im; }; im.src = av(USE_HD ? `img/sprites/player${HD_SUF}.png` : 'img/sprites/player.png'); }
 const DIR_ROW = {D:0, L:1, R:2, U:3};
+let walkT0 = 0, walkLast = 0;   // 歩きはじめた時刻・さいごに歩いていた時刻
 function drawPlayer(px, py, ts){
   if(playerSheet){
-    const row = DIR_ROW[S.dir], col = mv ? 1 + ((mv.tx + mv.ty) % 2) : 0;   // 歩いているあいだは右足・左足を1歩ごとにこうたい
+    // 歩いているあいだは「右足→立ち→左足→立ち」を半マスごとにくり返す（マスをまたいでも止めずに続けるので、テンポよく歩く）
+    if(mv){ if(!walkT0 || ts - walkLast > 120) walkT0 = mv.t0; walkLast = ts; }
+    const row = DIR_ROW[S.dir], col = mv ? [1, 0, 2, 0][Math.floor((ts - walkT0) / (MOVE_MS / 2)) % 4] : 0;
     const F = playerSheet.width / 3, dy = (F - 1 - footRow[row]) * 16 / F;   // F = 絵の1コマの大きさ（HDは64）
     ctx.fillStyle = '#0002'; ctx.fillRect(Math.round(px)+4, Math.round(py)+14, 8, 2);   // 足もとのうすい影（足の下にかくれる）
     if(PL_SCALE !== 1){ const D = 16 * PL_SCALE, fy = (footRow[row] + 1) * D / F;   // 大きく描くときも、足の位置はマスの下はしにそろえる
@@ -1807,7 +1811,9 @@ function draw(ts){
   ctx.drawImage(mapLayer(S.area), 0, 0, MW, MH);
   if(S.area==='town'){ ctx.fillStyle = '#fbf8ef'; ctx.fillRect(12*TS+20, 2*TS+4, 40, 9); ctx.fillStyle = '#284f82'; ctx.font = '8px sans-serif'; ctx.textBaseline = 'top'; ctx.fillText('虫具店', 12*TS+28, 2*TS+4); }
   if(S.area==='town') maps.town.forEach((r,y)=>r.forEach((t,x)=>{ if(t==='K') drawNpc(x, y, ts); }));
+  if(objSheet) hdObjects(ctx, maps[S.area], false, py);
   drawPlayer(px, py, ts);
+  if(objSheet) hdObjects(ctx, maps[S.area], true, py);
   } finally { ctx.restore(); }
   const slot = slotOf(S.min);
   if(slot==='yoru'){ ctx.fillStyle = 'rgba(10,20,70,.48)'; ctx.fillRect(0,0,VW,VH);
