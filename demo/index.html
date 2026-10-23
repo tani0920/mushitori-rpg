@@ -552,7 +552,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-1322';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-1326';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -1440,12 +1440,16 @@ const isFloor = t=> t===',' || t==='"' || t==='.' || t==='E' || t==='K' || t==='
 function hdEdges(g, m, st){
   const D = [[0,-1],[1,0],[0,1],[-1,0]];   // 上・右・下・左
   for(let y=0;y<H;y++) for(let x=0;x<W;x++){
-    const t = m[y][x]; if(!isFloor(t)) continue;
-    const me = groundOf(m, x, y, st); if(!me) continue;
+    const t = m[y][x];
+    // 町の池：岸の外がわの草に、まわりのアスファルトを多めにぎざぎざにかぶせて、草が四角くならないようにする
+    const pond = t==='~' && shoreSheet && st==='town';
+    if(!isFloor(t) && !pond) continue;
+    const me = pond ? {p:0} : groundOf(m, x, y, st); if(!me) continue;
     const X = x*TS, Y = y*TS;
     D.forEach(([dx, dy], side)=>{
       const nb = groundOf(m, x+dx, y+dy, st); if(!nb || nb.p <= me.p) return;
-      const deep = nb.wall ? 2.2 : 3.2;   // どのくらいはみ出すか（1マス＝16）
+      if(pond && nb.sh !== 2) return;   // 池にかぶせるのは、アスファルトだけ
+      const deep = pond ? 4.6 : nb.wall ? 2.2 : 3.2;   // どのくらいはみ出すか（1マス＝16）
       g.save(); g.beginPath();
       // マスのふちにそって、ぎざぎざの線を引く（となりのマスと同じ「でたらめ」を使うので、さかいめでつながる）
       const pts = [];
@@ -1466,7 +1470,8 @@ function hdEdges(g, m, st){
       const nb = groundOf(m, x+dx, y+dy, st); if(!nb || nb.p <= me.p) return;
       const a = groundOf(m, x+dx, y, st), b = groundOf(m, x, y+dy, st);
       if((a && a.p >= nb.p) || (b && b.p >= nb.p)) return;
-      const r = 2.5 + 1.5*hash(x+dx*.5, y+dy*.5, 7), cx = X + (dx>0 ? TS : 0), cy = Y + (dy>0 ? TS : 0);
+      if(pond && nb.sh !== 2) return;
+      const r = (pond ? 4.5 : 2.5) + 1.5*hash(x+dx*.5, y+dy*.5, 7), cx = X + (dx>0 ? TS : 0), cy = Y + (dy>0 ? TS : 0);
       g.save(); g.beginPath(); g.arc(cx, cy, r, 0, Math.PI*2); g.clip(); tileAtIdx(g, nb.i, X, Y, nb.sh===2 ? tileSheet2 : tileSheet); g.restore();
     });
   }
