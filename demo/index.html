@@ -552,13 +552,15 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-1509';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-1856';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
     '虫具店で虫を「売る」のをやめて、「とどける」とお礼にどんぐりがもらえるようにした',
     'フィールドと主人公の絵を、くっきりした絵にかえた（町はアスファルトの道と、いまふうの家・お店・自動販売機など。宗像大社には石だたみの参道、池や川や海には岸）',
     '虫具店や家から出るとき、ぱっと下にうつらずに、歩いて出るようにした',
+    '虫具店を、ガラスのショーウィンドウがある新しいお店の絵にした。ゆうたは切りかぶの上に立つようにした',
+    '赤間の町の戦闘画面の背景を、アスファルトの道といまふうの家の町にした',
     'メニューの「本物の虫の写真」の名前を、みじかく「写真をとる」にした',
     'タイトル画面にバージョンと「こうしん情報」を出すようにした',
     '新しいバージョンが出たら「こうしんする」ボタンでお知らせするようにした',
@@ -1237,7 +1239,8 @@ function genMap(id){
   if(id === 'town'){
     const m = TOWN.map(r=>[...r]);
     // くっきり版だけ：いまふうの町の物をおく（歩けない）。V＝自動販売機、U＝電柱、X＝郵便ポスト、F＝花だん
-    if(!new URLSearchParams(location.search).has('sd')) [[17,4,'V'],[11,4,'X'],[6,4,'F'],[8,1,'U'],[8,13,'U']].forEach(([x,y,t])=>{ m[y][x] = t; });
+    if(!new URLSearchParams(location.search).has('sd')){ [[17,4,'V'],[11,4,'X'],[6,4,'F'],[8,1,'U'],[8,13,'U']].forEach(([x,y,t])=>{ m[y][x] = t; });
+      m[4][14] = 'S'; m[4][15] = 'P'; }   // 虫具店の絵は、入口が右よりにあるので、入口のマスも1つ右へ
     return m;
   }
   const st = AREAS[id].style, R = mulberry(hashStr(id)), ri = (a,b)=>a + Math.floor(R()*(b-a+1));
@@ -1378,6 +1381,25 @@ if(USE_HD && HD_K === 4){ const im = new Image(); im.onload = ()=>{ tileSheet2 =
 // 町の物（img/sprites/objects_hd.png：背景が透明な、自動販売機・電柱・郵便ポスト・花だん。1コマ＝はば1マス×高さ2マス）
 // 地面の上にそのまま置いて描く（電柱などは、上のマスまで高くのびる）
 const OBJ_IDX = {V:0, U:1, X:2, F:3};
+// 虫具店を1けん丸ごとかいた絵（img/sprites/shop_hd.png：はば5マス）と、ゆうたが立つ切りかぶ（img/sprites/stump_hd.png）
+let shopImg = null, stumpImg = null;
+if(USE_HD && HD_K === 4){ const im = new Image(); im.onload = ()=>{ shopImg = im; for(const k in layerCache) delete layerCache[k]; }; im.src = av('img/sprites/shop_hd.png'); }
+if(USE_HD && HD_K === 4){ const im = new Image(); im.onload = ()=>{ stumpImg = im; for(const k in layerCache) delete layerCache[k]; }; im.src = av('img/sprites/stump_hd.png'); }
+const SHOP = {x:12, y:2, w:5, h:3};   // 町のお店のマス（横5×たて3）
+function drawShop(g, front, py){   // 主人公より手前の行なら front=true のときにかく（屋根の上の行を歩くと、主人公は屋根のうしろにかくれる）
+  if(!shopImg || ((SHOP.y + SHOP.h - 1)*TS > py) !== front) return;
+  const X = SHOP.x*TS, W5 = SHOP.w*TS, Hh = W5 * shopImg.height / shopImg.width, Y = (SHOP.y + SHOP.h)*TS - Hh;
+  g.fillStyle = 'rgba(20,25,35,.22)'; g.fillRect(X + 4, (SHOP.y + SHOP.h)*TS - 1, W5 - 4, 2);   // 地面に落ちるかげ
+  g.drawImage(shopImg, X, Y, W5, Hh);
+  // 屋根の白い看板（絵の横 23〜79%・たて 36〜47%）に「虫具店」と書く
+  g.fillStyle = '#284f82'; g.font = 'bold 6.4px "Hiragino Maru Gothic ProN","Hiragino Sans",sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText('虫具店', X + W5 * .51, Y + Hh * .418); g.textAlign = 'left';
+}
+function drawStump(g, x, y){   // 切りかぶ：上の面に、ゆうたの足がのる
+  if(!stumpImg) return false;
+  g.fillStyle = 'rgba(0,0,0,.2)'; g.beginPath(); g.ellipse(x*TS + 8, y*TS + 17, 8, 2.4, 0, 0, Math.PI*2); g.fill();
+  g.drawImage(stumpImg, x*TS - 1, y*TS + 1, 18, 18); return true;
+}
 if(USE_HD && HD_K === 4){ const im = new Image(); im.onload = ()=>{ objSheet = im; for(const k in layerCache) delete layerCache[k]; }; im.src = av('img/sprites/objects_hd.png'); }
 function hdObjects(g, m, front, py){   // front=false：主人公より奥の物、true：主人公より手前の物
   for(let y=0;y<H;y++) for(let x=0;x<W;x++){
@@ -1391,6 +1413,7 @@ function modernIdx(m, x, y, st){   // タイルセット2を使うマスなら�
   const t = m[y][x], down = (m[y+1]||[])[x];
   if(st==='town'){
     if(t==='.' || t==='E' || t==='K') return 0;   // アスファルトの道
+    if(shopImg && (t==='S' || t==='P')) return 0;   // お店の絵があれば、下はアスファルト（お店はあとで上に置く）
     if(t==='H') return down==='H' || down==='D' ? 4 : 6;
     if(t==='D') return 7;
     if(t==='S') return down==='S' || down==='P' ? 5 : (x % 2 ? 9 : 11);   // お店の壁：ショーウィンドウとポスターをこうごに
@@ -1406,7 +1429,7 @@ function drawTileImg(g, m, x, y, st){
   if(mi != null){
     tileAtIdx(g, mi, x*TS, y*TS, tileSheet2);
     if(t==='E'){ g.fillStyle = '#fff8'; g.fillRect(x*TS+6, y*TS+6, 4, 1); g.fillRect(x*TS+7, y*TS+7, 2, 2); g.fillRect(x*TS+4, y*TS+5, 8, 1); }   // 出口の矢じるし
-    if(t==='K'){ g.fillStyle = '#7a5a3a'; g.fillRect(x*TS+1, y*TS+11, 14, 4); g.fillStyle = '#9a7a52'; g.fillRect(x*TS+2, y*TS+11, 12, 2); }   // 切りかぶの土俵
+    if(t==='K' && !stumpImg){ g.fillStyle = '#7a5a3a'; g.fillRect(x*TS+1, y*TS+11, 14, 4); g.fillStyle = '#9a7a52'; g.fillRect(x*TS+2, y*TS+11, 12, 2); }   // 切りかぶの土俵（絵があれば、あとで上に置く）
     return true;
   }
   if('VUXF'.includes(t)){ tileAtIdx(g, t==='F' ? 0 : 2, x*TS, y*TS); return true; }   // タイルセット2がまだ読みこめていないとき
@@ -1507,7 +1530,7 @@ function hdRoofs(g, m, st){
 }
 // いまふうの家とお店：屋根が平らな模様なので、むね・軒のかげ・地面へのかげをかいて、立体に見せる
 function hdBuildings(g, m, st){
-  const seen = new Set(), isB = (x, y)=> 'HSDP'.includes((m[y]||[])[x] || '#') && modernIdx(m, x, y, st) != null;
+  const seen = new Set(), isB = (x, y)=> (shopImg && st==='town' ? 'HD' : 'HSDP').includes((m[y]||[])[x] || '#') && modernIdx(m, x, y, st) != null;   // お店の絵があれば、お店はのぞく
   for(let y=0;y<H;y++) for(let x=0;x<W;x++){
     if(!isB(x, y) || seen.has(x + ',' + y)) continue;
     let x0 = x, x1 = x, y0 = y, y1 = y; const st2 = [[x, y]];   // つながっている建物のマスをまとめて、その四角を出す
@@ -1564,7 +1587,9 @@ async function showAllMaps(){
     const g = c.getContext('2d'); g.imageSmoothingEnabled = false; g.drawImage(mapLayer(id), 0, 0);
     g.scale(HD_K, HD_K);
     if(objSheet) hdObjects(g, maps[id], true, -999);   // 町の物
-    if(id==='town' && signImg){ const sx = 12*TS + 14, sy = 2*TS + 1; g.drawImage(signImg, sx, sy, 52, 13.5);
+    if(id==='town') maps.town.forEach((r,y)=>r.forEach((t,x)=>{ if(t==='K') drawStump(g, x, y); }));
+    if(id==='town' && shopImg) drawShop(g, true, -999);
+    else if(id==='town' && signImg){ const sx = 12*TS + 14, sy = 2*TS + 1; g.drawImage(signImg, sx, sy, 52, 13.5);
       g.fillStyle = '#3a2614'; g.font = 'bold 6.6px "Hiragino Maru Gothic ProN","Hiragino Sans",sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('虫具店', sx + 27, sy + 8.4); }
     const a = document.createElement('a');
     a.href = location.pathname + '?' + keep.concat(['touch', 'demo=field', 'area=' + id]).join('&');
@@ -1927,16 +1952,19 @@ function draw(ts){
   ctx.save(); ctx.translate(-Math.round(camX), -Math.round(camY));
   try{   // とちゅうで失敗しても、カメラのずれ（translate）がたまらないように、かならず restore する（たまると、マップが画面の外にずれて真っ暗になる）
   ctx.drawImage(mapLayer(S.area), 0, 0, MW, MH);
-  if(S.area==='town' && signImg){   // くっきり版：カブトムシのかざりがついた木の看板（はば52×高さ13.5）に、文字はゲームの中で書く
+  if(S.area==='town' && shopImg){}   // お店の絵があれば、看板はお店といっしょにかく（drawShop）
+  else if(S.area==='town' && signImg){   // くっきり版：カブトムシのかざりがついた木の看板（はば52×高さ13.5）に、文字はゲームの中で書く
     const sx = 12*TS + 14, sy = 2*TS + 1;
     ctx.drawImage(signImg, sx, sy, 52, 13.5);
     ctx.fillStyle = '#3a2614'; ctx.font = 'bold 6.6px "Hiragino Maru Gothic ProN","Hiragino Sans",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText('虫具店', sx + 27, sy + 8.4); ctx.textAlign = 'left';
   }
   else if(S.area==='town'){ ctx.fillStyle = '#fbf8ef'; ctx.fillRect(12*TS+20, 2*TS+4, 40, 9); ctx.fillStyle = '#284f82'; ctx.font = '8px sans-serif'; ctx.textBaseline = 'top'; ctx.fillText('虫具店', 12*TS+28, 2*TS+4); }
-  if(S.area==='town') maps.town.forEach((r,y)=>r.forEach((t,x)=>{ if(t==='K') drawNpc(x, y, ts); }));
+  if(S.area==='town') maps.town.forEach((r,y)=>r.forEach((t,x)=>{ if(t==='K'){ drawStump(ctx, x, y); drawNpc(x, y, ts); } }));
+  if(S.area==='town') drawShop(ctx, false, py);
   if(objSheet) hdObjects(ctx, maps[S.area], false, py);
   drawPlayer(px, py, ts);
+  if(S.area==='town') drawShop(ctx, true, py);
   if(objSheet) hdObjects(ctx, maps[S.area], true, py);
   } finally { ctx.restore(); }
   const slot = slotOf(S.min);
