@@ -322,8 +322,9 @@ img[src^="img/"]{image-rendering:auto!important}   /* ChatGPTで作った細か�
 @media (orientation:landscape){
   #endScr>.in.storypg{max-width:none!important;height:100%;margin:0;display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto;gap:8px 18px;align-items:center}
   #endScr .storypg h2{grid-column:1/-1;font-size:22px}
-  #endScr .storypg .endart{grid-row:2/4;width:min(58vw,(100dvh - 100px) * 1.5);height:auto;align-self:center;justify-self:end}   /* 絵の形（3:2）はそのまま、画面の高さに合わせる */
+  #endScr .storypg .endart{grid-row:2/4;width:min(52vw,(100dvh - 100px) * 1.5);height:auto;align-self:center;justify-self:end}   /* 絵の形（3:2）はそのまま、画面の高さに合わせる */
   #endScr .storypg .story{grid-column:2;min-height:0;max-height:100%;overflow-y:auto;font-size:17px;line-height:1.8}
+  #endScr .storypg .story .face{width:56px;height:56px}   /* 顔を小さくして、文の幅を広くとる */
   #endScr .storypg #endBtn{grid-column:2;justify-self:center}
   #endScr .storypg:not(:has(.endart)) .story,#endScr .storypg:not(:has(.endart)) #endBtn{grid-column:1/-1}
 }
@@ -551,7 +552,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-0926';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-0934';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
