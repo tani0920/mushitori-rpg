@@ -569,7 +569,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-2047';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-2050';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -579,6 +579,7 @@ const CHANGELOG = [
     '虫具店を、ガラスのショーウィンドウがある新しいお店の絵にした。ゆうたは切りかぶの上に立つようにした',
     '主人公の家も、自転車と朝顔のある新しい家の絵にした',
     '虫が出るときの演出を、はじめての虫・めずらしい虫・伝説の虫でかえた（頭の上に「！」、黒いかげから色がつく、キラキラ、金色の光など。めずらしい虫は、2回目からはすぐ出る）',
+    '主人公とゆうたの頭の上の吹き出しを、絵にした',
     '赤間の町の戦闘画面の背景を、アスファルトの道といまふうの家の町にした',
     'メニューの「本物の虫の写真」の名前を、みじかく「写真をとる」にした',
     'タイトル画面にバージョンと「こうしん情報」を出すようにした',
@@ -1940,7 +1941,9 @@ function drawNpc(tx, ty, ts){
     ctx.drawImage(npcSheet, (Math.floor(ts/350) % 4) * F, 0, F, F, px + 8 - D/2, py + 16 - D, D, D);
   }
   else P_FRONT.forEach((r,y)=>[...r].forEach((ch,i)=>{ if(ch==='.') return; ctx.fillStyle = NPC_PAL[ch]; ctx.fillRect(px + 2 + i, py + y + bob, 1, 1); }));
-  if(sumoNext()){ const up = npcSheet ? 16 * PL_SCALE - 16 : 0;   // 大きく描いたぶん、「！」も上に
+  if(sumoNext() && bubbleImg){ const bb = Math.abs(Math.sin(ts / 260)) * 1.2;   // くっきり版：カブトムシと「！」の吹き出し（虫ずもうしようよ！）
+    ctx.drawImage(bubbleImg, 4*64, 0, 64, 64, px + 8 - BUB_D/2, py + 16 - D_NPC() + 2 - BUB_D - bb, BUB_D, BUB_D); }
+  else if(sumoNext()){ const up = npcSheet ? 16 * PL_SCALE - 16 : 0;   // 大きく描いたぶん、「！」も上に
     ctx.fillStyle = '#fff'; ctx.fillRect(px+6, py-9+bob-up, 5, 8); ctx.fillStyle = '#e04030'; ctx.fillRect(px+8, py-8+bob-up, 1, 4); ctx.fillRect(px+8, py-3+bob-up, 1, 1); }   // 「！」
 }
 /* 主人公の歩きの絵（img/sprites/player.png：横3コマ＝立ち・右足・左足、たて4段＝下・左・右・上、1コマ16ドット） */
@@ -2360,9 +2363,20 @@ async function encounterIntro(tier){   // フィールドで、戦闘に入る�
   }
   encFx = null;
 }
+/* 頭の上の吹き出しの絵（img/sprites/speech_bubbles_hd.png：64ドット×5コマ＝「！」「！！」「…？」金色の「！！」、ゆうたの「カブトムシ＋！」） */
+let bubbleImg = null; const BUB_D = 13;   // BUB_D：吹き出しをかく大きさ（マス16に対して）
+if(USE_HD && HD_K === 4){ const im = new Image(); im.onload = ()=>{ bubbleImg = im; }; im.src = av('img/sprites/speech_bubbles_hd.png'); }
+const D_NPC = ()=> npcSheet ? 16 * PL_SCALE : 16;
 function drawEncFx(px, py, ts){   // 頭の上の吹き出し
   if(!encFx) return;
   const t = (ts - encFx.t0) / 1000;
+  if(bubbleImg){   // しっぽの先が、頭のすぐ上にくるように
+    const i = encFx.gold && encFx.text==='！！' ? 3 : {'！':0, '！！':1, '…？':2}[encFx.text];
+    if(i==null) return;
+    const b = encFx.bounce ? Math.abs(Math.sin(t * 9)) * 2 : 0;
+    ctx.drawImage(bubbleImg, i*64, 0, 64, 64, px + 8 - BUB_D/2, py + 16 - 16 * PL_SCALE + 2 - BUB_D - b, BUB_D, BUB_D);
+    return;
+  }
   const top = 16 - 16 * PL_SCALE, by = py + top - 12 - (encFx.bounce ? Math.abs(Math.sin(t * 9)) * 2.5 : 0), w = encFx.text.length * 5 + 6, bx = px + 8 - w/2;
   ctx.fillStyle = '#fff'; ctx.strokeStyle = '#2b2118'; ctx.lineWidth = .8;
   ctx.beginPath(); ctx.roundRect ? ctx.roundRect(bx, by, w, 10, 3) : ctx.rect(bx, by, w, 10); ctx.fill(); ctx.stroke();
