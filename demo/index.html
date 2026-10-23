@@ -552,7 +552,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-1120';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-1126';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -1339,7 +1339,8 @@ function drawTileImg(g, m, x, y, st){
 }
 /* くっきり版だけ：タイルのさかいめが、定規で線を引いたようにまっすぐ見えないようにする */
 const hash = (x, y, k)=>{ const v = Math.sin(x*12.9898 + y*78.233 + k*37.719) * 43758.5453; return v - Math.floor(v); };   // いつも同じになる「でたらめ」
-// 地面の種類と強さ：強いほうが、弱いほうへ、ぎざぎざにはみ出す（草むら＞草地＞土の道＞砂浜＞水）
+// 地面の種類と強さ：強いほうが、弱いほうへ、ぎざぎざにはみ出す（草むら＞草地＞土の道＞砂浜）
+// 水は、ぎざぎざにすると不自然なので、まっすぐのまま（岸のタイルができたら、そちらで自然にする）
 function groundOf(m, x, y, st){
   const t = (m[y]||[])[x];
   if(t==null) return null;
@@ -1348,11 +1349,10 @@ function groundOf(m, x, y, st){
   if(t==='T') return st==='matsubara' || st==='oshima' ? {i:3, p:1} : {i:0, p:3};
   if(t==='.' || t==='E' || t==='K' || t==='r') return {i:2, p:2};
   if(t==='s') return {i:3, p:1};
-  if(t==='~') return {i:5, p:0};
   if((t==='H' || t==='S' || t==='D' || t==='P') && !['H','S','D','P'].includes((m[y+1]||[])[x])) return {i:0, p:3, wall:1};   // 建物の足もとの草
   return null;   // 田んぼ・屋根など：さかいめはそのまま
 }
-const isFloor = t=> t===',' || t==='"' || t==='.' || t==='E' || t==='K' || t==='s' || t==='~';   // はみ出しを受ける（上にかいてもよい）マス
+const isFloor = t=> t===',' || t==='"' || t==='.' || t==='E' || t==='K' || t==='s';   // はみ出しを受ける（上にかいてもよい）マス
 function hdEdges(g, m, st){
   const D = [[0,-1],[1,0],[0,1],[-1,0]];   // 上・右・下・左
   for(let y=0;y<H;y++) for(let x=0;x<W;x++){
