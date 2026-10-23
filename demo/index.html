@@ -552,7 +552,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-1135';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-1234';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -1232,7 +1232,12 @@ const TOWN = [
 function hashStr(s){ let h = 2166136261; for(const ch of s){ h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h>>>0; }
 function mulberry(a){ return ()=>{ a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a>>>15, 1 | a); t = t + Math.imul(t ^ t>>>7, 61 | t) ^ t; return ((t ^ t>>>14)>>>0) / 4294967296; }; }
 function genMap(id){
-  if(id === 'town') return TOWN.map(r=>[...r]);
+  if(id === 'town'){
+    const m = TOWN.map(r=>[...r]);
+    // くっきり版だけ：いまふうの町の物をおく（歩けない）。V＝自動販売機、U＝電柱、X＝郵便ポスト、F＝花だん
+    if(new URLSearchParams(location.search).has('hd')) [[17,4,'V'],[11,4,'X'],[6,4,'F'],[8,1,'U'],[8,13,'U']].forEach(([x,y,t])=>{ m[y][x] = t; });
+    return m;
+  }
   const st = AREAS[id].style, R = mulberry(hashStr(id)), ri = (a,b)=>a + Math.floor(R()*(b-a+1));
   const m = [...Array(H)].map(()=>Array(W).fill(','));
   const set = (x,y,t)=>{ if(x>=0&&y>=0&&x<W&&y<H) m[y][x] = t; };
@@ -1324,9 +1329,34 @@ const HD_SUF = HD_K === 2 ? '_32' : '_hd';
 const VIEW_ZOOM = +HDQ.get('z') || 1, PL_SCALE = +HDQ.get('pc') || 1;
 const USE_TILE_ART = true;    // true にするとChatGPTのタイル（img/sprites/tiles.png）でフィールドを描く。false はシンプルな見やすい絵
 if(USE_TILE_ART && window.HAS_TILES){ const im = new Image(); im.onload = ()=>{ tileSheet = im; for(const k in layerCache) delete layerCache[k]; }; im.src = av(USE_HD ? `img/sprites/tiles${HD_SUF}.png` : 'img/sprites/tiles.png'); }
-const tileAtIdx = (g, i, X, Y)=> g.drawImage(tileSheet, (i%4)*TSRC, Math.floor(i/4)*TSRC, TSRC, TSRC, X, Y, TS, TS);
+const tileAtIdx = (g, i, X, Y, sh = tileSheet)=> g.drawImage(sh, (i%4)*TSRC, Math.floor(i/4)*TSRC, TSRC, TSRC, X, Y, TS, TS);
+/* タイルセット2（くっきり版だけ・img/sprites/tiles2_hd.png）：いまふうの町と、神社の参道
+   1段目：アスファルト 歩道 参道の石だたみ 玉砂利／2段目：家の屋根（こげ茶） お店の屋根（青） 家の壁（窓） 家の玄関
+   3段目：緑のひさし お店のショーウィンドウ お店の入口 お店の壁（ポスター）／4段目：自動販売機 電柱 郵便ポスト 花だん */
+let tileSheet2 = null;
+if(USE_HD && HD_K === 4){ const im = new Image(); im.onload = ()=>{ tileSheet2 = im; for(const k in layerCache) delete layerCache[k]; }; im.src = av('img/sprites/tiles2_hd.png'); }
+function modernIdx(m, x, y, st){   // タイルセット2を使うマスなら、その番号（使わないなら null）
+  const t = m[y][x], down = (m[y+1]||[])[x];
+  if(st==='town'){
+    if(t==='.' || t==='E' || t==='K') return 0;   // アスファルトの道
+    if(t==='H') return down==='H' || down==='D' ? 4 : 6;
+    if(t==='D') return 7;
+    if(t==='S') return down==='S' || down==='P' ? 5 : (x % 2 ? 9 : 11);   // お店の壁：ショーウィンドウとポスターをこうごに
+    if(t==='P') return 10;
+  }
+  if(st==='taisha' && (x===9 || x===10) && (t==='.' || t==='E' || t==='r')) return 2;   // まん中の参道だけ石だたみ（森の中の小道は土のまま）
+  return {V:12, U:13, X:14, F:15}[t] ?? null;
+}
 function drawTileImg(g, m, x, y, st){
   const t = m[y][x], down = (m[y+1]||[])[x];
+  const mi = tileSheet2 ? modernIdx(m, x, y, st) : null;
+  if(mi != null){
+    tileAtIdx(g, mi, x*TS, y*TS, tileSheet2);
+    if(t==='E'){ g.fillStyle = '#fff8'; g.fillRect(x*TS+6, y*TS+6, 4, 1); g.fillRect(x*TS+7, y*TS+7, 2, 2); g.fillRect(x*TS+4, y*TS+5, 8, 1); }   // 出口の矢じるし
+    if(t==='K'){ g.fillStyle = '#7a5a3a'; g.fillRect(x*TS+1, y*TS+11, 14, 4); g.fillStyle = '#9a7a52'; g.fillRect(x*TS+2, y*TS+11, 12, 2); }   // 切りかぶの土俵
+    return true;
+  }
+  if('VUXF'.includes(t)){ tileAtIdx(g, t==='F' ? 0 : 2, x*TS, y*TS); return true; }   // タイルセット2がまだ読みこめていないとき
   let i = TILE_IDX[t];
   if(t==='T' && (st==='matsubara' || st==='oshima')) i = 7;
   if(t==='H') i = down==='H' || down==='D' ? 9 : 10;    // 下も家なら屋根、いちばん下の段は壁
@@ -1345,6 +1375,13 @@ const hash = (x, y, k)=>{ const v = Math.sin(x*12.9898 + y*78.233 + k*37.719) * 
 function groundOf(m, x, y, st){
   const t = (m[y]||[])[x];
   if(t==null) return null;
+  if(tileSheet2){
+    if(t==='F') return {i:0, p:3};
+    if(t==='V' || t==='U' || t==='X') return {sh:2, i:0, p:2};
+    const mi = modernIdx(m, x, y, st);
+    if(mi===0 || mi===2) return {sh:2, i:mi, p:2};   // アスファルト・参道
+    if(mi != null) return null;   // いまふうの建物：足もとに草はない
+  }
   if(t==='"') return {i:1, p:4};
   if(t===',' || t==='J' || t==='o') return {i:0, p:3};
   if(t==='T') return st==='matsubara' || st==='oshima' ? {i:3, p:1} : {i:0, p:3};
@@ -1376,7 +1413,7 @@ function hdEdges(g, m, st){
       if(side===2){ g.moveTo(X, Y+TS); pts.forEach(p=>g.lineTo(p[0], p[1])); g.lineTo(X+TS, Y+TS); }
       if(side===1){ g.moveTo(X+TS, Y); pts.forEach(p=>g.lineTo(p[0], p[1])); g.lineTo(X+TS, Y+TS); }
       if(side===3){ g.moveTo(X, Y); pts.forEach(p=>g.lineTo(p[0], p[1])); g.lineTo(X, Y+TS); }
-      g.closePath(); g.clip(); tileAtIdx(g, nb.i, X, Y); g.restore();
+      g.closePath(); g.clip(); tileAtIdx(g, nb.i, X, Y, nb.sh===2 ? tileSheet2 : tileSheet); g.restore();
     });
     // 角：ななめのマスだけが強いときは、角を丸く少しだけはみ出させる
     [[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([dx, dy])=>{
@@ -1384,14 +1421,14 @@ function hdEdges(g, m, st){
       const a = groundOf(m, x+dx, y, st), b = groundOf(m, x, y+dy, st);
       if((a && a.p >= nb.p) || (b && b.p >= nb.p)) return;
       const r = 2.5 + 1.5*hash(x+dx*.5, y+dy*.5, 7), cx = X + (dx>0 ? TS : 0), cy = Y + (dy>0 ? TS : 0);
-      g.save(); g.beginPath(); g.arc(cx, cy, r, 0, Math.PI*2); g.clip(); tileAtIdx(g, nb.i, X, Y); g.restore();
+      g.save(); g.beginPath(); g.arc(cx, cy, r, 0, Math.PI*2); g.clip(); tileAtIdx(g, nb.i, X, Y, nb.sh===2 ? tileSheet2 : tileSheet); g.restore();
     });
   }
 }
 // 屋根が2段あるとき、下の段のてっぺんに、もう1本むね（いちばん上の線）が出ないようにする
-function hdRoofs(g, m){
+function hdRoofs(g, m, st){
   for(let y=1;y<H;y++) for(let x=0;x<W;x++){
-    const t = m[y][x]; if((t!=='H' && t!=='S') || m[y-1][x]!==t) continue;
+    const t = m[y][x]; if((t!=='H' && t!=='S') || m[y-1][x]!==t || (tileSheet2 && modernIdx(m, x, y, st) != null)) continue;
     const dn = (m[y+1]||[])[x]; if(!(dn===t || dn==='D' || dn==='P')) continue;   // 屋根のマスだけ
     const i = t==='H' ? 9 : 12, sx = (i%4)*TSRC, sy = Math.floor(i/4)*TSRC, cut = Math.round(TSRC*.3);
     // 絵の下の7割（むねのない部分）を、マスの上から下までならべる
@@ -1404,10 +1441,15 @@ function mapLayer(id){
   const c = document.createElement('canvas'); c.width = W*TS*HD_K; c.height = H*TS*HD_K; const g = c.getContext('2d'), m = maps[id], st = AREAS[id].style;
   g.scale(HD_K, HD_K);
   for(let y=0;y<H;y++) for(let x=0;x<W;x++) if(!(tileSheet && drawTileImg(g, m, x, y, st))) drawTile(g, m, x, y, st);
-  if(tileSheet && HD_K > 1){ hdRoofs(g, m); hdEdges(g, m, st); }   // くっきり版：屋根のつなぎ目と、地面のさかいめを自然にする
+  if(tileSheet && HD_K > 1){ hdRoofs(g, m, st); hdEdges(g, m, st); }   // くっきり版：屋根のつなぎ目と、地面のさかいめを自然にする
   if(tileSheet){   // 鳥居とおやしろは2マスのまん中に1つだけ置く
     for(let y=0;y<H;y++) for(let x=0;x<W;x++){
       const t = m[y][x]; if((t!=='r' && t!=='J') || m[y][x-1]===t) continue;
+      if(t==='r' && HD_K > 1 && m[y][x+1]===t){   // くっきり版：鳥居の絵（柱が1本）と、左右反転したものを2マスにならべて、柱2本の鳥居にする
+        tileAtIdx(g, 14, x*TS, y*TS);
+        g.save(); g.translate((x+2)*TS, 0); g.scale(-1, 1); tileAtIdx(g, 14, 0, y*TS); g.restore();
+        continue;
+      }
       tileAtIdx(g, t==='r' ? 14 : 15, x*TS + (m[y][x+1]===t ? TS/2 : 0), y*TS);
     }
   }
