@@ -104,6 +104,8 @@ body.touch.land #msg .face{width:3.6em;height:3.6em}
 #menu li.sel::before{content:"▶";position:absolute;left:.25em;color:var(--sun)}
 #menu li.dis{color:#f7f1df66}
 #menu li.dis em{color:#f7f1df55}
+#menu li.short{color:#f7f1df8c}   /* どんぐりが足りなくて買えない：少しうすく（えらぶと「足りない」と教える） */
+#menu li.short em{color:#e89a7a}
 #menu.cmditem{top:auto;bottom:31%;right:2.5%;min-width:34%}
 #menu.cmd{top:auto;left:2.5%;right:2.5%;bottom:3%;min-height:25%;max-width:none;z-index:31}   /* 戦闘コマンド：メッセージ欄の場所に2列で */
 #menu.cmd ul{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto;grid-auto-flow:column;gap:.25em .8em;overflow:visible}   /* たてにならべてから右の列へ */
@@ -510,6 +512,8 @@ body.touch.land #battle{--free:calc(100% - var(--hudH) - 4.4em - 30px);--mid:cal
 body.touch.land .binfo{font-size:.92em}   /* 横向き：まん中があいたぶん、名前のわくと虫を1.15倍に */
 body.touch.land #bInfo{left:max(8px,env(safe-area-inset-left,0px));width:30%;max-width:15em}   /* 横向き：名前のわくは画面のはしへ（ボタンは下のすみだけなので、上はあいている） */
 body.touch.land #pInfo{right:max(8px,env(safe-area-inset-right,0px));width:25%;max-width:12em}
+body.touch #battle.vs #pInfo{max-width:16em}   /* 虫ずもう：ぼくの虫のわくにも「Lv・タイプ・たいりょく」が入るので、あいてと同じ広さにする */
+body.touch.land #battle.vs #pInfo{width:30%;max-width:15em}
 body.touch.land #bWrap{--w:min(64vh,34.5vw);width:var(--w);top:max(calc(var(--hudH) + .4em), calc(var(--mid) - var(--w) * .4))}   /* まん中より少しだけ下（上の名前のわくに頭がかくれないように） */
 body.touch.land #battle.vs #bWrap{--w:min(34vh,22vw);width:var(--w);left:calc(var(--sideL) + 6%);top:max(calc(var(--hudH) + 4.2em), calc(var(--mid) - var(--w) * .8))}
 body.touch.land #battle.vs #mWrap{--w:min(34vh,22vw);width:var(--w);right:calc(var(--sideR) + 6%);top:max(calc(var(--hudH) + 5.6em), calc(var(--mid) - var(--w) * .2))}
@@ -614,7 +618,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.3.0';
-const BUILD = '20261024-0234';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261024-0253';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.3.0', date:'2026-10-23', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -623,6 +627,9 @@ const CHANGELOG = [
     '「虫にやさしく」をテーマに、バトルの「ダメージ」を「あみでおいこんだ！ HPが〇へった！」に。虫ずもうも「HPが〇へった！」に',
     '「虫とりのやくそく」を、はじめて虫をつかまえたとき・虫かごがいっぱいになったとき・虫を持って家でねるとき・エンディングで教えるようにした',
     '虫ずもうのわざの名前を、すもうらしく（はさみなげ・れんぞくカマおし・がっちりロック・ジャンプおしだし）。けんたのセリフもやさしくした',
+    'どんぐりが足りなくて買えないものは、お店のリストで少しうすく、ねだんを赤っぽく出すようにした',
+    'iPadなどで「写真をとる」を開いたとき、画面が固まって「とじる」がきかないことがあったのを直した',
+    'iPadの虫ずもうで、ぼくの虫の数字がわくからはみ出ていたのを直した',
     '昼のセミの声を、半分くらいの大きさにした',
     'スタンプラリーの大島の特典を「？？？がさらに出やすくなる」から「伝説の虫がさらに出やすくなる」にした',
     '虫に出会ったときの文を「〇〇があらわれた！」から「〇〇をみつけた！」にした（子どもが自分で見つける目線に）',
@@ -1824,7 +1831,7 @@ function choose(opts, o={}){
     const render = ()=>{
       showMsg();
       menuEl.innerHTML = (o.title ? `<div class="mt">${esc(o.title)}</div>` : '') + '<div class="mlist"><ul>' + items.map((it,j)=>
-        `<li class="${j===i?'sel':''} ${it.disabled?'dis':''}" data-j="${j}"><span>${esc(it.label)}</span>${it.note!=null?`<em>${esc(it.note)}</em>`:''}</li>`).join('') +
+        `<li class="${j===i?'sel':''} ${it.disabled?'dis':''} ${it.short?'short':''}" data-j="${j}"><span>${esc(it.label)}</span>${it.note!=null?`<em>${esc(it.note)}</em>`:''}</li>`).join('') +
         '</ul><div class="sbar" hidden><i></i></div><div class="more up" hidden>▲</div><div class="more dn" hidden>▼</div></div>';
       rubify(menuEl);   // 高さをはかる前にふりがなを付けておく（あとで付くと、スクロールの位置がずれる）
       const ul = menuEl.querySelector('ul'), sel = menuEl.querySelector('.sel');
@@ -2126,7 +2133,7 @@ async function worldMap(){
   if(c < 0 || c === ids.length){ S.y -= 1; S.dir = 'U'; return; }
   const id = ids[c], A = AREAS[id];
   if(A.ticket && !S.ticket){
-    const y = await choose(['買う','やめる'], {cls:'side', start:0,
+    const y = await choose([{label:'買う', short: S.money < ticketPrice()},'やめる'], {cls:'side', start:0,
       msg:`神湊のとせんターミナル。大島行きのフェリーには「${TICKET.name}」が必要だ。\n${dg(ticketPrice())}で買いますか？${photos.stamps?.oshima ? '（大島のスタンプで半額！）' : ''}（いま ${dg(S.money)}）`});
     if(y!==0){ S.y -= 1; S.dir = 'U'; return; }
     if(S.money < ticketPrice()){ await say('どんぐりが足りない…。虫具店に虫をとどけて、どんぐりをためよう。'); S.y -= 1; S.dir = 'U'; return; }
@@ -2294,7 +2301,7 @@ function gearDesc(kind, g, j){
 async function buyGear(kind){
   const L = {net:NETS, cage:CAGES, shoes:SHOES}[kind], label = {net:'あみ', cage:'虫かご', shoes:'くつ'}[kind];
   while(true){
-    const opts = L.map((g,j)=>({label:g.name, note: j===S[kind] ? 'もってる' : j<S[kind] ? '―' : dg(g.price), desc:gearDesc(kind,g,j), disabled: j<=S[kind]}));
+    const opts = L.map((g,j)=>({label:g.name, note: j===S[kind] ? 'もってる' : j<S[kind] ? '―' : dg(g.price), desc:gearDesc(kind,g,j), disabled: j<=S[kind], short: j>S[kind] && S.money < g.price}));
     const c = await choose(opts, {title:`${label}を買う　${dg(S.money)}`, msg: kind==='shoes' ? '「いいくつがあれば、遠くの場所にも行けるよ。大島へは、神湊でフェリーの乗船チケットを買うんだよ。」' : '「いい道具をそろえると、強い虫もつかまえやすくなるよ。」'});
     if(c<0) return;
     const g = L[c];
@@ -2309,7 +2316,7 @@ async function buyGear(kind){
 }
 async function buyItems(){
   while(true){
-    const c = await choose(ITEMS.map(t=>({label:`${t.name}（${S.items[t.key]}こ）`, note:dg(t.price), desc:t.desc})), {title:`どうぐを買う　${dg(S.money)}`, msg:'「どれにする？」'});
+    const c = await choose(ITEMS.map(t=>({label:`${t.name}（${S.items[t.key]}こ）`, note:dg(t.price), desc:t.desc, short: S.money < t.price})), {title:`どうぐを買う　${dg(S.money)}`, msg:'「どれにする？」'});
     if(c<0) return;
     const t = ITEMS[c];
     if(S.money < t.price){ await say('どんぐりが足りない…'); continue; }
@@ -2936,7 +2943,7 @@ function openCam(){
   return new Promise(res=>{
     camResult(''); renderAlbum(); renderStamps(); $('cam').hidden = false;
     $('geoOn').checked = !!photos.geoOn; $('geoOn').onchange = ()=>{ photos.geoOn = $('geoOn').checked; savePhotos(); };
-    getModel().catch(()=>{});   // 先にAIを読みこんでおく
+    // AIは、写真をえらんだときにはじめて読みこむ（開いたときに読みこむと、iPadなどで画面がしばらく固まって「とじる」や回転がきかなくなる）
     const close = ()=>{ uiHandler = null; $('cam').hidden = true; res(); };
     uiHandler = k=>{ if(k==='B'||k==='M') close(); };
     $('camClose').onclick = close;
