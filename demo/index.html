@@ -552,7 +552,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-0938';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-0943';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -567,7 +567,7 @@ const CHANGELOG = [
     'モンシロチョウ・ナツアカネ・ショウリョウバッタ・トノサマバッタの絵を新しくした',
     '会話とメニューの枠を少しすきとおらせて、うしろの絵が見えるようにした',
     '「プライバシーについて」を追加した（タイトルとオプション）。遊ばれ方を知るためのアクセス解析を入れた（名前・写真・位置は送らない）',
-    'ファミコンみたいな音のBGMと効果音を入れた（オプションでON/OFF）。時間帯で虫の声がかわる（朝は小鳥、昼はセミ、夕方はヒグラシ、夜はスズムシとコオロギ）。朝はスキップするような曲、昼はその続きで少しゆっくりした曲、タイトルは、いろんな虫の声と、草をなびかせる風の音と、遠くの波の音だけ。大島では、いつも波の音が聞こえる。ねるときは子守歌、朝は遠くでニワトリが鳴く。エンディングは、夏休みあけの学校の明るい曲（伝説の虫とり王は、ファンファーレのあと、はでな行進曲）。虫と出会うと、ドキドキする心臓の音が聞こえる。ミアレカブトと出会うと、みあれ祭の太鼓と笛が鳴る',
+    'ファミコンみたいな音のBGMと効果音を入れた（オプションでON/OFF）。時間帯で虫の声がかわる（朝は小鳥、昼はセミ、夕方はヒグラシ、夜はスズムシとコオロギ）。朝はスキップするような曲、昼はその続きで少しゆっくりした曲、タイトルは、いろんな虫の声と、草をなびかせる風の音と、遠くの波の音だけ。大島では、いつも波の音が聞こえる。ねるときは子守歌、朝は遠くでニワトリが鳴く（ゲームをはじめたときも）。エンディングは、夏休みあけの学校の明るい曲（伝説の虫とり王は、ファンファーレのあと、はでな行進曲）。虫と出会うと、ドキドキする心臓の音が聞こえる。ミアレカブトと出会うと、みあれ祭の太鼓と笛が鳴る',
     'バトルのコマンドを、左に「あみをふる・つかまえる」、右に「どうぐ・にげる」のならびにした',
     'スマホのたて画面で、タイトルの上のほうと、遊んでいるときの日付・時間を見やすくした',
     'エンディングの点数の画面で、画面の向きを変えると上にもどれなくなる不具合を直した',
@@ -2555,8 +2555,8 @@ async function titleScreen(){
   else if(c===2){ S = newState(); Object.assign(S, {round:carry.round, lv:carry.lv, exp:carry.exp, net:carry.net, cage:carry.cage, shoes:carry.shoes,
       items:Object.assign(newState().items, carry.items), money:carry.money + 300, goldwing:carry.goldwing, ticket:!!carry.ticket || carry.shoes >= 3});
     if(S.shoes >= 3) S.shoes = 2;
-    S.hp = maxHp(); S.visited = Object.assign({town:true}, carry.visited); scene = 'field'; hud(); await introCarry(carry); }
-  else { S = newState(); scene = 'field'; hud(); await intro(); }
+    S.hp = maxHp(); S.visited = Object.assign({town:true}, carry.visited); scene = 'field'; hud(); bgmUpdate(); seCrow(1.2); await introCarry(carry); }   // 夏休みの朝のはじまり：朝の曲のあと、遠くでニワトリ
+  else { S = newState(); scene = 'field'; hud(); bgmUpdate(); seCrow(1.2); await intro(); }
 }
 async function introCarry(c){
   await talk(
