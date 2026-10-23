@@ -614,7 +614,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.3.0';
-const BUILD = '20261024-0148';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261024-0213';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.3.0', date:'2026-10-23', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -623,6 +623,7 @@ const CHANGELOG = [
     '「虫にやさしく」をテーマに、バトルの「ダメージ」を「あみでおいこんだ！ HPが〇へった！」に。虫ずもうも「HPが〇へった！」に',
     '「虫とりのやくそく」を、はじめて虫をつかまえたとき・虫かごがいっぱいになったとき・虫を持って家でねるとき・エンディングで教えるようにした',
     '虫ずもうのわざの名前を、すもうらしく（はさみなげ・れんぞくカマおし・がっちりロック・ジャンプおしだし）。けんたのセリフもやさしくした',
+    'スタンプラリーの大島の特典を「？？？がさらに出やすくなる」から「伝説の虫がさらに出やすくなる」にした',
     '虫に出会ったときの文を「〇〇があらわれた！」から「〇〇をみつけた！」にした（子どもが自分で見つける目線に）',
     '主人公の「こうげき」を「あみさばき」（あみを上手にあやつる力）にした',
     '虫をにがすと「もとの場所へ かえっていった。元気でね！」と出るようにした',
@@ -2857,8 +2858,8 @@ function getPos(){
     navigator.geolocation.getCurrentPosition(p=>res({lat:p.coords.latitude, lon:p.coords.longitude}), rej, {enableHighAccuracy:true, timeout:12000, maximumAge:60000});
   });
 }
-// 出会う前の虫の名前はふせる（ミアレカブトは出会うか、スタンプをもらうと名前がわかる）
-const spInfo = (sp, got)=> (got || S.dex.kinkabuto || S.seen.kinkabuto) ? sp.info : sp.info.replace(/ミアレカブト/g, '？？？');
+// 出会う前の虫の名前はふせて「伝説の虫」とだけ書く（ミアレカブトは出会うか、スタンプをもらうと名前がわかる）
+const spInfo = (sp, got)=> (got || S.dex.kinkabuto || S.seen.kinkabuto) ? sp.info : sp.info.replace(/ミアレカブト/g, '伝説の虫');
 function renderStamps(){
   photos.stamps = photos.stamps || {};
   $('stampCnt').textContent = `${stampCount()} / ${SPOTS.length}`;
