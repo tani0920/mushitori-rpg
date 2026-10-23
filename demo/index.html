@@ -552,12 +552,13 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-1417';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-1509';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
     '虫具店で虫を「売る」のをやめて、「とどける」とお礼にどんぐりがもらえるようにした',
     'フィールドと主人公の絵を、くっきりした絵にかえた（町はアスファルトの道と、いまふうの家・お店・自動販売機など。宗像大社には石だたみの参道、池や川や海には岸）',
+    '虫具店や家から出るとき、ぱっと下にうつらずに、歩いて出るようにした',
     'メニューの「本物の虫の写真」の名前を、みじかく「写真をとる」にした',
     'タイトル画面にバージョンと「こうしん情報」を出すようにした',
     '新しいバージョンが出たら「こうしんする」ボタンでお知らせするようにした',
@@ -1857,9 +1858,14 @@ function tryMove(k, ts){
   if(!t || !PASS.has(t)) return;
   mv = {fx:S.x, fy:S.y, tx:nx, ty:ny, t0:ts};
 }
+/* 店や家から出るとき：ぱっと下のマスに移らずに、1マス下へ歩いて出る（歩きおわるまで待つ） */
+function walkOut(){
+  S.dir = 'D';
+  return new Promise(res=>{ mv = {fx:S.x, fy:S.y, tx:S.x, ty:S.y+1, t0:performance.now(), done:res}; });
+}
 function loop(ts){
   if(scene==='field' && !busy && !uiHandler && !mv && held) tryMove(held, ts);
-  if(mv && ts - mv.t0 >= MOVE_MS){ S.x = mv.tx; S.y = mv.ty; mv = null; run(onStep); }
+  if(mv && ts - mv.t0 >= MOVE_MS){ const m = mv; S.x = m.tx; S.y = m.ty; mv = null; m.done ? m.done() : run(onStep); }
   try{ draw(ts); }catch(e){ logErr(e, 'draw'); ctx.setTransform(1, 0, 0, 1, 0, 0); }   // カメラのずれも元にもどす
   requestAnimationFrame(loop);   // 失敗しても止めずに、次のコマもかく
 }
@@ -1944,7 +1950,7 @@ async function onStep(){
   const t = tileAt(S.x, S.y);
   if(t==='E') await worldMap();
   else if(t==='D') await home();
-  else if(t==='P'){ await shop(); S.y += 1; }
+  else if(t==='P'){ await shop(); await walkOut(); }
   else {
     const A = AREAS[S.area], r = (ENC[t]||0) * (A.rate||1);
     if(Math.random() < r){ const id = pickBug(); if(id) await battle(id); }
@@ -2005,7 +2011,7 @@ async function home(){
   const c = await choose(['ねる（次の日へ）','セーブする','そとに出る'], {msg:'ただいま！', cls:'side'});
   if(c===0){ await sleep(); return; }
   if(c===1){ save(); await say('セーブしました。'); }
-  S.y += 1; S.dir = 'D';
+  await walkOut();
 }
 async function sleep(faint){
   if(S.day >= DAYS){ await ending(); return; }
@@ -2122,7 +2128,7 @@ async function shopMain(){
   while(true){
     const c = await choose(['虫をとどける','あみを買う','虫かごを買う','くつを買う','どうぐを買う','店を出る'], {title:`むなかた虫具店　${dg(S.money)}`, msg:greet});
     greet = '「ほかに用はあるかい？」';
-    if(c<0 || c===5){ await say('「まいど！ ねっちゅうしょうに気をつけるんだよ。」'); S.dir = 'D'; return; }
+    if(c<0 || c===5){ await say('「まいど！ ねっちゅうしょうに気をつけるんだよ。」'); return; }
     if(c===0) await sellMenu();
     if(c===1) await buyGear('net');
     if(c===2) await buyGear('cage');
