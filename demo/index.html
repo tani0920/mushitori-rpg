@@ -552,7 +552,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-0934';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-0938';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -2590,7 +2590,7 @@ function research(){
   const rare = ids.reduce((s,id)=>s + RANK_PT[BUGS[id].rank], 0);
   const photo = Object.keys(photos.cats).length * 2;
   const effort = Math.floor(Math.min(S.caughtTotal, 60) / 3);
-  const best = ids.filter(id=>!S.dex[id].watched).sort((a,b)=>BUGS[b].rank - BUGS[a].rank || BUGS[b].price - BUGS[a].price)[0];   // 観察しただけの虫（スズメバチ）はのぞく
+  const best = ids.filter(id=>!S.dex[id].watched && !BUGS[id].danger).sort((a,b)=>BUGS[b].rank - BUGS[a].rank || BUGS[b].price - BUGS[a].price)[0];   // 観察しただけの虫と、危ない虫（スズメバチ）は、どんなときもぜったいにのぞく
   const sumo = S.sumoChamp ? SUMO_CHAMP_PT : 0;
   const nst = stampCount(), field = nst * 3 + (nst >= SPOTS.length ? 5 : 0);   // フィールドワーク：スタンプ1つ3点、ぜんぶで+5点
   return {ids, species:ids.length, rare, photo, effort, sumo, field, nst, total:rare + photo + effort + sumo + field, best,
@@ -2731,7 +2731,7 @@ function start(data){
     else if(demo==='shopmain'){ S.area = 'town'; run(shop); }
     else if(demo==='talk') run(()=>say(QS.get('t') || '', QS.get('face') || undefined));
     else if(demo==='box'){ S.box = Array.from({length:14}, (_,k)=>({id:['abura','kabuto','genji','ageha'][k%4], lv:k+3})); run(boxMenu); }
-    else if(demo==='end'){ const n = +(QS.get('n')||10); Object.keys(BUGS).slice(0, n).forEach(id=>S.dex[id] = {n:1, best:BUGS[id].lv}); if(QS.has('kin')) S.dex.kinkabuto = {n:1, best:25};
+    else if(demo==='end'){ const n = +(QS.get('n')||10); Object.keys(BUGS).slice(0, n).forEach(id=>S.dex[id] = BUGS[id].danger ? {n:0, best:0, watched:true} : {n:1, best:BUGS[id].lv}); if(QS.has('kin')) S.dex.kinkabuto = {n:1, best:25};
       S.caughtTotal = n*2; run(ending); const skip = +(QS.get('skip')||0); for(let k=0;k<skip;k++) setTimeout(()=>press('A'), 300 + k*120); }
     else run(()=>say(`${dateStr()}。いよいよ虫とりの日がやってきた！`));
     return; }
