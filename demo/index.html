@@ -569,7 +569,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-2039';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-2040';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -578,7 +578,7 @@ const CHANGELOG = [
     '虫具店や家から出るとき、ぱっと下にうつらずに、歩いて出るようにした',
     '虫具店を、ガラスのショーウィンドウがある新しいお店の絵にした。ゆうたは切りかぶの上に立つようにした',
     '主人公の家も、自転車と朝顔のある新しい家の絵にした',
-    '虫が出るときの演出を、はじめての虫・めずらしい虫・伝説の虫でかえた（頭の上に「！」、黒いかげから色がつく、キラキラ、金色の光など）',
+    '虫が出るときの演出を、はじめての虫・めずらしい虫・伝説の虫でかえた（頭の上に「！」、黒いかげから色がつく、キラキラ、金色の光など。めずらしい虫は、2回目からはすぐ出る）',
     '赤間の町の戦闘画面の背景を、アスファルトの道といまふうの家の町にした',
     'メニューの「本物の虫の写真」の名前を、みじかく「写真をとる」にした',
     'タイトル画面にバージョンと「こうしん情報」を出すようにした',
@@ -2344,11 +2344,12 @@ async function dangerEncounter(id){
   await say('そーっと、後ろに下がって にげた。ふう、あぶなかった…。' + (first ? `\n遠くから観察したので、こん虫ずかんに ${b.name} を記録した！` : ''));
   await fade(()=>{ battleEl.hidden = true; battleEl.classList.remove('alarm'); $('bInfo').classList.remove('danger'); $('pInfo').hidden = false; scene = 'field'; S.min += 5; hud(); });
 }
-/* 虫が出るときの演出の強さ：ふつう（もう知っている虫）／はじめて（ずかんにない虫）／レア（★4以上）／伝説（ミアレカブト） */
-const encTier = id => id==='kinkabuto' ? 'legend' : BUGS[id].rank >= 4 ? 'rare' : !S.dex[id] ? 'first' : 'normal';
+/* 虫が出るときの演出の強さ：ふつう（もう知っている虫）／はじめて（ずかんにない虫）／レア（★4以上）／伝説（ミアレカブト）
+   レアは、はじめて出会ったときだけ「ため」のある演出。2回目からは rare2（すぐ戦闘に入って、虫の上の星だけ光る）。大島はレアが多いので、毎回だと待たされる */
+const encTier = id => id==='kinkabuto' ? 'legend' : BUGS[id].rank >= 4 ? (S.seen[id] ? 'rare2' : 'rare') : !S.dex[id] ? 'first' : 'normal';
 let encFx = null, encHush = false;   // encFx：フィールドで主人公の頭の上に出す吹き出し。encHush：伝説のとき、曲を止めて虫の声だけにする
 async function encounterIntro(tier){   // フィールドで、戦闘に入る前（主人公は立ち止まる）
-  if(tier==='normal' || scene!=='field') return;
+  if(tier==='normal' || tier==='rare2' || scene!=='field') return;
   const t0 = performance.now();
   if(tier==='first'){ encFx = {t0, text:'！'}; se('newbug'); await wait(650); }
   else if(tier==='rare'){ await wait(400); encFx = {t0, text:'！！', bounce:true}; se('rarebug'); await wait(750); }   // 一瞬立ち止まってから
@@ -2372,12 +2373,12 @@ function drawEncFx(px, py, ts){   // 頭の上の吹き出し
 async function battle(id){
   const b = BUGS[id], lv = b.lv + rint(0,2), k = 1 + 0.08*(lv - b.lv);
   const e = {id, b, lv, maxhp:Math.round(b.hp*k), atk:Math.max(1, Math.round(b.atk*k)), mitsu:false}; e.hp = e.maxhp;
+  const tier = encTier(id);   // 「出会ったことがあるか」を見るので、S.seen に入れる前に決める
   S.seen[id] = true;
   if(b.danger) return dangerEncounter(id);   // スズメバチは戦わずに逃げる
-  const tier = encTier(id);
   await encounterIntro(tier);
   const slot = slotOf(S.min);
-  battleEl.className = 'ov bg-' + AREAS[S.area].style + (slot==='yoru' ? ' night' : slot==='yu' ? ' dusk' : '') + (tier==='rare' ? ' rare' : tier==='legend' ? ' legend' : ''); battleBg(AREAS[S.area].style);
+  battleEl.className = 'ov bg-' + AREAS[S.area].style + (slot==='yoru' ? ' night' : slot==='yu' ? ' dusk' : '') + (tier==='rare' || tier==='rare2' ? ' rare' : tier==='legend' ? ' legend' : ''); battleBg(AREAS[S.area].style);
   bSprite.className = tier==='first' ? 'sil' : '';   // はじめての虫は、まず黒いかげだけ
   bSprite.src = spriteURL(id); battleId = id; scene = 'battle';
   if(!imgOK[id] && imgReady[id]) imgReady[id].then(()=>{ if(scene==='battle') bSprite.src = spriteURL(id); });
@@ -2387,6 +2388,7 @@ async function battle(id){
   if(tier==='legend') await wait(1200);   // 金色の光の中から、ゆっくり近づいてくる
   await say(tier==='legend' ? `……！ これは、伝説の……！\n${b.name}（Lv${lv}）があらわれた！`
     : tier==='rare' ? `えっ…！ ${b.name}だ！ めったに見られないぞ！\n${b.name}（Lv${lv}）があらわれた！`
+    : tier==='rare2' ? `あっ！ ${b.name}（Lv${lv}）があらわれた！\nめずらしい虫だ…！`
     : tier==='first' ? `あっ！ 見たことない虫だ！\n${b.name}（Lv${lv}）があらわれた！`
     : `あっ！ ${b.name}（Lv${lv}）があらわれた！`);
   let result = null;
@@ -3109,7 +3111,7 @@ function start(data){
   if(QS.get('panel')) setTimeout(()=> QS.get('panel')==='share' ? showShare() : QS.get('panel')==='cam' ? (photos.stamps = {oshima:{date:'2026/8/15'}, taisha:{date:'2026/8/18'}, akama:{date:'2026/8/13'}}, openCam()) : showInstall(), 700);   // 画面確認用
   const demo = QS.get('demo');
   if(demo){ S = newState(); scene = 'field'; $('titleScr').hidden = true; S.area = 'taisha'; S.x = 9; S.y = 9; if(QS.get('min')) S.min = +QS.get('min'); if(QS.get('area')) S.area = QS.get('area'); if(QS.get('dir')) S.dir = QS.get('dir'); hud(); layout();
-    if(demo==='battle'){ if(QS.has('seen')){ const id = QS.get('id') || 'kabuto'; S.dex[id] = {n:1, best:BUGS[id].lv}; }   // seen：もう知っている虫にする（ふつうの出かた）
+    if(demo==='battle'){ if(QS.has('seen')){ const id = QS.get('id') || 'kabuto'; S.dex[id] = {n:1, best:BUGS[id].lv}; S.seen[id] = true; }   // seen：もう知っている虫にする（ふつうの出かた。レアなら2回目からの出かた）
       setTimeout(()=>run(()=>battle(QS.get('id') || 'kabuto')), 900); for(let k=0;k<+(QS.get('skip')||0);k++) setTimeout(()=>press('A'), 1900 + k*250); }   // フィールドを少し見せてから（出るときの演出が見えるように）
     else if(demo==='dex'){ Object.keys(BUGS).slice(0, +(QS.get('n')||12)).forEach(id=>S.dex[id] = {n:1, best:BUGS[id].lv}); S.seen.kokuwa = true; if(QS.has('hachi')) S.dex.suzumebachi = {n:0, best:0, watched:true}; setTimeout(()=>{ run(openDex); if(QS.has('hachi')) setTimeout(()=>{ for(let k=0;k<26;k++) press('R'); }, 300); if(QS.get('pick')) setTimeout(()=>{ for(let k=0;k<+QS.get('pick');k++) press('R'); }, 300); }, 600); }
     else if(demo==='menu') run(fieldMenu);
