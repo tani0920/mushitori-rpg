@@ -552,7 +552,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-1326';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-1341';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -1531,6 +1531,32 @@ function mapLayer(id){
   return layerCache[id] = c;
 }
 
+/* 確認用：?demo=maps で、ぜんぶのフィールドのマップを1つの画面にならべて見せる（タップすると、その場所を歩ける） */
+async function showAllMaps(){
+  const box = document.createElement('div');
+  box.style.cssText = 'position:fixed;inset:0;z-index:999;overflow:auto;background:#1d2419;color:#fff;padding:calc(env(safe-area-inset-top) + 12px) 12px 24px;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;align-content:start;font-size:14px';
+  box.innerHTML = '<div style="grid-column:1/-1">ぜんぶのフィールド（マップ全体）。タップすると、その場所を歩けます。</div>';
+  document.body.appendChild(box);
+  // 絵がそろうまで待つ（くっきり版は、タイル2・岸・町の物も）
+  for(let i=0;i<60;i++){ if(tileSheet && (!USE_HD || HD_K !== 4 || (tileSheet2 && shoreSheet && objSheet && signImg))) break; await wait(100); }
+  resetLayers();
+  const keep = ['hd','z','pc','sd'].filter(k=>QS.has(k)).map(k=>QS.get(k) ? `${k}=${QS.get(k)}` : k);
+  for(const id of Object.keys(AREAS)){
+    const c = document.createElement('canvas'); c.width = W*TS*HD_K; c.height = H*TS*HD_K;
+    const g = c.getContext('2d'); g.imageSmoothingEnabled = false; g.drawImage(mapLayer(id), 0, 0);
+    g.scale(HD_K, HD_K);
+    if(objSheet) hdObjects(g, maps[id], true, -999);   // 町の物
+    if(id==='town' && signImg){ const sx = 12*TS + 14, sy = 2*TS + 1; g.drawImage(signImg, sx, sy, 52, 13.5);
+      g.fillStyle = '#3a2614'; g.font = 'bold 6.6px "Hiragino Maru Gothic ProN","Hiragino Sans",sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('虫具店', sx + 27, sy + 8.4); }
+    const a = document.createElement('a');
+    a.href = location.pathname + '?' + keep.concat(['touch', 'demo=field', 'area=' + id]).join('&');
+    a.style.cssText = 'color:#fff;text-decoration:none;display:grid;gap:4px';
+    a.innerHTML = `<b>${esc(AREAS[id].name)}</b>`;
+    c.style.cssText = 'width:100%;height:auto;border-radius:6px;image-rendering:auto';
+    a.appendChild(c); box.appendChild(a);
+  }
+}
+
 /* =========================================================
    ゲーム状態
    ========================================================= */
@@ -1616,7 +1642,8 @@ function dateStr(day=S.day){ const d = new Date(START_DATE[0] + (S.round||1) - 1
 const hhmm = (m=S.min)=> `${Math.floor(m/60)}:${String(m%60).padStart(2,'0')}`;
 const sellPrice = it=> Math.round(BUGS[it.id].price * (1 + (it.lv - BUGS[it.id].lv)*0.1));
 const dexCount = ()=> Object.keys(S.dex).length;
-function save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){} }
+function save(){ if(new URLSearchParams(location.search).has('demo')) return;   // 確認用のURL（?demo=…）で遊んだときは、ほんとうのセーブを上書きしない
+  try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){} }
 function loadRaw(){ try{ return localStorage.getItem(SAVE_KEY); }catch(e){ return null; } }
 function clearSave(){ try{ localStorage.removeItem(SAVE_KEY); }catch(e){} }
 /* クリアしたときの引きつぎデータ（次の夏休みに持っていけるもの） */
@@ -2965,6 +2992,7 @@ function start(data){
     if(demo==='battle'){ run(()=>battle(QS.get('id') || 'kabuto')); for(let k=0;k<+(QS.get('skip')||0);k++) setTimeout(()=>press('A'), 1000 + k*250); }
     else if(demo==='dex'){ Object.keys(BUGS).slice(0, +(QS.get('n')||12)).forEach(id=>S.dex[id] = {n:1, best:BUGS[id].lv}); S.seen.kokuwa = true; if(QS.has('hachi')) S.dex.suzumebachi = {n:0, best:0, watched:true}; setTimeout(()=>{ run(openDex); if(QS.has('hachi')) setTimeout(()=>{ for(let k=0;k<26;k++) press('R'); }, 300); if(QS.get('pick')) setTimeout(()=>{ for(let k=0;k<+QS.get('pick');k++) press('R'); }, 300); }, 600); }
     else if(demo==='menu') run(fieldMenu);
+    else if(demo==='maps') showAllMaps();
     else if(demo==='sumo'){ S.area = 'town'; S.x = 13; S.y = 10; S.dir = 'U'; S.box = [{id:QS.get('id')||'kokuwa', lv:12}]; hud();
       if(QS.has('fight')) run(()=>sumoBattle(RIVALS[+QS.get('fight')||0], S.box[0])); else run(()=>say('7月…')); }
     else if(demo==='items'){ Object.assign(S.items, {jueki:2, note:1}); S.goldwing = true; run(itemMenu); }
