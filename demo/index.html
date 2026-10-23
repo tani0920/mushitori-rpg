@@ -569,7 +569,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-2040';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-2047';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -2346,7 +2346,7 @@ async function dangerEncounter(id){
 }
 /* 虫が出るときの演出の強さ：ふつう（もう知っている虫）／はじめて（ずかんにない虫）／レア（★4以上）／伝説（ミアレカブト）
    レアは、はじめて出会ったときだけ「ため」のある演出。2回目からは rare2（すぐ戦闘に入って、虫の上の星だけ光る）。大島はレアが多いので、毎回だと待たされる */
-const encTier = id => id==='kinkabuto' ? 'legend' : BUGS[id].rank >= 4 ? (S.seen[id] ? 'rare2' : 'rare') : !S.dex[id] ? 'first' : 'normal';
+const encTier = id => id==='kinkabuto' ? 'legend' : BUGS[id].rank >= 4 ? (S.seen[id] ? 'rare2' : 'rare') : !S.seen[id] && !S.dex[id] ? 'first' : 'normal';   // にげても、2回目からはふつうの出かた
 let encFx = null, encHush = false;   // encFx：フィールドで主人公の頭の上に出す吹き出し。encHush：伝説のとき、曲を止めて虫の声だけにする
 async function encounterIntro(tier){   // フィールドで、戦闘に入る前（主人公は立ち止まる）
   if(tier==='normal' || tier==='rare2' || scene!=='field') return;
