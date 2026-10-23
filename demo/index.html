@@ -166,15 +166,15 @@ body.touch.land #msg .face{width:3.6em;height:3.6em}
 #netfx{position:absolute;left:5%;top:-30%;width:90%;aspect-ratio:1;border-radius:50%;border:4px solid #fff;opacity:0;z-index:3;
   background:repeating-linear-gradient(45deg,#fff8 0 2px,transparent 2px 9px),repeating-linear-gradient(-45deg,#fff8 0 2px,transparent 2px 9px)}
 #netfx.go{animation:net .7s ease-out forwards}
-/* 虫とりあみの絵（くっきり版）：#netSwing＝ふるあみ（5本の横ならび）、#netCatch＝つかまえる3コマ（かぶせた・もぞもぞ・つかまえた。たて5段＝あみの種類） */
-#netSwing{position:absolute;left:12%;top:18%;width:100%;aspect-ratio:1;background:0 0/500% 100% no-repeat;opacity:0;z-index:3;pointer-events:none;transform-origin:78% 92%}
+/* 虫とりあみの絵（くっきり版）：#netSwing＝ふるあみ、#netCatch＝つかまえる3コマ（かぶせた・もぞもぞ・つかまえた）。
+   どちらも canvas に1コマだけ切りぬいてかく（絵を背景にしてずらす方法だと、スマホでとなりのコマが少し見えてくずれる） */
+#netSwing{position:absolute;left:12%;top:18%;width:100%;height:auto;opacity:0;z-index:3;pointer-events:none;transform-origin:78% 92%}
 #netSwing.miss{animation:netSwing .6s ease-in-out forwards}
 #netSwing.hit{animation:netHit .7s ease-in-out forwards}
 @keyframes netSwing{0%{opacity:0;transform:rotate(80deg)}15%{opacity:1}50%{transform:rotate(0)}85%{opacity:1}100%{opacity:0;transform:rotate(-75deg)}}
 @keyframes netHit{0%{opacity:0;transform:rotate(80deg)}15%{opacity:1}42%{transform:rotate(-3deg)}50%{transform:rotate(1deg) translateY(3%)}70%{opacity:1;transform:rotate(0) translateY(3%)}100%{opacity:0;transform:rotate(55deg)}}
-#netCatch{position:absolute;left:-15%;top:-36%;width:130%;aspect-ratio:1;background:0 0/300% 500% no-repeat;opacity:0;z-index:3;pointer-events:none;transform-origin:50% 80%}
-#netCatch.f1{background-position-x:50%}
-#netCatch.f2{background-position-x:100%}
+#netCatch{position:absolute;left:-15%;top:-36%;width:130%;height:auto;opacity:0;z-index:3;pointer-events:none;transform-origin:50% 80%}
+body.touch #netCatch{left:-3%;top:-8%;width:106%}   /* スマホは虫の絵が画面に対して大きいので、あみも少し小さく */
 #netCatch.drop{animation:netDrop .5s cubic-bezier(.3,.7,.4,1) forwards}
 #netCatch.on{opacity:1}
 #netCatch.wig{animation:netWig .36s ease-in-out infinite}
@@ -491,7 +491,7 @@ body.touch.land .binfo{font-size:.75em}
 body.touch.land #bInfo{left:calc(var(--sideL) + 8px)}
 /* 横向き：虫は「上の情報欄」と「下のメッセージ欄」のあいだの、上下まん中に置く */
 body.touch.land #battle{--free:calc(100% - var(--hudH) - 4.4em - 30px);--mid:calc(var(--hudH) + var(--free) / 2)}
-body.touch.land #bWrap{--w:min(56vh,30vw);width:var(--w);top:max(calc(var(--hudH) + .4em), calc(var(--mid) - var(--w) / 2))}
+body.touch.land #bWrap{--w:min(56vh,30vw);width:var(--w);top:max(calc(var(--hudH) + .4em), calc(var(--mid) - var(--w) * .4))}   /* まん中より少しだけ下（上の名前のわくに頭がかくれないように） */
 body.touch.land #battle.vs #bWrap{--w:min(34vh,22vw);width:var(--w);left:calc(var(--sideL) + 6%);top:max(calc(var(--hudH) + 4.2em), calc(var(--mid) - var(--w) * .8))}
 body.touch.land #battle.vs #mWrap{--w:min(34vh,22vw);width:var(--w);right:calc(var(--sideR) + 6%);top:max(calc(var(--hudH) + 5.6em), calc(var(--mid) - var(--w) * .2))}
 body.touch.land #battle.vs .vsmark{top:calc(var(--mid) - .6em)}
@@ -525,7 +525,7 @@ body.touch.land #menu.title{top:auto;bottom:10px;left:50%;right:auto;transform:t
     <div id="battle" class="ov" hidden>
       <div id="bInfo" class="binfo win"></div>
       <div id="pInfo" class="binfo win"></div>
-      <div id="bWrap"><div id="netfx"></div><img id="bSprite" alt=""><div id="netSwing"></div><div id="netCatch"></div><div id="bStar"></div><div id="bShadow"></div></div>
+      <div id="bWrap"><div id="netfx"></div><img id="bSprite" alt=""><canvas id="netSwing" width="256" height="256"></canvas><canvas id="netCatch" width="256" height="256"></canvas><div id="bStar"></div><div id="bShadow"></div></div>
       <div id="mWrap"><img id="mSprite" alt=""></div>
       <div class="vsmark">VS</div>
     </div>
@@ -595,7 +595,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-2130';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-2138';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -2416,24 +2416,30 @@ function drawEncFx(px, py, ts){   // 頭の上の吹き出し
 }
 /* 虫とりあみのアニメーション（くっきり版）。あみの絵は img/sprites/nets_hd.png（5本）と catch_net_hd.png（つかまえる3コマ×5本） */
 const NET_ART = USE_HD && HD_K === 4;
-if(NET_ART){ $('netSwing').style.backgroundImage = `url(${av('img/sprites/nets_hd.png')})`; $('netCatch').style.backgroundImage = `url(${av('img/sprites/catch_net_hd.png')})`; }
+const netImg = {};
+if(NET_ART) for(const [k, f] of [['swing', 'nets_hd'], ['catch', 'catch_net_hd']]){ const im = new Image(); im.src = av(`img/sprites/${f}.png`); netImg[k] = im; }
+function netDraw(el, im, col, row){   // 絵の1コマ（256×256）だけを、canvas にかく
+  const g = el.getContext('2d'); g.clearRect(0, 0, 256, 256);
+  if(im && im.complete && im.naturalWidth) g.drawImage(im, col*256, row*256, 256, 256, 0, 0, 256, 256);
+}
 function netReset(){ $('netSwing').className = ''; $('netCatch').className = ''; bSprite.classList.remove('dodge', 'jumpout', 'inbag'); }
 async function netSwing(hit){   // あみをふる：画面の右から、虫の上をふわっと通る（よけられたら、虫がひょいとよける）
   if(!NET_ART) return;
-  const n = $('netSwing'); n.style.backgroundPositionX = (S.net * 25) + '%';
+  const n = $('netSwing'); netDraw(n, netImg.swing, S.net, 0);
   n.className = ''; void n.offsetWidth; n.className = hit ? 'hit' : 'miss';
   if(!hit) setTimeout(()=>fx(bSprite, 'dodge', 560), 200);
   await wait(hit ? 330 : 600);
 }
-const netSet = cls => { const n = $('netCatch'); n.className = ''; void n.offsetWidth; n.className = cls; n.style.backgroundPositionY = (S.net * 25) + '%'; };   // いまのあみの段
+const netFrame = f => netDraw($('netCatch'), netImg.catch, f, S.net);   // f：0＝かぶせた、1＝もぞもぞ、2＝つかまえた（段＝いまのあみ）
+const netSet = (cls, f = 0) => { const n = $('netCatch'); netFrame(f); n.className = ''; void n.offsetWidth; n.className = cls; };
 async function netCatchStart(){   // かぶせる → 中で虫がもぞもぞ
   netSet('drop'); await wait(520);
   netSet('on wig');
-  for(let k=0;k<6;k++){ $('netCatch').classList.toggle('f1', k % 2 === 0); await wait(180); }
-  $('netCatch').classList.remove('f1');
+  for(let k=0;k<6;k++){ netFrame(k % 2 === 0 ? 1 : 0); await wait(180); }
+  netFrame(0);
 }
 async function netCatchEnd(ok){   // つかまえた：口がねじれて閉じた網の袋／にげられた：網がゆれて上がり、虫が飛び出す
-  if(ok){ netSet('got f2'); bSprite.classList.add('inbag'); await wait(500); }
+  if(ok){ netSet('got', 2); bSprite.classList.add('inbag'); await wait(500); }
   else { netSet('lift'); fx(bSprite, 'jumpout', 620); await wait(650); netReset(); }
 }
 async function netFuwari(){   // ひっさつ「ふんわりあみ」：大きくふんわり広がって、ゆっくりかぶさる
