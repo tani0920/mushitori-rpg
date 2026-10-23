@@ -552,11 +552,12 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-1414';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-1417';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
     '虫具店で虫を「売る」のをやめて、「とどける」とお礼にどんぐりがもらえるようにした',
+    'フィールドと主人公の絵を、くっきりした絵にかえた（町はアスファルトの道と、いまふうの家・お店・自動販売機など。宗像大社には石だたみの参道、池や川や海には岸）',
     'メニューの「本物の虫の写真」の名前を、みじかく「写真をとる」にした',
     'タイトル画面にバージョンと「こうしん情報」を出すようにした',
     '新しいバージョンが出たら「こうしんする」ボタンでお知らせするようにした',
@@ -1235,7 +1236,7 @@ function genMap(id){
   if(id === 'town'){
     const m = TOWN.map(r=>[...r]);
     // くっきり版だけ：いまふうの町の物をおく（歩けない）。V＝自動販売機、U＝電柱、X＝郵便ポスト、F＝花だん
-    if(new URLSearchParams(location.search).has('hd')) [[17,4,'V'],[11,4,'X'],[6,4,'F'],[8,1,'U'],[8,13,'U']].forEach(([x,y,t])=>{ m[y][x] = t; });
+    if(!new URLSearchParams(location.search).has('sd')) [[17,4,'V'],[11,4,'X'],[6,4,'F'],[8,1,'U'],[8,13,'U']].forEach(([x,y,t])=>{ m[y][x] = t; });
     return m;
   }
   const st = AREAS[id].style, R = mulberry(hashStr(id)), ri = (a,b)=>a + Math.floor(R()*(b-a+1));
@@ -1324,12 +1325,12 @@ addEventListener('pageshow', resetLayers);
    1段目：草地 草むら 道 砂浜／2段目：田んぼ 水 木 松／3段目：岩 赤い屋根 壁 ドア／4段目：青い屋根 お店の入口 鳥居 おやしろ */
 const TILE_IDX = {',':0, '"':1, '.':2, 's':3, 'f':4, '~':5, 'T':6, 'o':8, 'D':11, 'P':13, 'E':2, 'K':2, 'r':2, 'J':0};
 let tileSheet = null;
-/* くっきりした絵（HD）：マップと主人公を、1マス16の4倍（64ドット）でかく。ためし中なので、?hd をつけたときだけ（決まったら、いつもこちらにする）
-   ためし用：?hd=32 は1マス32ドット（細かさ半分）、&z=1.4 は画面を1.4倍に拡大、&pc=1.25 は主人公を1.25倍で描く */
-const HDQ = new URLSearchParams(location.search), USE_HD = HDQ.has('hd');
+/* くっきりした絵（HD）：マップと主人公を、1マス16の4倍（64ドット）でかく。いつもこちら（?sd をつけると、前のドット絵にもどる。くらべる用）
+   ためし用：?hd=32 は1マス32ドット（細かさ半分）、&z= は画面の拡大（ふだん1.4）、&pc= は主人公を何倍で描くか（ふだん1.25） */
+const HDQ = new URLSearchParams(location.search), USE_HD = !HDQ.has('sd');
 const HD_K = USE_HD ? (HDQ.get('hd') === '32' ? 2 : 4) : 1, TSRC = 16 * HD_K;   // HD_K = 画面の細かさ（何倍でかくか）、TSRC = タイルの絵の1マスの大きさ
 const HD_SUF = HD_K === 2 ? '_32' : '_hd';
-const VIEW_ZOOM = +HDQ.get('z') || 1, PL_SCALE = +HDQ.get('pc') || 1;
+const VIEW_ZOOM = +HDQ.get('z') || (USE_HD ? 1.4 : 1), PL_SCALE = +HDQ.get('pc') || (USE_HD ? 1.25 : 1);
 const USE_TILE_ART = true;    // true にするとChatGPTのタイル（img/sprites/tiles.png）でフィールドを描く。false はシンプルな見やすい絵
 if(USE_TILE_ART && window.HAS_TILES){ const im = new Image(); im.onload = ()=>{ tileSheet = im; for(const k in layerCache) delete layerCache[k]; }; im.src = av(USE_HD ? `img/sprites/tiles${HD_SUF}.png` : 'img/sprites/tiles.png'); }
 const tileAtIdx = (g, i, X, Y, sh = tileSheet)=> g.drawImage(sh, (i%4)*TSRC, Math.floor(i/4)*TSRC, TSRC, TSRC, X, Y, TS, TS);
