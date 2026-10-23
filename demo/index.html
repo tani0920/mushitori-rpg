@@ -614,7 +614,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.3.0';
-const BUILD = '20261024-0025';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261024-0037';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.3.0', date:'2026-10-23', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -622,6 +622,7 @@ const CHANGELOG = [
     'フィールドと主人公の絵を、くっきりした絵にかえた（町はアスファルトの道と、いまふうの家・お店・自動販売機など。宗像大社には石だたみの参道、池や川や海には岸）',
     '「虫にやさしく」をテーマに、バトルの「ダメージ」を「あみでおいこんだ！ HPが〇へった！」に。虫ずもうも「HPが〇へった！」に',
     '「虫とりのやくそく」を、はじめて虫をつかまえたとき・虫かごがいっぱいになったとき・虫を持って家でねるとき・エンディングで教えるようにした',
+    '主人公の「こうげき」を「あみさばき」（あみを上手にあやつる力）にした',
     '虫をにがすと「もとの場所へ かえっていった。元気でね！」と出るようにした',
     'バトルのルールの名前を、A「すぐにゲット」・B「追いかけてつかまえる」にした。HPが0になった虫は「おどろいて」飛んでいくようにした',
     '虫具店や家から出るとき、ぱっと下にうつらずに、歩いて出るようにした',
@@ -2170,7 +2171,7 @@ async function fieldMenu(){
     if(c===2) await itemMenu();
     if(c===3) await openCam();
     if(c===5){ save(); await say('セーブしました。'); }
-    if(c===4) await say(`自由研究（こん虫ずかん）：${research().total}点・いまなら「${endingOf(research()).award}」\nLv${S.lv}　けいけんち ${S.exp}/${need(S.lv)}\nたいりょく ${S.hp}/${maxHp()}　こうげき ${Math.round(patk())}\nあみ：${NETS[S.net].name}／くつ：${SHOES[S.shoes].name}${S.ticket ? '／乗船チケットあり' : ''}\nかご：${CAGES[S.cage].name}（つかまえる力${Math.round(CAGES[S.cage].pow*100)}・${cap()}ひきまで）`);
+    if(c===4) await say(`自由研究（こん虫ずかん）：${research().total}点・いまなら「${endingOf(research()).award}」\nLv${S.lv}　けいけんち ${S.exp}/${need(S.lv)}\nたいりょく ${S.hp}/${maxHp()}　あみさばき ${Math.round(patk())}\nあみ：${NETS[S.net].name}／くつ：${SHOES[S.shoes].name}${S.ticket ? '／乗船チケットあり' : ''}\nかご：${CAGES[S.cage].name}（つかまえる力${Math.round(CAGES[S.cage].pow*100)}・${cap()}ひきまで）`);
   }
 }
 /* オプション：ルール・ふりがな・タイトルにもどる */
@@ -2341,7 +2342,7 @@ function updateB(e){
 function fx(el, cls, ms){ el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); setTimeout(()=>el.classList.remove(cls), ms); }
 async function gainExp(n){
   S.exp += n; await say(`けいけんちを ${n} もらった！`);
-  while(S.exp >= need(S.lv)){ S.exp -= need(S.lv); S.lv++; S.hp = Math.min(maxHp(), S.hp + 6); hud(); se('levelup'); await say(`レベルが ${S.lv} にあがった！\n（たいりょく+6・こうげき+1.5）`); }
+  while(S.exp >= need(S.lv)){ S.exp -= need(S.lv); S.lv++; S.hp = Math.min(maxHp(), S.hp + 6); hud(); se('levelup'); await say(`レベルが ${S.lv} にあがった！\n（たいりょく+6・あみさばき+1.5）`); }
 }
 async function getBug(e){
   if(S.box.length >= cap()){ await say(`虫かごがいっぱいで、${e.b.name}を入れられなかった…\n虫はにげていった。`); await gainExp(Math.round(expOf(e)/2)); return false; }
