@@ -552,7 +552,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-1034';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-1041';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -1293,7 +1293,24 @@ function drawTile(g, m, x, y, st){
     default: fill('#000');
   }
 }
+/* エラーの記録：この端末の中にだけ、最後の5件をのこす。「こうしん情報」に出して、原因を調べるのに使う */
+const ERR_KEY = 'munakata-err-v1';
+let errLog = (()=>{ try{ return JSON.parse(localStorage.getItem(ERR_KEY)) || []; }catch(e){ return []; } })(), errLast = '';
+function logErr(e, where){
+  const msg = String(e && (e.message || e.reason && e.reason.message || e.reason) || e).slice(0, 120);
+  if(msg === errLast) return; errLast = msg;   // 同じエラーが毎コマ出ても、1回だけ記録する
+  const d = new Date(), t = `${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
+  errLog.push({t, where, msg, b: BUILD, sc: typeof scene !== 'undefined' ? scene : ''}); errLog = errLog.slice(-5);
+  try{ localStorage.setItem(ERR_KEY, JSON.stringify(errLog)); }catch(_){}
+}
+addEventListener('error', e=>logErr(e.error || e.message, 'error'));
+addEventListener('unhandledrejection', e=>logErr(e.reason, 'promise'));
 const layerCache = {};
+// iPhone・iPad は、アプリを裏にまわしているあいだに、ためておいたマップの絵を消してしまうことがある（そのままだとフィールドが真っ暗になる）。
+// もどってきたときと、絵が消えたと知らせが来たときは、マップの絵を作りなおす
+function resetLayers(){ for(const k in layerCache) delete layerCache[k]; }
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState === 'visible') resetLayers(); });
+addEventListener('pageshow', resetLayers);
 /* ChatGPTのタイル（img/sprites/tiles.png：4×4マス・1マス16ドット）
    1段目：草地 草むら 道 砂浜／2段目：田んぼ 水 木 松／3段目：岩 赤い屋根 壁 ドア／4段目：青い屋根 お店の入口 鳥居 おやしろ */
 const TILE_IDX = {',':0, '"':1, '.':2, 's':3, 'f':4, '~':5, 'T':6, 'o':8, 'D':11, 'P':13, 'E':2, 'K':2, 'r':2, 'J':0};
@@ -1492,7 +1509,10 @@ function choose(opts, o={}){
     menuEl.hidden = false; render();
   });
 }
-async function fade(fn){ $('fade').classList.add('on'); await wait(260); if(fn) fn(); await wait(80); $('fade').classList.remove('on'); await wait(200); }
+async function fade(fn){   // とちゅうで何かが失敗しても、暗いまま止まらないように、かならず明るくもどす
+  $('fade').classList.add('on'); await wait(260);
+  try{ if(fn) fn(); } finally { await wait(80); $('fade').classList.remove('on'); await wait(200); }
+}
 async function run(fn){ if(busy) return; busy = true; try{ await fn(); } finally { busy = false; } }
 
 /* 丸い時計（長針・短針）。夜は文字盤を紺色に */
@@ -1564,6 +1584,7 @@ document.querySelectorAll('.ab button').forEach(b=>{
    フィールド
    ========================================================= */
 const cv = $('cv'), ctx = cv.getContext('2d'); ctx.imageSmoothingEnabled = false;
+cv.addEventListener('contextrestored', ()=>{ ctx.imageSmoothingEnabled = false; resetLayers(); });
 /* スマホ・タブレットは全画面。マップを大きく表示して、カメラが主人公を追いかける */
 const QS = new URLSearchParams(location.search);   // ?touch でスマホ表示、?demo=field|battle|menu で画面確認用
 const TOUCH = matchMedia('(hover:none),(pointer:coarse)').matches || QS.has('touch');
@@ -1605,7 +1626,8 @@ function tryMove(k, ts){
 function loop(ts){
   if(scene==='field' && !busy && !uiHandler && !mv && held) tryMove(held, ts);
   if(mv && ts - mv.t0 >= MOVE_MS){ S.x = mv.tx; S.y = mv.ty; mv = null; run(onStep); }
-  draw(ts); requestAnimationFrame(loop);
+  try{ draw(ts); }catch(e){ logErr(e, 'draw'); ctx.setTransform(1, 0, 0, 1, 0, 0); }   // カメラのずれも元にもどす
+  requestAnimationFrame(loop);   // 失敗しても止めずに、次のコマもかく
 }
 const NPC_PAL = Object.assign({}, PC, {h:'#2f6fd0', b:'#2f6fd0', t:'#f0d040', u:'#c84030', p:'#3a3a3a', g:'#c84030'});   // 青い帽子・黄色いシャツの子
 /* 町の切りかぶの子（ゆうた）：img/sprites/npc_yuta.png の4コマ（立つ・右手をふる・立つ・左手をふる）をくり返す */
@@ -1650,12 +1672,13 @@ function draw(ts){
   const camY = MH <= VH - hudI ? -hudI : clamp(py + 8 - (VH + hudI)/2, -hudI, MH - VH);
   ctx.fillStyle = '#17261d'; ctx.fillRect(0, 0, VW, VH);
   ctx.save(); ctx.translate(-Math.round(camX), -Math.round(camY));
+  try{   // とちゅうで失敗しても、カメラのずれ（translate）がたまらないように、かならず restore する（たまると、マップが画面の外にずれて真っ暗になる）
   ctx.drawImage(mapLayer(S.area), 0, 0);
   if(S.area==='town'){ ctx.fillStyle = '#fbf8ef'; ctx.fillRect(12*TS+20, 2*TS+4, 40, 9); ctx.fillStyle = '#284f82'; ctx.font = '8px sans-serif'; ctx.textBaseline = 'top'; ctx.fillText('虫具店', 12*TS+28, 2*TS+4); }
   if(S.area==='town') maps.town.forEach((r,y)=>r.forEach((t,x)=>{ if(t==='K') drawNpc(x, y, ts); }));
   drawPlayer(px, py, ts);
+  } finally { ctx.restore(); }
   const slot = slotOf(S.min);
-  ctx.restore();
   if(slot==='yoru'){ ctx.fillStyle = 'rgba(10,20,70,.48)'; ctx.fillRect(0,0,cv.width,cv.height);
     if(S.area==='kawara'){ for(let i=0;i<10;i++){ const fx = (i*53 + Math.sin(ts/900+i)*22 + 320) % 320, fy = 30 + (i*37)%170 + Math.cos(ts/700+i*2)*10; ctx.fillStyle = `rgba(230,255,120,${.5+.5*Math.sin(ts/300+i)})`; ctx.fillRect(Math.round(fx-camX), Math.round(fy-camY), 2, 2); } } }
   else if(slot==='yu'){ ctx.fillStyle = 'rgba(220,100,30,.2)'; ctx.fillRect(0,0,cv.width,cv.height); }
@@ -1735,9 +1758,12 @@ async function sleep(faint){
   // 子守歌を聴きながら暗いまま少し待ち、朝になったら遠くでニワトリが鳴く
   sleeping = true; bgmUpdate(); seSleep();
   $('fade').classList.add('on'); await wait(sndPref.se ? 3500 : 600);
-  S.day++; S.min = START_MIN; S.hp = maxHp(); S.area = 'town'; S.x = 3; S.y = 5; S.dir = 'D'; S.warned = false; hud();
-  sleeping = false; bgmUpdate(); seCrow(1.2);
-  await wait(80); $('fade').classList.remove('on'); await wait(200);
+  try{
+    S.day++; S.min = START_MIN; S.hp = maxHp(); S.area = 'town'; S.x = 3; S.y = 5; S.dir = 'D'; S.warned = false; hud();
+  } finally {   // 失敗しても、暗いまま・曲なしのまま止まらないようにする
+    sleeping = false; bgmUpdate(); seCrow(1.2);
+    await wait(80); $('fade').classList.remove('on'); await wait(200);
+  }
   save();
   const left = DAYS - S.day + 1;
   const tip = left===1 ? '今日が夏休み最後の日だ！ 明日から二学期…。' : left<=3 ? `二学期まで、あと${left}日…！` : S.day<=4 ? ['おぼんで、親せきのおじさんたちが遊びに来ている。','おぼんなので、お墓まいりに行ってきた。','おぼんの夜は、町内でぼんおどりがあるらしい。'][S.day%3] : ['今日もいい天気だ！','セミが朝から元気に鳴いている。','ラジオ体操に行ってきた！','朝ごはんをしっかり食べた！'][S.day%4];
@@ -2535,6 +2561,7 @@ function showPrivacy(){
 function showChangelog(){
   setTimeout(()=>{ const b = $('seTest'); if(b) b.onclick = ()=>{ audioUnlock(); se('catch'); }; }, 0);
   return openPanel('こうしん情報', `<p>いま遊んでいるのは <b>ver ${GAME_VER}</b>${window.DEMO ? '（デモ版）' : ''} です。<br><small>公開番号 ${esc(BUILD)}　／　音：${actx ? esc(actx.state) : 'まだ'}・BGM ${sndPref.bgm ? 'ON' : 'OFF'}・効果音 ${sndPref.se ? 'ON' : 'OFF'}（${seCount}回${seErr ? '・エラー ' + esc(seErr) : ''}）${actx ? `・${actx.sampleRate}Hz・遅れ${Math.round((actx.baseLatency||0)*1000)}/${Math.round((actx.outputLatency||0)*1000)}ms` : ''}</small><br><button type="button" class="btn" id="seTest">効果音をテスト</button></p>
+    ${errLog.length ? `<p class="note">エラーの記録（新しい順）：<br>${errLog.slice().reverse().map(x=>`<small>${esc(x.t)}・${esc(x.b)}・${esc(x.sc)}・${esc(x.where)}：${esc(x.msg)}</small>`).join('<br>')}</p>` : ''}
     <p class="note">新しいバージョンが出ているのに古い番号のままのときは、ページを開きなおしてね。</p>
     <div class="chlog">${CHANGELOG.map((c,i)=>`<h3>ver ${esc(c.v)}${i===0 ? '<span class="now">いまのバージョン</span>' : ''}<small>${esc(c.date)}</small></h3><ul>${c.items.map(t=>`<li>${esc(t)}</li>`).join('')}</ul>`).join('')}</div>`);
 }
