@@ -552,7 +552,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.2.1';
-const BUILD = '20261023-1234';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261023-1239';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.2.1', date:'2026-10-22', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -1333,8 +1333,19 @@ const tileAtIdx = (g, i, X, Y, sh = tileSheet)=> g.drawImage(sh, (i%4)*TSRC, Mat
 /* タイルセット2（くっきり版だけ・img/sprites/tiles2_hd.png）：いまふうの町と、神社の参道
    1段目：アスファルト 歩道 参道の石だたみ 玉砂利／2段目：家の屋根（こげ茶） お店の屋根（青） 家の壁（窓） 家の玄関
    3段目：緑のひさし お店のショーウィンドウ お店の入口 お店の壁（ポスター）／4段目：自動販売機 電柱 郵便ポスト 花だん */
-let tileSheet2 = null;
+let tileSheet2 = null, objSheet = null;
 if(USE_HD && HD_K === 4){ const im = new Image(); im.onload = ()=>{ tileSheet2 = im; for(const k in layerCache) delete layerCache[k]; }; im.src = av('img/sprites/tiles2_hd.png'); }
+// 町の物（img/sprites/objects_hd.png：背景が透明な、自動販売機・電柱・郵便ポスト・花だん。1コマ＝はば1マス×高さ2マス）
+// 地面の上にそのまま置いて描く（電柱などは、上のマスまで高くのびる）
+const OBJ_IDX = {V:0, U:1, X:2, F:3};
+if(USE_HD && HD_K === 4){ const im = new Image(); im.onload = ()=>{ objSheet = im; for(const k in layerCache) delete layerCache[k]; }; im.src = av('img/sprites/objects_hd.png'); }
+function hdObjects(g, m){
+  for(let y=0;y<H;y++) for(let x=0;x<W;x++){
+    const i = OBJ_IDX[m[y][x]]; if(i==null) continue;
+    g.fillStyle = 'rgba(0,0,0,.22)'; g.beginPath(); g.ellipse(x*TS + 8, y*TS + 14.5, 6.5, 2, 0, 0, Math.PI*2); g.fill();   // 足もとの影
+    g.drawImage(objSheet, i*64, 0, 64, 128, x*TS, y*TS + TS - 32, 16, 32);
+  }
+}
 function modernIdx(m, x, y, st){   // タイルセット2を使うマスなら、その番号（使わないなら null）
   const t = m[y][x], down = (m[y+1]||[])[x];
   if(st==='town'){
@@ -1345,7 +1356,7 @@ function modernIdx(m, x, y, st){   // タイルセット2を使うマスなら�
     if(t==='P') return 10;
   }
   if(st==='taisha' && (x===9 || x===10) && (t==='.' || t==='E' || t==='r')) return 2;   // まん中の参道だけ石だたみ（森の中の小道は土のまま）
-  return {V:12, U:13, X:14, F:15}[t] ?? null;
+  if(t in OBJ_IDX) return objSheet ? 0 : {V:12, U:13, X:14, F:15}[t];   // 町の物：透明な絵があれば、下はアスファルト（物はあとで上に置く）
 }
 function drawTileImg(g, m, x, y, st){
   const t = m[y][x], down = (m[y+1]||[])[x];
@@ -1376,8 +1387,8 @@ function groundOf(m, x, y, st){
   const t = (m[y]||[])[x];
   if(t==null) return null;
   if(tileSheet2){
-    if(t==='F') return {i:0, p:3};
-    if(t==='V' || t==='U' || t==='X') return {sh:2, i:0, p:2};
+    if(t==='F' && !objSheet) return {i:0, p:3};
+    if(t in OBJ_IDX) return {sh:2, i:0, p:2};
     const mi = modernIdx(m, x, y, st);
     if(mi===0 || mi===2) return {sh:2, i:mi, p:2};   // アスファルト・参道
     if(mi != null) return null;   // いまふうの建物：足もとに草はない
@@ -1441,7 +1452,7 @@ function mapLayer(id){
   const c = document.createElement('canvas'); c.width = W*TS*HD_K; c.height = H*TS*HD_K; const g = c.getContext('2d'), m = maps[id], st = AREAS[id].style;
   g.scale(HD_K, HD_K);
   for(let y=0;y<H;y++) for(let x=0;x<W;x++) if(!(tileSheet && drawTileImg(g, m, x, y, st))) drawTile(g, m, x, y, st);
-  if(tileSheet && HD_K > 1){ hdRoofs(g, m, st); hdEdges(g, m, st); }   // くっきり版：屋根のつなぎ目と、地面のさかいめを自然にする
+  if(tileSheet && HD_K > 1){ hdRoofs(g, m, st); hdEdges(g, m, st); if(objSheet) hdObjects(g, m); }   // くっきり版：屋根のつなぎ目と、地面のさかいめを自然にする
   if(tileSheet){   // 鳥居とおやしろは2マスのまん中に1つだけ置く
     for(let y=0;y<H;y++) for(let x=0;x<W;x++){
       const t = m[y][x]; if((t!=='r' && t!=='J') || m[y][x-1]===t) continue;
