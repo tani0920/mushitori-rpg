@@ -285,10 +285,18 @@ body:not(.touch) #titleScr .tbtns{margin-top:.4em}
 #titleScr .credit{position:absolute;right:.8em;top:.6em;font-family:var(--f-pixel);font-size:clamp(9px,1.9cqw,13px);letter-spacing:.06em;color:#fff;opacity:.92;text-shadow:1px 1px 0 #000,0 0 3px #000;pointer-events:none}
 body.touch #titleScr .credit{left:auto;right:max(12px,env(safe-area-inset-right,0px));bottom:auto;top:calc(env(safe-area-inset-top,0px) + 8px);font-size:clamp(10px,2.8vmin,14px)}
 /* タイトルのバージョン（ボタンの下）：押すとこうしん情報 */
-/* スマホよこ画面：まんなかはメニューが重なるので、タイトルのボタンは左上にたてにならべる */
-body.touch.land #titleScr .tside{position:absolute;left:max(12px,env(safe-area-inset-left,0px));top:calc(env(safe-area-inset-top,0px) + 8px);display:flex;flex-direction:column;align-items:flex-start;gap:.4em}
-body.touch.land #titleScr .tbtns,body.touch.land #titleScr .vrow{flex-direction:column;align-items:flex-start;margin:0;gap:.4em}
-body.touch.land #titleScr .tbtn{font-size:clamp(11px,3.2vmin,15px);padding:.25em .9em}
+/* スマホよこ画面：まんなかはメニューが重なるので、大きいボタンは左上、小さいボタンは右上（クレジットの下）にたてにならべる
+   タブレットよこ画面（高さがある）は、たて画面と同じく、まんなかにならべる */
+@media (max-height:599px){
+  body.touch.land #titleScr .tside{position:static}
+  body.touch.land #titleScr .tbtns{position:absolute;left:max(12px,env(safe-area-inset-left,0px));top:calc(env(safe-area-inset-top,0px) + 8px);flex-direction:column;align-items:flex-start;margin:0;gap:.45em}
+  body.touch.land #titleScr .vrow{position:absolute;right:max(12px,env(safe-area-inset-right,0px));top:calc(env(safe-area-inset-top,0px) + 30px);flex-direction:column;align-items:flex-end;margin:0;gap:.4em}
+  body.touch.land #titleScr .tbtn{font-size:clamp(11px,3.2vmin,15px);padding:.25em .9em}
+}
+/* 虫とりカメラ（外で）：ほかのボタンより目立たせる */
+#titleScr .tbtn.cam{background:#f4b63c;color:#14284a;font-weight:700;border-color:#fff;animation:camGlow 2.4s ease-in-out infinite}
+@keyframes camGlow{0%,100%{box-shadow:0 2px 0 #0006,0 0 0 0 #f4b63c00}50%{box-shadow:0 2px 0 #0006,0 0 0 6px #f4b63c66}}
+@media (prefers-reduced-motion:reduce){#titleScr .tbtn.cam{animation:none}}
 /* スマホたて画面：「プライバシーについて」は左上のすみ（右上のクレジットと向かい合わせ） */
 body.touch:not(.land) #titleScr #btnPriv{position:absolute;left:max(10px,env(safe-area-inset-left,0px));top:calc(env(safe-area-inset-top,0px) + 30px);font-size:clamp(10px,2.6vmin,13px);padding:.15em .7em;background:#14284ad9}
 /* iPhone は画面のいちばん上（時計のあたり）に自動で暗いぼかしをかけるので、たて画面ではクレジットもその下まで下げる */
@@ -570,7 +578,7 @@ body.touch.land #menu.title{top:auto;bottom:10px;left:50%;right:auto;transform:t
       <div class="t3">宗像じゅうの虫をつかまえて、ずかんを完成させよう</div>
       <div class="t4">※このゲームに出てくる場所と虫の組み合わせはゲーム用のもので、実際にその場所にいる虫とはかぎりません。</div>
       <div class="credit">Game Director: Ryohei Taniguchi</div>
-      <div class="tside"><div class="tbtns"><button type="button" class="tbtn" id="btnInstall">アプリにする方法</button><button type="button" class="tbtn" id="btnShare">友だちに教える</button><button type="button" class="tbtn" id="btnOut">虫とりカメラ（外で）</button></div>
+      <div class="tside"><div class="tbtns"><button type="button" class="tbtn" id="btnInstall">アプリにする方法</button><button type="button" class="tbtn" id="btnShare">友だちに教える</button><button type="button" class="tbtn cam" id="btnOut">📷 虫とりカメラ（外で）</button></div>
       <div class="vrow"><button type="button" class="verbtn" id="btnVer"><span class="gver"></span>　こうしん情報 ▸</button><button type="button" class="verbtn" id="btnFuri">ふりがな：ふつう</button><button type="button" class="verbtn" id="btnPriv">プライバシーについて</button></div></div>
     </div>
     <div id="battle" class="ov" hidden>
@@ -663,7 +671,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.4.0';
-const BUILD = '20261025-0342';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261025-0348';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.4.0', date:'2026-10-25', items:[
     'タイトル画面に「虫とりカメラ（外で）」を入れた。外ではスマホで虫の写真だけをとって「おみやげ」にして、家のタブレット・パソコンのゲームで開けられる（メニューの「写真をとる」→「届いたおみやげを開ける」）。ごほうびもスタンプも、家のゲームでもらえる',
