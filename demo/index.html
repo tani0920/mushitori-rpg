@@ -296,7 +296,7 @@ body.touch #titleScr .credit{left:auto;right:max(12px,env(safe-area-inset-right,
 @media (max-height:700px){ body.touch:not(.land) #titleScr .logo{width:min(68%,440px)} }
 @media (max-height:600px){ body.touch:not(.land) #titleScr .logo{width:min(58%,400px);margin:0 0 .2em} body.touch:not(.land) #titleScr .t4{margin-top:.5em} body.touch:not(.land) #titleScr .tbtns{margin-top:.5em} }
 /* 虫とりカメラ（外で）：ほかのボタンより少し目立たせる（白地に黒い字） */
-#titleScr .tbtn.cam{background:#fff;color:#1a1a1a;font-weight:700;border-color:#14284a}
+#titleScr .tbtn.cam{background:#ffffffd0;color:#1a1a1a;font-weight:700;border-color:#14284a}
 /* スマホたて画面：「プライバシーについて」は左上のすみ（右上のクレジットと向かい合わせ） */
 body.touch:not(.land) #titleScr #btnPriv{position:absolute;left:max(10px,env(safe-area-inset-left,0px));top:calc(env(safe-area-inset-top,0px) + 30px);font-size:clamp(10px,2.6vmin,13px);padding:.15em .7em;background:#14284ad9}
 /* iPhone は画面のいちばん上（時計のあたり）に自動で暗いぼかしをかけるので、たて画面ではクレジットもその下まで下げる */
@@ -671,7 +671,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.4.0';
-const BUILD = '20261025-0355';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261025-0358';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.4.0', date:'2026-10-25', items:[
     'タイトル画面に「虫とりカメラ（外で）」を入れた。外ではスマホで虫の写真だけをとって「おみやげ」にして、家のタブレット・パソコンのゲームで開けられる（メニューの「写真をとる」→「届いたおみやげを開ける」）。ごほうびもスタンプも、家のゲームでもらえる',
