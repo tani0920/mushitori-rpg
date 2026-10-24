@@ -508,6 +508,12 @@ body.touch.land .ab{--b:clamp(68px,17.5vh,88px);gap:10px}
 body.touch.land #pad{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 8px)}
 /* ボタンの高さ：オプションの「ボタンの高さ」で、十字キーとA・Bを別々に上げられる（タブレットは最初から少し上） */
 body.touch #pad .dpad{margin-bottom:var(--dpY,0px)}
+/* ついてくる十字キー：左下のこのはんいをさわると、さわったところに十字キーが出る（見えないわく） */
+#pad .dzone{display:none}
+body.touch.dfloat #pad .dzone{display:block;position:absolute;left:0;bottom:0;width:55%;height:var(--padH,200px);pointer-events:auto;touch-action:none}
+body.touch.dfloat.land #pad .dzone{width:var(--sideL,30vw);height:72vh}   /* 会話やメニューのわくにはかからないように */
+body.touch #pad .dpad{position:relative;z-index:1}
+body.touch #pad .dpad.float{opacity:1}
 body.touch #pad .ab{margin-bottom:var(--abY,0px)}
 body.touch.land #msg{min-height:4.4em;max-height:38%;bottom:8px}
 body.touch.land #menu{max-height:calc(100% - var(--hudH) - 4.4em - 26px)}
@@ -569,6 +575,7 @@ body.touch.land #menu.title{top:auto;bottom:10px;left:50%;right:auto;transform:t
     <div id="fade"></div>
   </div>
   <div id="pad">
+    <div class="dzone"></div>
     <div class="dpad"><button data-k="U" aria-label="上">▲</button><button data-k="L" aria-label="左">◀</button><button data-k="R" aria-label="右">▶</button><button data-k="D" aria-label="下">▼</button></div>
     <div class="ab"><button data-k="B">B</button><button data-k="A">A</button></div>
   </div>
@@ -629,9 +636,12 @@ const KEY_PRE = window.DEMO ? 'demo-' : '';   // デモ版は本番のセーブ�
 const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
-const GAME_VER = '0.3.0';
-const BUILD = '20261024-0441';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const GAME_VER = '0.3.1';
+const BUILD = '20261024-2209';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
+  {v:'0.3.1', date:'2026-10-24', items:[
+    'スマホ・iPadの十字キーが、左下のあたりのさわったところに出るようにした（オプションの「ボタン」で、前のきまった場所にもどせる）',
+  ]},
   {v:'0.3.0', date:'2026-10-24', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
     '虫具店で虫を「売る」のをやめて、「とどける」とお礼にどんぐりがもらえるようにした',
@@ -1059,20 +1069,22 @@ addEventListener('pageshow', e=>{ if(e.persisted && actx && TOUCH) aStale = true
 /* ボタンの高さ（スマホ・タブレットの持ち方は人それぞれなので、オプションで十字キーとA・Bを別々に上げられる） */
 const PAD_KEY = 'munakata-pad-v1', PAD_LV = [0, 3, 6, 9, 13], PAD_LV_NAME = ['いちばん下','ひくめ','ふつう','たかめ','もっとたかめ'];
 const isTablet = ()=> Math.min(screen.width, screen.height) >= 600;
-const padPref = (()=>{ const d = isTablet() ? {d:1, a:3} : {d:0, a:0};   // タブレットは、十字キーはひくめ・A・Bはたかめから
+const padPref = (()=>{ const d = isTablet() ? {d:1, a:3, f:1} : {d:0, a:0, f:1};   // f：十字キーが、さわったところについてくる（1）／きまった場所（0）
+     // タブレットは、十字キーはひくめ・A・Bはたかめから
   try{ return Object.assign(d, JSON.parse(localStorage.getItem(PAD_KEY)) || {}); }catch(e){ return d; } })();
-function applyPad(){ const b = document.body.style; b.setProperty('--dpY', PAD_LV[padPref.d] + 'vh'); b.setProperty('--abY', PAD_LV[padPref.a] + 'vh'); if(typeof layout === 'function') layout(); }
+function applyPad(){ document.body.classList.toggle('dfloat', padPref.f !== 0); const b = document.body.style; b.setProperty('--dpY', PAD_LV[padPref.d] + 'vh'); b.setProperty('--abY', PAD_LV[padPref.a] + 'vh'); if(typeof layout === 'function') layout(); }
 function setPad(k, v, save=true){ padPref[k] = v; if(save){ try{ localStorage.setItem(PAD_KEY, JSON.stringify(padPref)); }catch(e){} } applyPad(); }
 async function padMenu(){
   let i = 0;
   while(true){
-    const c = await choose([`十字キー：${PAD_LV_NAME[padPref.d]}`, `A・Bボタン：${PAD_LV_NAME[padPref.a]}`, 'はじめの高さにもどす', 'もどる'],
-      {title:'ボタンの高さ', cls:'side', start:i, msg:'えらぶたびに、ボタンの高さがかわるよ。\n押しやすい高さにしてね。'});
+    const c = await choose([`十字キー：${PAD_LV_NAME[padPref.d]}`, `A・Bボタン：${PAD_LV_NAME[padPref.a]}`, 'はじめの高さにもどす', `十字キーの出かた：${padPref.f !== 0 ? 'さわったところ' : 'きまった場所'}`, 'もどる'],
+      {title:'ボタン', cls:'side', start:i, msg:'えらぶたびに、ボタンの高さや出かたがかわるよ。\n押しやすいようにしてね。'});
     i = Math.max(0, c);
-    if(c<0 || c===3) return;
+    if(c<0 || c===4) return;
+    if(c===3){ setPad('f', padPref.f !== 0 ? 0 : 1); await say(padPref.f !== 0 ? '十字キーを「さわったところ」にしました。\n左下のあたりをさわると、指の下に十字キーが出るよ。\nそのまま指をすべらせると、その向きに歩くよ。' : '十字キーを「きまった場所」にしました。\n左下の十字キーを押して歩くよ。'); continue; }
     if(c===0) setPad('d', (padPref.d + 1) % PAD_LV.length);
     if(c===1) setPad('a', (padPref.a + 1) % PAD_LV.length);
-    if(c===2){ try{ localStorage.removeItem(PAD_KEY); }catch(e){} const d = isTablet() ? {d:1, a:3} : {d:0, a:0}; setPad('d', d.d, false); setPad('a', d.a, false); }
+    if(c===2){ try{ localStorage.removeItem(PAD_KEY); }catch(e){} const d = isTablet() ? {d:1, a:3} : {d:0, a:0}; setPad('d', d.d, false); setPad('a', d.a, false); if(padPref.f !== 0) setPad('f', 1); }   // 十字キーの出かたは、えらんだままにする
   }
 }
 function setSnd(kind, on){ sndPref[kind] = on; saveSnd(); if(kind === 'bgm') bgmUpdate(); }
@@ -1962,9 +1974,10 @@ document.addEventListener('keydown', e=>{
 });
 document.addEventListener('keyup', e=>{ const k = KEYMAP[e.key]; const i = heldKeys.indexOf(k); if(i>=0) heldKeys.splice(i,1); held = heldKeys[heldKeys.length-1] || null; });
 window.addEventListener('blur', ()=>{ heldKeys.length = 0; held = null; });
-/* 十字キー：押しっぱなしで歩き続ける。指をすべらせて向きを変えられる */
+/* 十字キー：押しっぱなしで歩き続ける。指をすべらせて向きを変えられる
+   「さわったところ」（ふつう）：左下のあたりをさわると、指の下に十字キーが出て、さわりはじめた所からの向きで歩く */
 (()=>{
-  const pad = document.querySelector('.dpad'); let pid = null, cur = null, repT = null;
+  const pad = document.querySelector('.dpad'), zone = document.querySelector('#pad .dzone'); let pid = null, cur = null, repT = null, ox = 0, oy = 0;
   const light = k=> pad.querySelectorAll('button').forEach(b=>b.classList.toggle('on', b.dataset.k===k));
   const setDir = k=>{
     if(k===cur) return; cur = k; held = k; light(k); clearTimeout(repT);
@@ -1973,13 +1986,23 @@ window.addEventListener('blur', ()=>{ heldKeys.length = 0; held = null; });
     const rep = ()=>{ if(cur===k){ if(uiHandler) uiHandler(k); repT = setTimeout(rep, 130); } };
     repT = setTimeout(rep, 380);   // メニューの中では長押しでカーソルが連続で動く
   };
-  const dirAt = e=>{ const r = pad.getBoundingClientRect(), dx = e.clientX - (r.left + r.width/2), dy = e.clientY - (r.top + r.height/2);
-    if(Math.hypot(dx,dy) < r.width*0.12) return cur; return Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'R' : 'L') : (dy > 0 ? 'D' : 'U'); };
-  pad.addEventListener('pointerdown', e=>{ e.preventDefault(); pid = e.pointerId; try{ pad.setPointerCapture(pid); }catch(_){} setDir(dirAt(e)); });
-  pad.addEventListener('pointermove', e=>{ if(e.pointerId===pid) setDir(dirAt(e)); });
-  const end = e=>{ if(e.pointerId!==pid) return; pid = null; setDir(null); };
-  pad.addEventListener('pointerup', end); pad.addEventListener('pointercancel', end); pad.addEventListener('lostpointercapture', end);
-  pad.addEventListener('contextmenu', e=>e.preventDefault());
+  const dirOf = (dx, dy)=>{ if(Math.hypot(dx,dy) < pad.offsetWidth*0.12) return cur; return Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'R' : 'L') : (dy > 0 ? 'D' : 'U'); };
+  const floating = ()=> document.body.classList.contains('dfloat');
+  const place = (x, y)=>{ pad.style.transform = ''; const r = pad.getBoundingClientRect(); pad.style.transform = `translate(${x - (r.left + r.width/2)}px,${y - (r.top + r.height/2)}px)`; };
+  const down = e=>{ e.preventDefault(); if(pid !== null) return; pid = e.pointerId; try{ e.currentTarget.setPointerCapture(pid); }catch(_){}
+    if(floating()){ ox = e.clientX; oy = e.clientY; place(ox, oy); pad.classList.add('float'); }
+    else { const r = pad.getBoundingClientRect(); setDir(dirOf(e.clientX - (r.left + r.width/2), e.clientY - (r.top + r.height/2))); } };
+  const move = e=>{ if(e.pointerId!==pid) return;
+    if(!floating()){ const r = pad.getBoundingClientRect(); setDir(dirOf(e.clientX - (r.left + r.width/2), e.clientY - (r.top + r.height/2))); return; }
+    let dx = e.clientX - ox, dy = e.clientY - oy; const m = Math.hypot(dx, dy), lim = pad.offsetWidth*0.5;
+    if(m > lim){ ox = e.clientX - dx/m*lim; oy = e.clientY - dy/m*lim; dx = e.clientX - ox; dy = e.clientY - oy; place(ox, oy); }   // 指が遠くへ行ったら、十字キーもついていく
+    setDir(dirOf(dx, dy)); };
+  const end = e=>{ if(e.pointerId!==pid) return; pid = null; setDir(null); pad.style.transform = ''; pad.classList.remove('float'); };
+  for(const el of [pad, zone]){
+    el.addEventListener('pointerdown', down); el.addEventListener('pointermove', move);
+    el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end); el.addEventListener('lostpointercapture', end);
+    el.addEventListener('contextmenu', e=>e.preventDefault());
+  }
 })();
 /* 戦闘画面が出ているあいだ、body に inbattle をつける（ボタンを少しこくする） */
 (()=>{ const bt = $('battle'); new MutationObserver(()=>document.body.classList.toggle('inbattle', !bt.hidden)).observe(bt, {attributes:true, attributeFilter:['hidden']}); })();
@@ -2024,7 +2047,8 @@ function layout(){
   st.setProperty('--padH', padH + 'px');
   st.setProperty('--sideL', land ? (dp.right - r.left + 6) + 'px' : '0px');
   st.setProperty('--sideR', land ? (r.right - ab.left + 6) + 'px' : '0px');
-  st.setProperty('--abH', (r.bottom - ab.top) + 'px');   // 画面の下から、A・Bボタンの上のはしまで（横向きのメニューを、ここより上で止める）
+  st.setProperty('--abH', (r.bottom - ab.top) + 'px');
+  padEl.style.setProperty('--padH', padH + 'px'); padEl.style.setProperty('--sideL', land ? (dp.right - r.left + 6) + 'px' : '0px');   // 十字キーのはんい（#pad は #screen の外なので、こちらにも入れる）   // 画面の下から、A・Bボタンの上のはしまで（横向きのメニューを、ここより上で止める）
 }
 addEventListener('resize', layout);
 applyPad();   // ボタンの高さ（オプション）を反映してから、画面をはかりなおす
@@ -2246,7 +2270,7 @@ async function optionMenu(){
   while(true){
     const touch = document.body.classList.contains('touch');   // 「ボタンの高さ」は、画面にボタンが出ているときだけ
     const keys = ['rule','furi','bgm','se','auto', ...(touch ? ['pad'] : []), 'priv','title','back'];
-    const lbl = {rule:'ルール', furi:`ふりがな：${furiMode ? 'たくさん' : 'ふつう'}`, bgm:`BGM：${sndPref.bgm ? 'ON' : 'OFF'}`, se:`効果音：${sndPref.se ? 'ON' : 'OFF'}`, auto:`じどうセーブ：${autoSave ? 'ON' : 'OFF'}`, pad:'ボタンの高さ', priv:'プライバシーについて', title:'タイトルにもどる', back:'もどる'};
+    const lbl = {rule:'ルール', furi:`ふりがな：${furiMode ? 'たくさん' : 'ふつう'}`, bgm:`BGM：${sndPref.bgm ? 'ON' : 'OFF'}`, se:`効果音：${sndPref.se ? 'ON' : 'OFF'}`, auto:`じどうセーブ：${autoSave ? 'ON' : 'OFF'}`, pad:'ボタン（高さ・十字キー）', priv:'プライバシーについて', title:'タイトルにもどる', back:'もどる'};
     const ci = await choose(keys.map(k=>lbl[k]), {title:'オプション', cls:'side', start:optIdx});
     optIdx = Math.max(0, ci);
     const c = ci < 0 ? -1 : {rule:0, furi:1, bgm:2, se:3, priv:4, title:5, back:6, pad:7, auto:8}[keys[ci]];
