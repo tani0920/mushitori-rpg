@@ -637,10 +637,10 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.3.1';
-const BUILD = '20261024-2209';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261024-2216';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.3.1', date:'2026-10-24', items:[
-    'スマホ・iPadの十字キーが、左下のあたりのさわったところに出るようにした（オプションの「ボタン」で、前のきまった場所にもどせる）',
+    'スマホ・iPadの十字キーが、左下のあたりのさわったところに出るようにした。十字キーの上をさわったときは、そのままその向きに動く（オプションの「ボタン」で、前のきまった場所にもどせる）',
   ]},
   {v:'0.3.0', date:'2026-10-24', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
@@ -1977,7 +1977,7 @@ window.addEventListener('blur', ()=>{ heldKeys.length = 0; held = null; });
 /* 十字キー：押しっぱなしで歩き続ける。指をすべらせて向きを変えられる
    「さわったところ」（ふつう）：左下のあたりをさわると、指の下に十字キーが出て、さわりはじめた所からの向きで歩く */
 (()=>{
-  const pad = document.querySelector('.dpad'), zone = document.querySelector('#pad .dzone'); let pid = null, cur = null, repT = null, ox = 0, oy = 0;
+  const pad = document.querySelector('.dpad'), zone = document.querySelector('#pad .dzone'); let pid = null, cur = null, repT = null, ox = 0, oy = 0, fl = false;
   const light = k=> pad.querySelectorAll('button').forEach(b=>b.classList.toggle('on', b.dataset.k===k));
   const setDir = k=>{
     if(k===cur) return; cur = k; held = k; light(k); clearTimeout(repT);
@@ -1990,10 +1990,14 @@ window.addEventListener('blur', ()=>{ heldKeys.length = 0; held = null; });
   const floating = ()=> document.body.classList.contains('dfloat');
   const place = (x, y)=>{ pad.style.transform = ''; const r = pad.getBoundingClientRect(); pad.style.transform = `translate(${x - (r.left + r.width/2)}px,${y - (r.top + r.height/2)}px)`; };
   const down = e=>{ e.preventDefault(); if(pid !== null) return; pid = e.pointerId; try{ e.currentTarget.setPointerCapture(pid); }catch(_){}
-    if(floating()){ ox = e.clientX; oy = e.clientY; place(ox, oy); pad.classList.add('float'); }
-    else { const r = pad.getBoundingClientRect(); setDir(dirOf(e.clientX - (r.left + r.width/2), e.clientY - (r.top + r.height/2))); } };
+    const r = pad.getBoundingClientRect(), m = r.width*0.08;
+    // 十字キーの上（まわりも少し）をさわったときは、ふつうの十字キーとしてすぐその向きに動く。それより外をさわったときだけ、指の下に十字キーを出す
+    const onPad = e.clientX >= r.left - m && e.clientX <= r.right + m && e.clientY >= r.top - m && e.clientY <= r.bottom + m;
+    fl = floating() && !onPad;
+    if(fl){ ox = e.clientX; oy = e.clientY; place(ox, oy); pad.classList.add('float'); }
+    else setDir(dirOf(e.clientX - (r.left + r.width/2), e.clientY - (r.top + r.height/2))); };
   const move = e=>{ if(e.pointerId!==pid) return;
-    if(!floating()){ const r = pad.getBoundingClientRect(); setDir(dirOf(e.clientX - (r.left + r.width/2), e.clientY - (r.top + r.height/2))); return; }
+    if(!fl){ const r = pad.getBoundingClientRect(); setDir(dirOf(e.clientX - (r.left + r.width/2), e.clientY - (r.top + r.height/2))); return; }
     let dx = e.clientX - ox, dy = e.clientY - oy; const m = Math.hypot(dx, dy), lim = pad.offsetWidth*0.5;
     if(m > lim){ ox = e.clientX - dx/m*lim; oy = e.clientY - dy/m*lim; dx = e.clientX - ox; dy = e.clientY - oy; place(ox, oy); }   // 指が遠くへ行ったら、十字キーもついていく
     setDir(dirOf(dx, dy)); };
