@@ -357,6 +357,14 @@ body.touch #titleScr .tbtn{font-size:clamp(13px,3.6vmin,19px)}
 #stamps .st b{font-size:14px;font-weight:400}
 #camResult .stampbox{flex-basis:100%;border-top:1px dashed var(--paper-line);padding-top:8px;line-height:1.7}
 #camResult .stampbox .btn{margin:.3em .4em 0 0}
+#cam.out .inGame,#cam:not(.out) .outOnly{display:none}
+#cam .outOnly,#cam .inGame{display:flex;flex-direction:column;gap:12px}
+#cam .camBtns button.btn{flex:1 1 160px;text-align:center;font-size:17px;padding:.55em 1em;line-height:1.5}
+#omiList{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}
+#omiList:empty::before{content:'まだ おみやげはないよ';color:#7a6a4a}
+#omiList .o{background:#fffaf0;border:2px solid var(--paper-line);border-radius:6px;padding:4px;font-size:12px;line-height:1.4;text-align:center}
+#omiList .o img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:4px;display:block;margin-bottom:2px}
+#omiList .o.sent{opacity:.5}
 #album{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}
 #album .a{border:2px solid var(--paper-line);border-radius:4px;background:#fffaf0;padding:4px;text-align:center;font-size:11px;line-height:1.3}
 #album .a img,#album .a .no{width:100%;aspect-ratio:1;object-fit:cover;border-radius:2px;display:block;margin-bottom:3px}
@@ -560,7 +568,7 @@ body.touch.land #menu.title{top:auto;bottom:10px;left:50%;right:auto;transform:t
       <div class="t3">宗像じゅうの虫をつかまえて、ずかんを完成させよう</div>
       <div class="t4">※このゲームに出てくる場所と虫の組み合わせはゲーム用のもので、実際にその場所にいる虫とはかぎりません。</div>
       <div class="credit">Game Director: Ryohei Taniguchi</div>
-      <div class="tside"><div class="tbtns"><button type="button" class="tbtn" id="btnInstall">アプリにする方法</button><button type="button" class="tbtn" id="btnShare">友だちに教える</button></div>
+      <div class="tside"><div class="tbtns"><button type="button" class="tbtn" id="btnInstall">アプリにする方法</button><button type="button" class="tbtn" id="btnShare">友だちに教える</button><button type="button" class="tbtn" id="btnOut">虫とりカメラ（外で）</button></div>
       <div class="vrow"><button type="button" class="verbtn" id="btnVer"><span class="gver"></span>　こうしん情報 ▸</button><button type="button" class="verbtn" id="btnFuri">ふりがな：ふつう</button><button type="button" class="verbtn" id="btnPriv">プライバシーについて</button></div></div>
     </div>
     <div id="battle" class="ov" hidden>
@@ -590,8 +598,11 @@ body.touch.land #menu.title{top:auto;bottom:10px;left:50%;right:auto;transform:t
 </div>
 <div id="cam" class="full" hidden>
   <div class="in">
-    <div class="top"><h2>本物の虫の写真をとる</h2><span class="cnt" id="camCnt"></span><button class="btn" id="camClose">とじる</button></div>
-    <p class="lead">外で見つけた本物の虫の写真をとると、ゲームでごほうびがもらえるよ！（1日5まいまで）<br>
+    <div class="top"><h2 id="camTitle">本物の虫の写真をとる</h2><span class="cnt" id="camCnt"></span><button class="btn" id="camClose">とじる</button></div>
+    <p class="lead inGame">外で見つけた本物の虫の写真をとると、ゲームでごほうびがもらえるよ！（1日5まいまで）<br>
+      <small>写真はこのたんまつの中だけでAIが判定します。どこにも送られません。</small></p>
+    <p class="lead outOnly">外で本物の虫の写真をとって、「おみやげ」にしよう！（1日5まいまで）<br>
+      家のタブレット・パソコンのゲームで「おみやげを受けとる」と、ごほうびやスタンプがもらえるよ。<br>
       <small>写真はこのたんまつの中だけでAIが判定します。どこにも送られません。</small></p>
     <div class="camBtns">
       <label class="btn">カメラで<br>写真をとる<input id="camIn" class="vh" type="file" accept="image/*" capture="environment"></label>
@@ -600,11 +611,23 @@ body.touch.land #menu.title{top:auto;bottom:10px;left:50%;right:auto;transform:t
     <div id="camResult"></div>
     <label class="geo"><input type="checkbox" id="geoOn"><span>いまいる場所で「スタンプ」ももらう（位置情報をつかう）</span></label>
     <p class="lead"><small>位置情報は、このたんまつの中で「スタンプの場所の近くにいるか」を調べるだけです。いる場所の記録は、保存も送信もしません。</small></p>
+    <div class="outOnly">
+      <h3>おみやげ <span id="omiCnt"></span></h3>
+      <div id="omiList"></div>
+      <div class="camBtns"><button type="button" class="btn" id="omiSend">おみやげを<br>家に送る</button><button type="button" class="btn" id="omiClear">送ったものを<br>けす</button></div>
+      <p class="lead"><small>「家に送る」をおすと、おみやげのファイルができます。AirDrop・LINEの自分あて・メールなどで、家のタブレットやパソコンに送ってね。<br>
+        ファイルに入るのは、小さくした写真・虫の名前・日付・スタンプの場所の名前だけです。いる場所の記録（緯度・経度）は入りません。</small></p>
+    </div>
+    <div class="inGame">
+    <h3>おみやげを受けとる</h3>
+    <p class="lead"><small>スマホのタイトル画面の「虫とりカメラ」でとった虫を、ここで受けとれるよ。</small></p>
+    <div class="camBtns"><label class="btn">おみやげを<br>受けとる<input id="omiIn" class="vh" type="file" accept=".json,application/json"></label></div>
     <h3>宗像 虫とりスタンプラリー <span id="stampCnt"></span></h3>
     <p class="lead"><small>宗像大社・さつき松原・城山・大島などで本物の虫の写真をとると、スタンプと特典がもらえるよ。<b>出かけるときは、かならずおうちの人といっしょに！</b></small></p>
     <div id="stamps"></div>
     <h3>本物の虫アルバム <span id="albumCnt"></span></h3>
     <div id="album"></div>
+    </div>
   </div>
 </div>
 <div id="infoPanel" class="full" hidden>
@@ -636,10 +659,11 @@ const KEY_PRE = window.DEMO ? 'demo-' : '';   // デモ版は本番のセーブ�
 const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
-const GAME_VER = '0.3.1';
-const BUILD = '20261024-2216';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const GAME_VER = '0.4.0';
+const BUILD = '20261025-0256';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
-  {v:'0.3.1', date:'2026-10-24', items:[
+  {v:'0.4.0', date:'2026-10-25', items:[
+    'タイトル画面に「虫とりカメラ（外で）」を入れた。外ではスマホで虫の写真だけをとって「おみやげ」にして、家のタブレット・パソコンのゲームで受けとれる（メニューの「写真をとる」→「おみやげを受けとる」）。ごほうびもスタンプも、家のゲームでもらえる',
     'スマホ・iPadの十字キーが、左下のあたりのさわったところに出るようにした。十字キーの上をさわったときは、そのままその向きに動く（オプションの「ボタン」で、前のきまった場所にもどせる）',
   ]},
   {v:'0.3.0', date:'2026-10-24', items:[
@@ -2892,7 +2916,12 @@ function loadPhotos(){ let p; try{ p = JSON.parse(localStorage.getItem(PHOTO_KEY
 let photos = loadPhotos();
 function savePhotos(){ try{ localStorage.setItem(PHOTO_KEY, JSON.stringify(photos)); return true; }catch(e){ return false; } }
 const todayKey = ()=> new Date().toLocaleDateString('ja-JP');
-const photoLeft = ()=> photos.daily.date===todayKey() ? Math.max(0, PHOTO_DAILY - photos.daily.n) : PHOTO_DAILY;
+const photoLeft = (date=todayKey())=> Math.max(0, PHOTO_DAILY - (photos.daily.date===date ? photos.daily.n : (photos.past||{})[date] || 0));
+function countPhoto(date){   // 1日5まいをかぞえる（おみやげは、写真をとった日でかぞえる）
+  if(date===todayKey()){ photos.daily = {date, n:(photos.daily.date===date ? photos.daily.n : 0) + 1}; return; }
+  photos.past = photos.past || {}; photos.past[date] = (photos.past[date]||0) + 1;
+  const ks = Object.keys(photos.past); if(ks.length > 60) delete photos.past[ks[0]];
+}
 const realPhotoFor = shape=> Object.keys(PHOTO_CATS).map(k=>photos.cats[k] && PHOTO_CATS[k].shapes.includes(shape) ? [k,photos.cats[k]] : null).find(Boolean);
 
 function loadScript(src){ return new Promise((res,rej)=>{ const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = ()=>rej(new Error(src)); document.head.appendChild(s); }); }
@@ -2963,7 +2992,7 @@ function renderStamps(){
     return `<div class="st ${g ? 'got' : ''}"><div class="ink">${g ? esc(sp.name) : '？'}</div><div><b>${esc(sp.name)}</b><br>${g ? `${esc(g.date)} ゲット` : esc(spInfo(sp, false))}</div></div>`; }).join('');
 }
 function addResult(html){ const d = document.createElement('div'); d.className = 'stampbox'; d.innerHTML = html; $('camResult').appendChild(d); return d; }
-async function stampCheck(){
+async function stampCheck(omi){   // omi：虫とりカメラのおみやげ（このときはスタンプをおみやげに入れるだけ）
   const box = addResult('いる場所をしらべています…');
   let pos;
   try{ pos = await getPos(); }
@@ -2971,7 +3000,8 @@ async function stampCheck(){
   const sp = nearSpot(pos.lat, pos.lon); pos = null;   // 位置そのものはすぐに捨てる
   if(!sp){ box.innerHTML = '近くに、スタンプのある場所はなかったよ。<br><small>宗像大社・さつき松原・城山・大島・釣川・赤間で写真をとると、スタンプがもらえるよ。</small>'; return; }
   photos.stamps = photos.stamps || {};
-  if(photos.stamps[sp.key]){ box.innerHTML = `ここは「${esc(sp.name)}」！ スタンプはもう持っているよ（${esc(photos.stamps[sp.key].date)}）。`; return; }
+  if(omi && omiyage.list.some(o=>o.stamp===sp.key)){ box.innerHTML = `ここは「${esc(sp.name)}」！ ${esc(sp.name)}のスタンプは、もうおみやげに入っているよ。`; return; }
+  if(!omi && photos.stamps[sp.key]){ box.innerHTML = `ここは「${esc(sp.name)}」！ スタンプはもう持っているよ（${esc(photos.stamps[sp.key].date)}）。`; return; }
   // 安全の確認
   const ok = await new Promise(res=>{
     box.innerHTML = `ここは「<b>${esc(sp.name)}</b>」！ スタンプをおす前に…<br><b>おうちの人といっしょに来た？</b><br>
@@ -2979,6 +3009,8 @@ async function stampCheck(){
     $('stYes').onclick = ()=>res(true); $('stNo').onclick = ()=>res(false);
   });
   if(!ok){ box.innerHTML = `${esc(sp.name)}のスタンプは、<b>つぎにおうちの人といっしょに来たとき</b>におそう！<br><small>${esc(sp.warn)}</small>`; return; }
+  if(omi){ omi.stamp = sp.key; saveOmi(); renderOmi();
+    box.innerHTML = `<b class="ok">「${esc(sp.name)}」のスタンプを、おみやげに入れたよ！</b><br>家のゲームで受けとると、スタンプがおせるよ。<br><small>${esc(sp.warn)}</small>`; return; }
   photos.stamps[sp.key] = {date:todayKey()};
   if(!savePhotos()){ box.innerHTML = 'スタンプを保存できませんでした。'; return; }
   let extra = '';
@@ -3011,28 +3043,119 @@ async function handlePhoto(file){
     camResult(head + '<div class="txt"><div class="ng big">ハチかも！ 気をつけて！</div>ハチ（とくにスズメバチ）は、さされるととても危険です。<br>写真をとるために近づいたりしないでね。<br><small>ハチの写真では、ごほうびはもらえません。</small></div>');
     return;
   }
-  // ごほうび
+  if(camOut){   // 虫とりカメラ：ごほうびは家のゲームで受けとる
+    if(omiyage.list.length >= OMI_MAX){ camResult(head + '<div class="txt ng">おみやげがいっぱい！<br>家に送ってから、「送ったものをけす」をおしてね。</div>'); return; }
+    const o = {id:Date.now().toString(36) + Math.random().toString(36).slice(2,6), cat, p:Math.round(score[cat]*100), date:todayKey(), img:thumb, h};
+    omiyage.list.push(o); countPhoto(todayKey()); photos.hashes.push(h); if(photos.hashes.length > 300) photos.hashes.shift();
+    if(!saveOmi()){ omiyage.list.pop(); camResult(head + '<div class="txt ng">おみやげを保存できませんでした。家に送ってから、「送ったものをけす」をおしてね。</div>'); return; }
+    savePhotos(); renderOmi(); track('omiyage_photo', {category:cat});
+    camResult(head + `<div class="txt"><div class="ok big">${esc(PHOTO_CATS[cat].name)}だ！</div><small>AIのはんてい ${o.p}%</small><div>おみやげに入れたよ！</div><small>家のゲームで受けとると、ごほうびがもらえるよ。</small></div>`);
+    if($('geoOn').checked) await stampCheck(o);
+    return;
+  }
+  const {first, gifts} = giveReward(cat, thumb, h, todayKey());
+  save(); hud(); renderAlbum();
+  camResult(head + `<div class="txt"><div class="ok big">${esc(PHOTO_CATS[cat].name)}だ！</div><small>AIのはんてい ${Math.round(score[cat]*100)}%</small>${first ? '<div>アルバムに登録された！</div>' : ''}<ul>${gifts.map(g=>`<li>${esc(g)}</li>`).join('')}</ul></div>`);
+  if($('geoOn').checked) await stampCheck();
+}
+/* ごほうび（写真をとったとき・おみやげを受けとったとき） */
+function giveReward(cat, thumb, h, date){
   const C = PHOTO_CATS[cat], first = !photos.cats[cat], gifts = [];
   track('photo_reward', {category:cat});
   const money = C.money * (first ? 2 : 1); S.money += money; gifts.push(`どんぐり ${dg(money)}${first ? '（はじめてボーナス2倍！）' : ''}`);
   if(C.item && (first || Math.random() < .35)){ const it = PHOTO_ITEMS.find(t=>t.key===C.item); S.items[C.item] = (S.items[C.item]||0) + 1; gifts.push(`${it.name}（${it.desc}）`); }
   if(cat==='kabuto' && !S.goldwing){ S.goldwing = true; gifts.push('金色のはね！ 大島の伝説の虫「ミアレカブト」が出やすくなった…！'); }
   if(C.shapes.length){ C.shapes.forEach(s=>S.link[s] = S.day + 1); gifts.push(`ゲームの中で${C.name}が出やすくなった（明日まで）`); }
-  photos.cats[cat] = {img:thumb, n:(photos.cats[cat]?.n||0) + 1, date:todayKey()};
+  photos.cats[cat] = {img:thumb, n:(photos.cats[cat]?.n||0) + 1, date};
   photos.hashes.push(h); if(photos.hashes.length > 300) photos.hashes.shift();
-  photos.daily = {date:todayKey(), n:(photos.daily.date===todayKey() ? photos.daily.n : 0) + 1};
+  countPhoto(date);
   if(!savePhotos()){ photos.cats[cat].img = ''; savePhotos(); }
-  save(); hud(); renderAlbum();
-  camResult(head + `<div class="txt"><div class="ok big">${esc(C.name)}だ！</div><small>AIのはんてい ${Math.round(score[cat]*100)}%</small>${first ? '<div>アルバムに登録された！</div>' : ''}<ul>${gifts.map(g=>`<li>${esc(g)}</li>`).join('')}</ul></div>`);
-  if($('geoOn').checked) await stampCheck();
+  return {first, gifts};
 }
 ['camIn','libIn'].forEach(id=>$(id).addEventListener('change', e=>{ const f = e.target.files[0]; e.target.value = ''; handlePhoto(f); }));
-function openCam(){
+/* ---------- 虫とりカメラ（外ではスマホで写真だけ → 家のタブレット・パソコンのゲームで受けとる） ---------- */
+const OMI_KEY = KEY_PRE + 'munakata-omiyage-v1', OMI_MAX = 30;
+const OMI_SALT = 'munakata-mushitori-omiyage-2026';   // 手で書きかえたファイルを受けとらないための「確認の印」
+let camOut = false;
+let omiyage = (()=>{ try{ return JSON.parse(localStorage.getItem(OMI_KEY)) || {list:[]}; }catch(e){ return {list:[]}; } })();
+function saveOmi(){ try{ localStorage.setItem(OMI_KEY, JSON.stringify(omiyage)); return true; }catch(e){ return false; } }
+function renderOmi(){
+  const n = omiyage.list.filter(o=>!o.sent).length;
+  $('omiCnt').textContent = !omiyage.list.length ? '' : n ? `まだ送っていない ${n}こ` : 'ぜんぶ送ったよ';
+  $('camCnt').textContent = `今日のこり ${photoLeft()}まい`;
+  $('omiList').innerHTML = omiyage.list.map(o=>{ const sp = SPOTS.find(x=>x.key===o.stamp);
+    return `<div class="o ${o.sent ? 'sent' : ''}"><img alt="" src="${o.img}">${esc(PHOTO_CATS[o.cat].name)}<br>${esc(o.date)}${sp ? `<br>スタンプ：${esc(sp.name)}` : ''}${o.sent ? '<br>送った' : ''}</div>`; }).join('');
+  $('omiClear').disabled = !omiyage.list.some(o=>o.sent);
+}
+async function omiSig(items){
+  const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(OMI_SALT + JSON.stringify(items)));
+  return [...new Uint8Array(b)].slice(0, 12).map(x=>x.toString(16).padStart(2, '0')).join('');
+}
+async function sendOmi(){
+  const items = omiyage.list.map(({id, cat, p, date, img, h, stamp})=>({id, cat, p, date, img, h, stamp:stamp || null}));
+  if(!items.length){ camResult('<div class="txt">まだ おみやげはないよ。外で本物の虫の写真をとってみよう！</div>'); return; }
+  const data = {app:'munakata-mushitori', kind:'omiyage', v:1, items, sig:await omiSig(items)};
+  const d = new Date(), name = `mushitori-omiyage-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}-${String(d.getHours()).padStart(2,'0')}${String(d.getMinutes()).padStart(2,'0')}.json`;
+  const file = new File([JSON.stringify(data)], name, {type:'application/json'});
+  let ok = false;
+  if(navigator.canShare && navigator.canShare({files:[file]})){
+    try{ await navigator.share({files:[file], title:'虫とり日記のおみやげ'}); ok = true; }
+    catch(e){ if(e.name==='AbortError') return; }
+  }
+  if(!ok){   // 共有できないときは、ファイルを保存する
+    const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+  }
+  omiyage.list.forEach(o=>o.sent = true); saveOmi(); renderOmi(); track('omiyage_send', {n:items.length});
+  camResult(`<div class="txt"><div class="ok big">おみやげのファイルができたよ！</div>家のタブレット・パソコンのゲームで、メニューの「写真をとる」→「おみやげを受けとる」をおして、このファイルをえらんでね。<br><small>${esc(name)}</small></div>`);
+}
+async function clearOmi(){
+  if(!omiyage.list.some(o=>o.sent)) return;
+  if(!confirm('送ったおみやげを、このスマホからけしますか？\n（家のゲームで受けとったあとなら、けしてだいじょうぶです）')) return;
+  omiyage.list = omiyage.list.filter(o=>!o.sent); saveOmi(); renderOmi(); camResult('');
+}
+async function receiveOmi(file){
+  if(!file) return;
+  let data;
+  try{ data = JSON.parse(await file.text()); }catch(e){ data = null; }
+  const okFmt = data && data.app==='munakata-mushitori' && data.kind==='omiyage' && Array.isArray(data.items);
+  if(!okFmt){ camResult('<div class="txt ng">おみやげのファイルではないみたい…。<br><small>「mushitori-omiyage-」ではじまるファイルをえらんでね。</small></div>'); return; }
+  if(data.sig !== await omiSig(data.items)){ camResult('<div class="txt ng">このおみやげは、受けとれなかった…。<br><small>ファイルの中身がかわっているみたいです。スマホの虫とりカメラで、もう一度「家に送る」をしてみてね。</small></div>'); return; }
+  photos.gotOmi = photos.gotOmi || [];
+  const lines = [], before = stampCount(); let got = 0, money0 = S.money;
+  for(const o of data.items){
+    if(!PHOTO_CATS[o.cat] || photos.gotOmi.includes(o.id)) continue;
+    photos.gotOmi.push(o.id); if(photos.gotOmi.length > 500) photos.gotOmi.shift();
+    const name = PHOTO_CATS[o.cat].name;
+    if(o.cat==='hachi') continue;
+    if(photos.hashes.some(x=>hamming(x, o.h) <= 4)){ lines.push(`${esc(name)}（${esc(o.date)}）：この写真はもう見せてもらったよ`); }
+    else if(photoLeft(o.date) <= 0){ lines.push(`${esc(name)}（${esc(o.date)}）：この日のごほうびは、もう5まいもらったよ`); }
+    else { const r = giveReward(o.cat, o.img, o.h, o.date); got++;
+      lines.push(`<b>${esc(name)}</b>（${esc(o.date)}）${r.first ? '　アルバムに登録された！' : ''}<br><small>${r.gifts.map(esc).join('／')}</small>`); }
+    const sp = SPOTS.find(x=>x.key===o.stamp);
+    if(sp){ photos.stamps = photos.stamps || {};
+      if(photos.stamps[sp.key]) lines.push(`${esc(sp.name)}のスタンプは、もう持っているよ`);
+      else { photos.stamps[sp.key] = {date:o.date}; got++; let extra = '';
+        if(sp.gift){ const it = PHOTO_ITEMS.find(t=>t.key===sp.gift); S.items[sp.gift] = (S.items[sp.gift]||0) + 1; extra = `・${esc(it.name)}をもらった！`; }
+        lines.push(`<b class="ok">「${esc(sp.name)}」のスタンプをゲット！</b><br><small>特典：${esc(spInfo(sp, true))}${extra}・自由研究のフィールドワークに +3点</small>`); }
+    }
+  }
+  savePhotos(); save(); hud(); renderAlbum(); renderStamps(); track('omiyage_receive', {n:got});
+  if(!lines.length){ camResult('<div class="txt">このおみやげは、もう受けとっているよ。</div>'); return; }
+  const all = before < SPOTS.length && stampCount() >= SPOTS.length;
+  camResult(`<div class="txt">${got ? '<div class="ok big">おみやげを受けとった！</div>' : '<div class="big">おみやげを見たよ。こんどは、ごほうびはなかったよ</div>'}${S.money > money0 ? `<div>どんぐり ぜんぶで ${dg(S.money - money0)}</div>` : ''}<ul>${lines.map(l=>`<li>${l}</li>`).join('')}</ul>${all ? '<b class="ok">スタンプぜんぶ集めた！ 自由研究に さらに +5点！</b>' : ''}</div>`);
+}
+$('omiSend').onclick = sendOmi; $('omiClear').onclick = clearOmi;
+$('omiIn').addEventListener('change', e=>{ const f = e.target.files[0]; e.target.value = ''; receiveOmi(f); });
+function openCam(out=false){
   return new Promise(res=>{
-    camResult(''); renderAlbum(); renderStamps(); $('cam').hidden = false;
+    camOut = out; $('cam').classList.toggle('out', out);
+    $('camTitle').textContent = out ? '虫とりカメラ（外で）' : '本物の虫の写真をとる';
+    camResult(''); renderAlbum(); renderStamps(); if(out) renderOmi(); $('cam').hidden = false;
     $('geoOn').checked = !!photos.geoOn; $('geoOn').onchange = ()=>{ photos.geoOn = $('geoOn').checked; savePhotos(); };
     // AIは、写真をえらんだときにはじめて読みこむ（開いたときに読みこむと、iPadなどで画面がしばらく固まって「とじる」や回転がきかなくなる）
-    const close = ()=>{ uiHandler = null; $('cam').hidden = true; res(); };
+    const prev = uiHandler;
+    const close = ()=>{ uiHandler = prev; $('cam').hidden = true; camOut = false; res(); };
     uiHandler = k=>{ if(k==='B'||k==='M') close(); };
     $('camClose').onclick = close;
   });
@@ -3106,6 +3229,7 @@ async function showShare(){
 }
 $('btnInstall').onclick = e=>{ e.stopPropagation(); showInstall(); };
 $('btnShare').onclick = e=>{ e.stopPropagation(); showShare(); };
+$('btnOut').onclick = e=>{ e.stopPropagation(); openCam(true); };
 $('btnVer').onclick = e=>{ e.stopPropagation(); showChangelog(); };
 $('btnFuri').onclick = e=>{ e.stopPropagation(); setFuri(!furiMode); };
 $('btnPriv').onclick = e=>{ e.stopPropagation(); showPrivacy(); };
@@ -3130,7 +3254,8 @@ function showPrivacy(){
     <label class="gaoff"><input type="checkbox" id="gaOffChk" ${gaOff() ? 'checked' : ''}><span>この端末では計測しない</span></label>
     <p class="note">${window.DEMO ? '※デモ版では、もともと計測していません。' : 'チェックを入れると、この端末からは何も送らなくなります。'}</p>
     <p><b>4. セーブデータ</b><br>ゲームの記録は、お使いの端末のブラウザの中（localStorage）にだけ保存されます。</p>
-    <p><b>5. お問い合わせ</b><br>Game Director: Ryohei Taniguchi<br>${CONTACT_URL ? `<a href="${CONTACT_URL}" target="_blank" rel="noopener">お問い合わせフォーム</a>` : 'お問い合わせフォーム（じゅんび中）'}</p>`);
+    <p><b>5. 虫とりカメラの「おみやげ」</b><br>タイトル画面の「虫とりカメラ」でとった虫は、「家に送る」をおすと1つのファイルになります。ファイルに入るのは、小さくした写真・虫のしゅるい・日付・スタンプの場所の名前だけで、緯度・経度は入りません。このゲームがファイルをどこかへ送ることはありません。家のタブレット・パソコンへは、AirDrop・メールなど、おうちの方がえらんだ方法で送ってください。</p>
+    <p><b>6. お問い合わせ</b><br>Game Director: Ryohei Taniguchi<br>${CONTACT_URL ? `<a href="${CONTACT_URL}" target="_blank" rel="noopener">お問い合わせフォーム</a>` : 'お問い合わせフォーム（じゅんび中）'}</p>`);
   const c = $('gaOffChk'); if(c) c.onchange = ()=> setGaOff(c.checked);
   return p;
 }
@@ -3323,7 +3448,7 @@ requestAnimationFrame(loop);
 window.claude?.hot?.snapshot?.(()=>({save:JSON.stringify(S), scene}));
 function start(data){
   if(data && data.save && data.scene==='field'){ try{ S = loadState(data.save); scene = 'field'; $('titleScr').hidden = true; hud(); return; }catch(e){} }
-  if(QS.get('panel')) setTimeout(()=> QS.get('panel')==='share' ? showShare() : QS.get('panel')==='cam' ? (photos.stamps = {oshima:{date:'2026/8/15'}, taisha:{date:'2026/8/18'}, akama:{date:'2026/8/13'}}, openCam()) : showInstall(), 700);   // 画面確認用
+  if(QS.get('panel')) setTimeout(()=> QS.get('panel')==='share' ? showShare() : QS.get('panel')==='cam' ? (photos.stamps = {oshima:{date:'2026/8/15'}, taisha:{date:'2026/8/18'}, akama:{date:'2026/8/13'}}, openCam()) : QS.get('panel')==='out' ? openCam(true) : showInstall(), 700);   // 画面確認用
   const demo = QS.get('demo');
   if(demo){ S = newState(); scene = 'field'; $('titleScr').hidden = true; S.area = 'taisha'; S.x = 9; S.y = 9; if(QS.get('min')) S.min = +QS.get('min'); if(QS.get('area')) S.area = QS.get('area'); if(QS.get('dir')) S.dir = QS.get('dir'); hud(); layout();
     if(demo==='battle'){ if(QS.get('net')) S.net = clamp(+QS.get('net'), 0, NETS.length - 1);   // net：あみの種類（0＝こども用〜4＝名人）
