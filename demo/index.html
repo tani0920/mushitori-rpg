@@ -382,8 +382,8 @@ body.touch #titleScr .tbtn{font-size:clamp(13px,3.6vmin,19px)}
 #restScr{z-index:150;color:#fff;display:flex;align-items:flex-start;justify-content:center;text-align:center;
   background:linear-gradient(#0006,#0000 50%) no-repeat,url(img/sprites/bg/rest_tate.jpg) center bottom/cover no-repeat #3a2a52}
 #restScr.end{background-image:linear-gradient(#0006,#0000 50%),url(img/sprites/bg/rest_end_tate.jpg)}
-@media (orientation:landscape){   /* よこ長の画面では、空がのこるように上よりで切る（文字は空にのせる） */
-  #restScr{background-image:linear-gradient(#0007,#0000 60%),url(img/sprites/bg/rest_yoko.jpg);background-position:center 22%}
+@media (orientation:landscape){   /* よこ長の画面では、下の男の子が見切れないように下よりで切る（空は少し切れてもよい。島は切らない） */
+  #restScr{background-image:linear-gradient(#0008,#0000 55%),url(img/sprites/bg/rest_yoko.jpg);background-position:center 75%}
   #restScr.end{background-image:linear-gradient(#0006,#0000 50%),url(img/sprites/bg/rest_end_yoko.jpg)}
 }
 #restScr .in{max-width:560px;padding:calc(env(safe-area-inset-top,0px) + 6vh) 20px 20px;display:flex;flex-direction:column;align-items:center;gap:12px}
@@ -710,7 +710,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.4.0';
-const BUILD = '20261025-2027';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261025-2035';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.4.0', date:'2026-10-25', items:[
     'オプションに「あそぶ時間」を入れた。はじめは「30分あそぶと10分休けい」。おうちの人が時間（15〜60分）と休けい（5〜30分、または「その日はおしまい」）を決められる。5分前に夕方の町のチャイム（ファミコン風の「夕焼け小焼け」）、1分前にヒグラシが鳴って、時間になると休けいになる',
