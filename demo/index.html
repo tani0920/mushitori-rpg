@@ -704,10 +704,10 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.4.0';
-const BUILD = '20261025-1952';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261025-1954';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.4.0', date:'2026-10-25', items:[
-    'オプションに「あそぶ時間」を入れた。はじめは「30分あそぶと10分休けい」。おうちの人が時間（15〜60分）と休けい（5〜30分、または「その日はおしまい」）を決められる。5分前に夕方の町のチャイム（夕焼け小焼け）、1分前にヒグラシが鳴って、時間になると休けいになる',
+    'オプションに「あそぶ時間」を入れた。はじめは「30分あそぶと10分休けい」。おうちの人が時間（15〜60分）と休けい（5〜30分、または「その日はおしまい」）を決められる。5分前に夕方の町のチャイム（ファミコン風の「夕焼け小焼け」）、1分前にヒグラシが鳴って、時間になると休けいになる',
     'タイトル画面に「虫とりカメラ（外で）」を入れた。外ではスマホで虫の写真だけをとって「虫とりカード」にして、家のタブレット・パソコンのゲームで開けられる（メニューの「写真をとる」→「届いた虫とりカードを開ける」）。ごほうびもスタンプも、家のゲームでもらえる',
     'スマホ・iPadの十字キーが、左下のあたりのさわったところに出るようにした。十字キーの上をさわったときは、そのままその向きに動く（オプションの「ボタン」で、前のきまった場所にもどせる）',
   ]},
@@ -3173,26 +3173,15 @@ const CHIME_MEL = [[67,2],[67,1],[69,1], [67,1],[67,1],[67,1],[64,1], [60,1],[60
                    [72,1.5],[74,.5],[72,1],[69,1], [72,1],[72,1],[67,1],[67,1], [69,1],[67,1],[69,1],[67,1], [64,3],[0,1],
                    [67,1],[64,1],[62,1],[60,1], [62,1],[62,1],[60,1],[62,1], [64,1],[67,1],[69,1],[67,1], [60,4]];
 const CHIME_BASS = [48,48, 48,48, 57,50, 55,55,  48,48, 53,53, 55,55, 48,48,  53,53, 48,48, 50,55, 48,48,  48,48, 53,53, 50,55, 48];   // 2分音符ごと（さいごは全音符）
-function seChime(){   // 夕方の町のチャイム。防災無線のチャイムのように、鉄琴のような鐘の音・ゆっくり・やさしい伴奏・屋外のこだま
+function seChime(){   // 夕方の町のチャイム：ファミコンのオルゴール風（細い矩形波のメロディが、すっと消える）＋和音をポロロンと分散
   if(!seReady()) return;
-  const b = 60 / 110; let at = actx.currentTime + .15; const t0 = at;
+  const b = 60 / 110, t0 = actx.currentTime + .1; let at = t0;
+  const CH = {48:[48,52,55], 50:[50,53,57], 53:[53,57,60], 55:[55,59,62], 57:[57,60,64]};   // 伴奏の音から和音をつくる
   try{
-    // こだま：町のスピーカーの音が、山や家に反射して遅れて聞こえる感じ
-    const out = actx.createGain(); out.gain.value = 1; out.connect(aSe);
-    const dl = actx.createDelay(1.5), fb = actx.createGain(), wet = actx.createGain(), lp = actx.createBiquadFilter();
-    dl.delayTime.value = .34; fb.gain.value = .32; wet.gain.value = .45; lp.type = 'lowpass'; lp.frequency.value = 2600;
-    out.connect(dl); dl.connect(lp); lp.connect(fb); fb.connect(dl); lp.connect(wet); wet.connect(aSe);
-    const bell = (n, t, d)=>{   // 鐘の音：基音＋高い倍音を、すっと消していく
-      const f = mhz(n), len = Math.min(2.6, d * b + 1.2);
-      for(const [r, v, dec] of [[1, .16, len], [2, .05, len * .5], [3.01, .025, len * .3], [4.2, .012, len * .2]]){
-        const o = actx.createOscillator(), g = actx.createGain(); o.type = 'sine'; o.frequency.value = f * r;
-        g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + .006); g.gain.exponentialRampToValueAtTime(.0005, t + dec);
-        o.connect(g); g.connect(out); o.start(t); o.stop(t + dec + .05);
-      }
-    };
-    CHIME_BASS.forEach((n, k)=>{ const d = k === CHIME_BASS.length - 1 ? 4 : 2; aTone(out, 'tri', mhz(n), t0 + k * 2 * b, d * b * .95, .05, null, [.08, .8, .3]); });   // やわらかい伴奏
-    for(const [n, d] of CHIME_MEL){ if(n) bell(n + 12, at, d); at += d * b; }
-    setTimeout(()=>{ try{ out.disconnect(); wet.disconnect(); fb.disconnect(); }catch(e){} }, (at - actx.currentTime + 6) * 1000);
+    for(const [n, d] of CHIME_MEL){ if(n){ const len = Math.min(d * b, 1.2); aTone(aSe, .125, mhz(n + 12), at, len, .14, null, [.004, 0, len * .9]); } at += d * b; }
+    CHIME_BASS.forEach((n, k)=>{ const d = k === CHIME_BASS.length - 1 ? 4 : 2, c = CH[n];
+      for(let i=0;i<d*2;i++) aTone(aSe, .5, mhz([c[0], c[1], c[2], c[1]][i % 4] + 12), t0 + (k * 4 + i) * b / 2, b * .45, .035, null, [.004, 0, b * .4]);
+      aTone(aSe, 'tri', mhz(n), t0 + k * 2 * b, d * b * .95, .14, null, [.01, .9, .3]); });
   }catch(e){}
 }
 function seKanakana(){   // ヒグラシ（カナカナカナ…）を3回
