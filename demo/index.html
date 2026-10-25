@@ -710,7 +710,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.4.0';
-const BUILD = '20261025-2043';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261025-2051';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.4.0', date:'2026-10-25', items:[
     'オプションに「あそぶ時間」を入れた。はじめは「30分あそぶと10分休けい」。おうちの人が時間（15〜60分）と休けい（5〜30分、または「その日はおしまい」）を決められる。5分前に夕方の町のチャイム（ファミコン風の「夕焼け小焼け」）、1分前にヒグラシが鳴って、時間になると休けいになる',
@@ -3166,7 +3166,12 @@ async function ptNotice(){
   try{ if(localStorage.getItem(PT_NOTICE_KEY)) return; localStorage.setItem(PT_NOTICE_KEY, '1'); }catch(e){ return; }
   const ts = $('titleScr'); ts.classList.add('quiet');   // タイトルのボタンを一時的にかくして、メッセージを読みやすく
   await say(`【おうちの方へ】このゲームは、${ptRuleText()}。\n決めた時間の5分前に町のチャイム、1分前にヒグラシが鳴ってお知らせします。`);
-  const c = await choose(['わかりました', 'いま設定する'], {msg:'時間や休けい（「その日はおしまい」もえらべます）は、オプションの「あそぶ時間」で変えられます。', cls:'side'});
+  const cp = choose(['わかりました', 'いま設定する'], {msg:'時間や休けい（「その日はおしまい」もえらべます）は、オプションの「あそぶ時間」で変えられます。', cls:'side'});
+  requestAnimationFrame(()=>{   // えらぶところは、メッセージのすぐ上に出す（スマホたてで画面の上に切れないように。タイトルのロゴにかぶってもよい）
+    const m = $('menu'), g = $('msg'); if(m.hidden || g.hidden) return;
+    m.style.top = Math.max(8, g.getBoundingClientRect().top - screenEl.getBoundingClientRect().top - m.offsetHeight - 10) + 'px'; m.style.bottom = 'auto';
+  });
+  const c = await cp; $('menu').style.top = ''; $('menu').style.bottom = '';
   if(c === 1) await playTimeMenu(true);   // おうちの方が読んでいるので、かけ算の確認はしない
   ts.classList.remove('quiet');
 }
