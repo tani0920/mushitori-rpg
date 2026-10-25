@@ -382,11 +382,20 @@ body.touch #titleScr .tbtn{font-size:clamp(13px,3.6vmin,19px)}
 #restScr{z-index:150;background:linear-gradient(#f6b26b 0%,#e07a5f 35%,#6d4c7d 75%,#2b2d52 100%);color:#fff;display:flex;align-items:center;justify-content:center;text-align:center}
 #restScr .in{max-width:560px;padding:24px 20px;display:flex;flex-direction:column;align-items:center;gap:14px}
 #restScr .rsSun{width:90px;height:90px;border-radius:50%;background:radial-gradient(#fff3b0,#ffcf6b 60%,#ff9f43);box-shadow:0 0 40px #ffcf6b99}
-#restScr h2{margin:0;font-size:26px;font-weight:400;letter-spacing:.08em;text-shadow:2px 2px 0 #0006}
+#restScr h2{margin:0;font-size:clamp(20px,6.4vw,28px);font-weight:400;letter-spacing:.04em;white-space:nowrap;-webkit-text-stroke:.8px #fff;text-shadow:2px 2px 0 #0006}
 #restScr p{margin:0;font-size:18px;line-height:1.8;white-space:pre-line;text-shadow:1px 1px 0 #0006}
-#rsTime{font-size:44px;letter-spacing:.06em;text-shadow:2px 2px 0 #0006}
+#rsTime{font-size:clamp(28px,9vw,44px);letter-spacing:.04em;white-space:nowrap;-webkit-text-stroke:1.2px #fff;text-shadow:3px 3px 0 #0006}
 #rsTime:empty{display:none}
 #rsBack{font-size:20px;padding:.5em 1.6em}
+@media (orientation:landscape) and (max-height:600px){   /* スマホよこ：スクロールしないで1画面に入れる */
+  #restScr .in{gap:6px;padding:10px 16px}
+  #restScr .rsSun{width:52px;height:52px}
+  #restScr h2{font-size:clamp(18px,5.4vh,24px)}
+  #restScr p{font-size:clamp(13px,3.8vh,16px);line-height:1.6}
+  #rsTime{font-size:clamp(24px,8vh,36px)}
+  #rsBack{font-size:17px;padding:.35em 1.4em}
+  #restScr .rsParent{margin-top:6px}
+}
 #restScr .rsParent{margin-top:18px;font:inherit;font-size:14px;color:#fff;background:#0004;border:1px solid #fff8;border-radius:999px;padding:.35em 1.2em;cursor:pointer}
 #ptToast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 12px);transform:translateX(-50%);z-index:140;max-width:min(92vw,520px);background:#2b2d52ee;color:#fff;border:2px solid #ffcf6b;border-radius:12px;padding:10px 16px;font-size:16px;line-height:1.6;white-space:pre-line;text-align:center;box-shadow:0 4px 0 #0005;animation:ptIn .4s ease-out}
 @keyframes ptIn{from{opacity:0;transform:translate(-50%,-12px)}to{opacity:1;transform:translateX(-50%)}}
@@ -693,10 +702,10 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.4.0';
-const BUILD = '20261025-1702';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261025-1747';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.4.0', date:'2026-10-25', items:[
-    'オプションに「あそぶ時間」を入れた。おうちの人が時間（15〜60分）と休けい（5〜30分、または「その日はおしまい」）を決められる。5分前に夕方の町のチャイム、1分前にヒグラシが鳴って、時間になると休けいになる',
+    'オプションに「あそぶ時間」を入れた。おうちの人が時間（15〜60分）と休けい（5〜30分、または「その日はおしまい」）を決められる。5分前に夕方の町のチャイム（夕焼け小焼け）、1分前にヒグラシが鳴って、時間になると休けいになる',
     'タイトル画面に「虫とりカメラ（外で）」を入れた。外ではスマホで虫の写真だけをとって「虫とりカード」にして、家のタブレット・パソコンのゲームで開けられる（メニューの「写真をとる」→「届いた虫とりカードを開ける」）。ごほうびもスタンプも、家のゲームでもらえる',
     'スマホ・iPadの十字キーが、左下のあたりのさわったところに出るようにした。十字キーの上をさわったときは、そのままその向きに動く（オプションの「ボタン」で、前のきまった場所にもどせる）',
   ]},
@@ -3142,11 +3151,13 @@ async function playTimeMenu(){
   ptSt = {used:0, last:Date.now()}; ptSaveSt();
   await say(L[c] ? `あそぶ時間を「${L[c]}分」にしました。\n時間になったら、${rest === 'end' ? 'その日の虫とりはおしまいです。' : `${rest}分 休けいします。`}\n（歩いているところなら、休けいの前にじどうセーブします）` : 'あそぶ時間を「なし」にしました。');
 }
-function seChime(){   // 夕方の町のチャイム「遠き山に日は落ちて」（ドヴォルザーク「新世界より」第2楽章）
+function seChime(){   // 夕方の町のチャイム「夕焼け小焼け」（草川信 作曲。宗像の防災無線でも夕方に流れる）
   if(!seReady()) return;
-  const b = .42; let at = actx.currentTime + .1;
-  const mel = [[76,1],[79,.5],[79,1.5],[76,1],[74,.5],[72,1.5],[74,1],[76,1],[79,1],[76,1],[74,3],
-               [76,1],[79,.5],[79,1.5],[76,1],[74,.5],[72,1.5],[74,1],[76,1],[74,1],[72,1],[72,3]];
+  const b = .4; let at = actx.currentTime + .1;
+  const mel = [[79,1],[79,1],[79,1],[81,1],[79,1],[79,1],[76,2],  [72,1],[72,1],[74,1],[76,1],[74,4],
+               [76,1],[76,1],[79,1],[79,1],[81,1],[81,1],[84,2],  [81,1],[79,1],[81,1],[79,1],[76,4],
+               [84,1],[84,1],[81,1],[79,1],[81,1],[81,1],[79,2],  [76,1],[76,1],[79,1],[81,1],[79,4],
+               [79,1],[79,1],[79,1],[81,1],[79,1],[79,1],[76,2],  [72,1],[72,1],[74,1],[76,1],[72,4]];
   try{ for(const [n, d] of mel){ aTone(aSe, .125, mhz(n), at, d*b*.98, .11, null, [.01, .45, .5]); aTone(aSe, 'tri', mhz(n - 12), at, d*b*.98, .07, null, [.01, .5, .5]); at += d*b; } }catch(e){}
 }
 function seKanakana(){   // ヒグラシ（カナカナカナ…）を3回
