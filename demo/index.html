@@ -704,7 +704,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.4.0';
-const BUILD = '20261025-1954';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261025-2008';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.4.0', date:'2026-10-25', items:[
     'オプションに「あそぶ時間」を入れた。はじめは「30分あそぶと10分休けい」。おうちの人が時間（15〜60分）と休けい（5〜30分、または「その日はおしまい」）を決められる。5分前に夕方の町のチャイム（ファミコン風の「夕焼け小焼け」）、1分前にヒグラシが鳴って、時間になると休けいになる',
@@ -3176,6 +3176,9 @@ const CHIME_BASS = [48,48, 48,48, 57,50, 55,55,  48,48, 53,53, 55,55, 48,48,  53
 function seChime(){   // 夕方の町のチャイム：ファミコンのオルゴール風（細い矩形波のメロディが、すっと消える）＋和音をポロロンと分散
   if(!seReady()) return;
   const b = 60 / 110, t0 = actx.currentTime + .1; let at = t0;
+  // チャイムのあいだは、BGM（曲と虫の声）を消して、チャイムだけを聞かせる。鳴り終わったら、ゆっくりもどす
+  const len = CHIME_MEL.reduce((t, [, d])=>t + d, 0) * b + .6;
+  try{ aBgm.gain.cancelScheduledValues(t0 - .1); aBgm.gain.setTargetAtTime(0, t0 - .1, .25); aBgm.gain.setTargetAtTime(.32, t0 + len, .8); }catch(e){}
   const CH = {48:[48,52,55], 50:[50,53,57], 53:[53,57,60], 55:[55,59,62], 57:[57,60,64]};   // 伴奏の音から和音をつくる
   try{
     for(const [n, d] of CHIME_MEL){ if(n){ const len = Math.min(d * b, 1.2); aTone(aSe, .125, mhz(n + 12), at, len, .14, null, [.004, 0, len * .9]); } at += d * b; }
