@@ -397,6 +397,8 @@ body.touch #titleScr .tbtn{font-size:clamp(13px,3.6vmin,19px)}
   #restScr .rsParent{margin-top:6px}
 }
 #restScr .rsParent{margin-top:18px;font:inherit;font-size:14px;color:#fff;background:#0004;border:1px solid #fff8;border-radius:999px;padding:.35em 1.2em;cursor:pointer}
+#ipBody .ptBtns{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+#ipBody .ptBtns .btn{flex:1 1 140px;font-size:17px;padding:.5em 1em}
 #ptToast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 12px);transform:translateX(-50%);z-index:140;max-width:min(92vw,520px);background:#2b2d52ee;color:#fff;border:2px solid #ffcf6b;border-radius:12px;padding:10px 16px;font-size:16px;line-height:1.6;white-space:pre-line;text-align:center;box-shadow:0 4px 0 #0005;animation:ptIn .4s ease-out}
 @keyframes ptIn{from{opacity:0;transform:translate(-50%,-12px)}to{opacity:1;transform:translateX(-50%)}}
 #endScr{background:linear-gradient(#1b3f7a,#3d2f6a 60%,#17261d);color:var(--ink);display:flex;flex-direction:column}
@@ -702,10 +704,10 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.4.0';
-const BUILD = '20261025-1747';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261025-1755';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.4.0', date:'2026-10-25', items:[
-    'オプションに「あそぶ時間」を入れた。おうちの人が時間（15〜60分）と休けい（5〜30分、または「その日はおしまい」）を決められる。5分前に夕方の町のチャイム（夕焼け小焼け）、1分前にヒグラシが鳴って、時間になると休けいになる',
+    'オプションに「あそぶ時間」を入れた。はじめは「30分あそぶと10分休けい」。おうちの人が時間（15〜60分）と休けい（5〜30分、または「その日はおしまい」）を決められる。5分前に夕方の町のチャイム（夕焼け小焼け）、1分前にヒグラシが鳴って、時間になると休けいになる',
     'タイトル画面に「虫とりカメラ（外で）」を入れた。外ではスマホで虫の写真だけをとって「虫とりカード」にして、家のタブレット・パソコンのゲームで開けられる（メニューの「写真をとる」→「届いた虫とりカードを開ける」）。ごほうびもスタンプも、家のゲームでもらえる',
     'スマホ・iPadの十字キーが、左下のあたりのさわったところに出るようにした。十字キーの上をさわったときは、そのままその向きに動く（オプションの「ボタン」で、前のきまった場所にもどせる）',
   ]},
@@ -3121,7 +3123,7 @@ function giveReward(cat, thumb, h, date){
    おうちの人が決める：時間（15〜60分）と、休けい（5〜30分、または「その日はおしまい」）。変えるときは、かけ算の確認をする */
 const PT_KEY = KEY_PRE + 'munakata-playtime-v1', PT_ST_KEY = KEY_PRE + 'munakata-playtime-state-v1';
 const PT_MIN = QS.has('ptfast') ? 1000 : 60000;   // 画面確認用：?ptfast で「1分」を1秒にする
-let ptSet = (()=>{ try{ return Object.assign({limit:0, rest:10}, JSON.parse(localStorage.getItem(PT_KEY)) || {}); }catch(e){ return {limit:0, rest:10}; } })();
+let ptSet = (()=>{ try{ return Object.assign({limit:30, rest:10}, JSON.parse(localStorage.getItem(PT_KEY)) || {}); }catch(e){ return {limit:30, rest:10}; } })();   // はじめは「30分あそんだら10分休けい」
 let ptSt = (()=>{ try{ return Object.assign({used:0, last:0}, JSON.parse(localStorage.getItem(PT_ST_KEY)) || {}); }catch(e){ return {used:0, last:0}; } })();
 const ptSaveSet = ()=>{ try{ localStorage.setItem(PT_KEY, JSON.stringify(ptSet)); }catch(e){} };
 const ptSaveSt = ()=>{ try{ localStorage.setItem(PT_ST_KEY, JSON.stringify(ptSt)); }catch(e){} };
@@ -3134,9 +3136,9 @@ function parentCheck(){   // おうちの人の確認：小学生には少しむ
   if(n === a*b) return true;
   alert('ちがうみたいです。'); return false;
 }
-async function playTimeMenu(){
+async function playTimeMenu(skipCheck){
   await say(`【あそぶ時間】いま：${ptSet.limit ? `${ptSet.limit}分あそんだら、${ptSet.rest === 'end' ? 'その日はおしまい' : `${ptSet.rest}分 休けい`}` : 'なし'}\nおうちの人が決める設定です。決めた時間の5分前に町のチャイム、1分前にヒグラシが鳴って、時間になると休けいになります。`);
-  if(ptSet.limit && !parentCheck()) return;
+  if(ptSet.limit && !skipCheck && !parentCheck()) return;
   const L = [0, 15, 30, 45, 60];
   const c = await choose(L.map(m=>m ? `${m}分` : 'なし（時間をきめない）'), {title:'あそぶ時間', cls:'side', start:Math.max(0, L.indexOf(ptSet.limit))});
   if(c < 0) return;
@@ -3150,6 +3152,20 @@ async function playTimeMenu(){
   ptSet = {limit:L[c], rest}; ptSaveSet();
   ptSt = {used:0, last:Date.now()}; ptSaveSt();
   await say(L[c] ? `あそぶ時間を「${L[c]}分」にしました。\n時間になったら、${rest === 'end' ? 'その日の虫とりはおしまいです。' : `${rest}分 休けいします。`}\n（歩いているところなら、休けいの前にじどうセーブします）` : 'あそぶ時間を「なし」にしました。');
+}
+/* はじめて開いたときに1回だけ：おうちの方へのお知らせ */
+const PT_NOTICE_KEY = KEY_PRE + 'munakata-playtime-notice-v1';
+function ptRuleText(){ return ptSet.limit ? `${ptSet.limit}分あそぶと、${ptSet.rest === 'end' ? 'その日はおしまい' : `${ptSet.rest}分の休けい`}になります` : '時間の決まりはありません（いまは「なし」）'; }
+async function ptNotice(){
+  try{ if(localStorage.getItem(PT_NOTICE_KEY)) return; localStorage.setItem(PT_NOTICE_KEY, '1'); }catch(e){ return; }
+  let set = false;
+  const p = openPanel('おうちの方へ', `<p>このゲームは、<b>${ptRuleText()}</b>。<br>決めた時間の5分前に夕方の町のチャイム、1分前にヒグラシが鳴ってお知らせします。</p>
+    <p>時間や休けい（「その日はおしまい」もえらべます）は、<b>オプションの「あそぶ時間」</b>で変えられます。変えるときは、かんたんなかけ算で、おうちの方かどうかを確かめます。</p>
+    <p class="ptBtns"><button type="button" class="btn" id="ptOk">わかりました</button><button type="button" class="btn" id="ptSetNow">いま設定する</button></p>`);
+  $('ptOk').onclick = ()=> $('ipClose').click();
+  $('ptSetNow').onclick = ()=>{ set = true; $('ipClose').click(); };
+  await p;
+  if(set) await playTimeMenu(true);   // おうちの方が読んでいるので、かけ算の確認はしない
 }
 function seChime(){   // 夕方の町のチャイム「夕焼け小焼け」（草川信 作曲。宗像の防災無線でも夕方に流れる）
   if(!seReady()) return;
@@ -3468,7 +3484,8 @@ function showPrivacy(){
     <p class="note">${window.DEMO ? '※デモ版では、もともと計測していません。' : 'チェックを入れると、この端末からは何も送らなくなります。'}</p>
     <p><b>4. セーブデータ</b><br>ゲームの記録は、お使いの端末のブラウザの中（localStorage）にだけ保存されます。</p>
     <p><b>5. 虫とりカメラの「虫とりカード」</b><br>タイトル画面の「虫とりカメラ」でとった虫は、「家に送る」をおすと1つのファイル（開くと「虫とりカード」のページ）になります。ファイルに入るのは、小さくした写真・虫のしゅるい・日付・スタンプの場所の名前だけで、緯度・経度は入りません。このゲームがファイルをどこかへ送ることはありません。家のタブレット・パソコンへは、AirDrop・メールなど、おうちの方がえらんだ方法で送ってください。</p>
-    <p><b>6. お問い合わせ</b><br>Game Director: Ryohei Taniguchi<br>${CONTACT_URL ? `<a href="${CONTACT_URL}" target="_blank" rel="noopener">お問い合わせフォーム</a>` : 'お問い合わせフォーム（じゅんび中）'}</p>`);
+    <p><b>6. あそぶ時間</b><br>はじめは「30分あそぶと10分の休けい」になっています。時間や休けい（「その日はおしまい」もえらべます）は、オプションの「あそぶ時間」で変えられます。変えるときは、かんたんなかけ算で、おうちの方かどうかを確かめます。</p>
+    <p><b>7. お問い合わせ</b><br>Game Director: Ryohei Taniguchi<br>${CONTACT_URL ? `<a href="${CONTACT_URL}" target="_blank" rel="noopener">お問い合わせフォーム</a>` : 'お問い合わせフォーム（じゅんび中）'}</p>`);
   const c = $('gaOffChk'); if(c) c.onchange = ()=> setGaOff(c.checked);
   return p;
 }
@@ -3496,6 +3513,7 @@ function titleMenuFit(){
 window.titleArt = titleArt; titleArt(); addEventListener('resize', titleArt);
 async function titleScreen(){
   scene = 'title'; hud(); $('titleScr').hidden = false;
+  await ptNotice();
   const has = !!loadRaw(), carry = loadCarry();
   const opts = [{label:'はじめから'}, {label:'つづきから', disabled:!has}];
   if(carry) opts.push({label:`引きつぎではじめる（小学${grade(carry.round)}年生の夏）`});
@@ -3524,6 +3542,7 @@ async function intro(){
     [`${dateStr()}。いよいよ虫とりの日がやってきた！`, 'boku'],
     ['7月21日に夏休みがはじまってから、がんばって宿題をほとんど終わらせた。\nのこりの夏休みは、虫とりに全力だ！', 'boku'],
     'お母さん「宿題がんばったわね。でも夜9時までには帰ってくるのよ。\nそれから、「どんぐり銀行」から、あなたのどんぐりがとどいてたわよ。」',
+    ...(ptSet.limit ? [`お母さん「あと、虫とりは${ptSet.limit}分したら、${ptSet.rest === 'end' ? 'その日はおしまいにする' : 'ひと休みする'}のよ。\n町のチャイムが鳴ったら、もうすぐ${ptSet.rest === 'end' ? 'おしまい' : '休けい'}の合図よ。」`] : []),
     `どんぐりを ${dg(300)} もらった！\n「どんぐり銀行」は、宗像で自然をしらべた子どもに、どんぐり（D）をわたしてくれるところだ。`,
     `${dateStr(DAYS+1)}からは二学期がはじまる。\n${dateStr(DAYS)}までの${DAYS}日間で、宗像じゅうの虫をつかまえてこん虫ずかんを完成させよう！`,
     '自由研究は「こん虫ずかんづくり」！\nたくさんの虫、めずらしい虫をのせるほど、二学期の発表で注目されるぞ。',
