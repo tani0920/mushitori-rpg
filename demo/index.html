@@ -379,16 +379,23 @@ body.touch #titleScr .tbtn{font-size:clamp(13px,3.6vmin,19px)}
 #album .a{border:2px solid var(--paper-line);border-radius:4px;background:#fffaf0;padding:4px;text-align:center;font-size:11px;line-height:1.3}
 #album .a img,#album .a .no{width:100%;aspect-ratio:1;object-fit:cover;border-radius:2px;display:block;margin-bottom:3px}
 #album .a .no{background:repeating-linear-gradient(45deg,#efe4c8 0 6px,#f6eedb 6px 12px);display:flex;align-items:center;justify-content:center;font-size:22px;color:#c8b890}
-#restScr{z-index:150;background:linear-gradient(#f6b26b 0%,#e07a5f 35%,#6d4c7d 75%,#2b2d52 100%);color:#fff;display:flex;align-items:center;justify-content:center;text-align:center}
-#restScr .in{max-width:560px;padding:24px 20px;display:flex;flex-direction:column;align-items:center;gap:14px}
-#restScr .rsSun{width:90px;height:90px;border-radius:50%;background:radial-gradient(#fff3b0,#ffcf6b 60%,#ff9f43);box-shadow:0 0 40px #ffcf6b99}
+#restScr{z-index:150;color:#fff;display:flex;align-items:flex-start;justify-content:center;text-align:center;
+  background:linear-gradient(#0006,#0000 50%) no-repeat,url(img/sprites/bg/rest_tate.jpg) center bottom/cover no-repeat #3a2a52}
+#restScr.end{background-image:linear-gradient(#0006,#0000 50%),url(img/sprites/bg/rest_end_tate.jpg)}
+@media (orientation:landscape){   /* よこ長の画面では、空がのこるように上よりで切る（文字は空にのせる） */
+  #restScr{background-image:linear-gradient(#0007,#0000 60%),url(img/sprites/bg/rest_yoko.jpg);background-position:center 22%}
+  #restScr.end{background-image:linear-gradient(#0006,#0000 50%),url(img/sprites/bg/rest_end_yoko.jpg)}
+}
+#restScr .in{max-width:560px;padding:calc(env(safe-area-inset-top,0px) + 6vh) 20px 20px;display:flex;flex-direction:column;align-items:center;gap:12px}
+#restScr .rsSun{display:none}   /* 夕日は絵の中にある */
 #restScr h2{margin:0;font-size:clamp(20px,6.4vw,28px);font-weight:400;letter-spacing:.04em;white-space:nowrap;-webkit-text-stroke:.8px #fff;text-shadow:2px 2px 0 #0006}
-#restScr p{margin:0;font-size:18px;line-height:1.8;white-space:pre-line;text-shadow:1px 1px 0 #0006}
+#restScr p{margin:0;font-size:18px;line-height:1.8;white-space:pre-line;text-shadow:1px 1px 0 #000a,0 0 6px #0008}
 #rsTime{font-size:clamp(28px,9vw,44px);letter-spacing:.04em;white-space:nowrap;-webkit-text-stroke:1.2px #fff;text-shadow:3px 3px 0 #0006}
 #rsTime:empty{display:none}
 #rsBack{font-size:20px;padding:.5em 1.6em}
 @media (orientation:landscape) and (max-height:600px){   /* スマホよこ：スクロールしないで1画面に入れる */
   #restScr .in{gap:6px;padding:10px 16px}
+  #restScr{align-items:flex-start}
   #restScr .rsSun{width:52px;height:52px}
   #restScr h2{font-size:clamp(18px,5.4vh,24px)}
   #restScr p{font-size:clamp(13px,3.8vh,16px);line-height:1.6}
@@ -397,8 +404,7 @@ body.touch #titleScr .tbtn{font-size:clamp(13px,3.6vmin,19px)}
   #restScr .rsParent{margin-top:6px}
 }
 #restScr .rsParent{margin-top:18px;font:inherit;font-size:14px;color:#fff;background:#0004;border:1px solid #fff8;border-radius:999px;padding:.35em 1.2em;cursor:pointer}
-#ipBody .ptBtns{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
-#ipBody .ptBtns .btn{flex:1 1 140px;font-size:17px;padding:.5em 1em}
+#titleScr.quiet .tside,#titleScr.quiet .t4,#titleScr.quiet #btnPriv{visibility:hidden}
 #ptToast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 12px);transform:translateX(-50%);z-index:140;max-width:min(92vw,520px);background:#2b2d52ee;color:#fff;border:2px solid #ffcf6b;border-radius:12px;padding:10px 16px;font-size:16px;line-height:1.6;white-space:pre-line;text-align:center;box-shadow:0 4px 0 #0005;animation:ptIn .4s ease-out}
 @keyframes ptIn{from{opacity:0;transform:translate(-50%,-12px)}to{opacity:1;transform:translateX(-50%)}}
 #endScr{background:linear-gradient(#1b3f7a,#3d2f6a 60%,#17261d);color:var(--ink);display:flex;flex-direction:column}
@@ -704,7 +710,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.4.0';
-const BUILD = '20261025-2008';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261025-2027';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.4.0', date:'2026-10-25', items:[
     'オプションに「あそぶ時間」を入れた。はじめは「30分あそぶと10分休けい」。おうちの人が時間（15〜60分）と休けい（5〜30分、または「その日はおしまい」）を決められる。5分前に夕方の町のチャイム（ファミコン風の「夕焼け小焼け」）、1分前にヒグラシが鳴って、時間になると休けいになる',
@@ -3158,21 +3164,12 @@ const PT_NOTICE_KEY = KEY_PRE + 'munakata-playtime-notice-v1';
 function ptRuleText(){ return ptSet.limit ? `${ptSet.limit}分あそぶと、${ptSet.rest === 'end' ? 'その日はおしまい' : `${ptSet.rest}分の休けい`}になります` : '時間の決まりはありません（いまは「なし」）'; }
 async function ptNotice(){
   try{ if(localStorage.getItem(PT_NOTICE_KEY)) return; localStorage.setItem(PT_NOTICE_KEY, '1'); }catch(e){ return; }
-  let set = false;
-  const p = openPanel('おうちの方へ', `<p>このゲームは、<b>${ptRuleText()}</b>。<br>決めた時間の5分前に夕方の町のチャイム、1分前にヒグラシが鳴ってお知らせします。</p>
-    <p>時間や休けい（「その日はおしまい」もえらべます）は、<b>オプションの「あそぶ時間」</b>で変えられます。変えるときは、かんたんなかけ算で、おうちの方かどうかを確かめます。</p>
-    <p class="ptBtns"><button type="button" class="btn" id="ptOk">わかりました</button><button type="button" class="btn" id="ptSetNow">いま設定する</button></p>`);
-  $('ptOk').onclick = ()=> $('ipClose').click();
-  $('ptSetNow').onclick = ()=>{ set = true; $('ipClose').click(); };
-  await p;
-  if(set) await playTimeMenu(true);   // おうちの方が読んでいるので、かけ算の確認はしない
+  const ts = $('titleScr'); ts.classList.add('quiet');   // タイトルのボタンを一時的にかくして、メッセージを読みやすく
+  await say(`【おうちの方へ】このゲームは、${ptRuleText()}。\n決めた時間の5分前に町のチャイム、1分前にヒグラシが鳴ってお知らせします。`);
+  const c = await choose(['わかりました', 'いま設定する'], {msg:'時間や休けい（「その日はおしまい」もえらべます）は、オプションの「あそぶ時間」で変えられます。', cls:'side'});
+  if(c === 1) await playTimeMenu(true);   // おうちの方が読んでいるので、かけ算の確認はしない
+  ts.classList.remove('quiet');
 }
-/* 「夕焼け小焼け」（草川信 作曲・ハ長調・4/4・♩=110）。[音の高さ（MIDI）, 拍]、0 は休み。メロディは楽譜より1オクターブ上で鳴らす */
-const CHIME_MEL = [[67,2],[67,1],[69,1], [67,1],[67,1],[67,1],[64,1], [60,1],[60,1],[62,1],[64,1], [62,3],[0,1],
-                   [64,2],[64,1],[67,1], [69,1],[72,1],[72,1],[69,1], [67,1],[67,1],[69,1],[67,1], [72,3],[0,1],
-                   [72,1.5],[74,.5],[72,1],[69,1], [72,1],[72,1],[67,1],[67,1], [69,1],[67,1],[69,1],[67,1], [64,3],[0,1],
-                   [67,1],[64,1],[62,1],[60,1], [62,1],[62,1],[60,1],[62,1], [64,1],[67,1],[69,1],[67,1], [60,4]];
-const CHIME_BASS = [48,48, 48,48, 57,50, 55,55,  48,48, 53,53, 55,55, 48,48,  53,53, 48,48, 50,55, 48,48,  48,48, 53,53, 50,55, 48];   // 2分音符ごと（さいごは全音符）
 function seChime(){   // 夕方の町のチャイム：ファミコンのオルゴール風（細い矩形波のメロディが、すっと消える）＋和音をポロロンと分散
   if(!seReady()) return;
   const b = 60 / 110, t0 = actx.currentTime + .1; let at = t0;
@@ -3210,6 +3207,7 @@ function restHide(){
 }
 function restUpdate(){
   const end = ptSt.endDay && ptSt.endDay === todayKey();
+  $('restScr').classList.toggle('end', !!end);
   $('rsTitle').textContent = end ? '今日の虫とりは、ここまで！' : 'ひと休みの時間だよ';
   $('rsMsg').textContent = end ? 'たくさん虫とりしたね。\n目を休めて、また明日あそぼう。' : '今日の虫とりは、ここでひと休み。\n目を休めて、お水をのもう。';
   const left = end ? 0 : Math.max(0, Math.ceil(((ptSt.restUntil || 0) - Date.now()) / 1000));
