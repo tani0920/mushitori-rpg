@@ -671,7 +671,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.4.0';
-const BUILD = '20261025-1147';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261025-1256';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.4.0', date:'2026-10-25', items:[
     'タイトル画面に「虫とりカメラ（外で）」を入れた。外ではスマホで虫の写真だけをとって「虫とりカード」にして、家のタブレット・パソコンのゲームで開けられる（メニューの「写真をとる」→「届いた虫とりカードを開ける」）。ごほうびもスタンプも、家のゲームでもらえる',
@@ -3108,16 +3108,19 @@ async function sendOmi(){
   const data = {app:'munakata-mushitori', kind:'omiyage', v:1, items, sig:await omiSig(items)};
   const d = new Date(), name = `虫とり日記の虫とりカード_${d.getMonth()+1}月${d.getDate()}日${d.getHours()}時${String(d.getMinutes()).padStart(2,'0')}分.html`;
   const file = new File([omiCard(data)], name, {type:'text/html'});
-  let ok = false;
+  // 「送った」は、共有の画面を出す前に記録する。iPhoneでは、AirDropやLINEで送れても「やめた」と返ってきたり、
+  // 送っているあいだにページが読みこみなおされたりして、あとで記録できないことがあるため（カードは毎回ぜんぶ入るので、送りなおしてもだいじょうぶ）
+  omiyage.list.forEach(o=>o.sent = true); saveOmi(); renderOmi(); track('omiyage_send', {n:items.length});
+  let ok = false, maybeCancel = false;
   if(navigator.canShare && navigator.canShare({files:[file]})){
     try{ await navigator.share({files:[file], title:'虫とり日記の虫とりカード'}); ok = true; }
-    catch(e){ if(e.name==='AbortError') return; }
+    catch(e){ if(e.name==='AbortError'){ ok = true; maybeCancel = true; } }
   }
   if(!ok){   // 共有できないときは、ファイルを保存する
     const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = name; document.body.appendChild(a); a.click(); a.remove();
     setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
   }
-  omiyage.list.forEach(o=>o.sent = true); saveOmi(); renderOmi(); track('omiyage_send', {n:items.length});
+  if(maybeCancel){ camResult('<div class="txt">送れたかな？<br><small>送るのをやめたときや、届いていないときは、もう一度「虫とりカードを家に送る」をおしてね。前に送ったカードも、いっしょに入るよ。</small></div>'); return; }
   camResult(`<div class="txt"><div class="ok big">虫とりカードのファイルができたよ！</div>家のタブレット・パソコンのゲームで、メニューの「写真をとる」→「届いた虫とりカードを開ける」をおして、このファイルをえらんでね。<br><small>${esc(name)}</small></div>`);
 }
 /* 虫とりカードのファイル：開くと「虫とりカード」のページになる。ゲームが読むデータは、ページの見えないところ（script）に入れる */
