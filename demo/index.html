@@ -379,6 +379,17 @@ body.touch #titleScr .tbtn{font-size:clamp(13px,3.6vmin,19px)}
 #album .a{border:2px solid var(--paper-line);border-radius:4px;background:#fffaf0;padding:4px;text-align:center;font-size:11px;line-height:1.3}
 #album .a img,#album .a .no{width:100%;aspect-ratio:1;object-fit:cover;border-radius:2px;display:block;margin-bottom:3px}
 #album .a .no{background:repeating-linear-gradient(45deg,#efe4c8 0 6px,#f6eedb 6px 12px);display:flex;align-items:center;justify-content:center;font-size:22px;color:#c8b890}
+#restScr{z-index:150;background:linear-gradient(#f6b26b 0%,#e07a5f 35%,#6d4c7d 75%,#2b2d52 100%);color:#fff;display:flex;align-items:center;justify-content:center;text-align:center}
+#restScr .in{max-width:560px;padding:24px 20px;display:flex;flex-direction:column;align-items:center;gap:14px}
+#restScr .rsSun{width:90px;height:90px;border-radius:50%;background:radial-gradient(#fff3b0,#ffcf6b 60%,#ff9f43);box-shadow:0 0 40px #ffcf6b99}
+#restScr h2{margin:0;font-size:26px;font-weight:400;letter-spacing:.08em;text-shadow:2px 2px 0 #0006}
+#restScr p{margin:0;font-size:18px;line-height:1.8;white-space:pre-line;text-shadow:1px 1px 0 #0006}
+#rsTime{font-size:44px;letter-spacing:.06em;text-shadow:2px 2px 0 #0006}
+#rsTime:empty{display:none}
+#rsBack{font-size:20px;padding:.5em 1.6em}
+#restScr .rsParent{margin-top:18px;font:inherit;font-size:14px;color:#fff;background:#0004;border:1px solid #fff8;border-radius:999px;padding:.35em 1.2em;cursor:pointer}
+#ptToast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 12px);transform:translateX(-50%);z-index:140;max-width:min(92vw,520px);background:#2b2d52ee;color:#fff;border:2px solid #ffcf6b;border-radius:12px;padding:10px 16px;font-size:16px;line-height:1.6;white-space:pre-line;text-align:center;box-shadow:0 4px 0 #0005;animation:ptIn .4s ease-out}
+@keyframes ptIn{from{opacity:0;transform:translate(-50%,-12px)}to{opacity:1;transform:translateX(-50%)}}
 #endScr{background:linear-gradient(#1b3f7a,#3d2f6a 60%,#17261d);color:var(--ink);display:flex;flex-direction:column}
 #endScr>.in{margin:auto}   /* 中身が画面より長いときも上が切れない中央よせ（向きを変えたときも上にスクロールできる） */
 #endScr .in{max-width:520px;width:100%;text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center}
@@ -647,6 +658,17 @@ body.touch.land #menu.title{top:auto;bottom:10px;left:50%;right:auto;transform:t
     <div id="ipBody"></div>
   </div>
 </div>
+<div id="restScr" class="full" hidden>
+  <div class="in">
+    <div class="rsSun"></div>
+    <h2 id="rsTitle"></h2>
+    <p id="rsMsg"></p>
+    <div id="rsTime"></div>
+    <button type="button" class="btn" id="rsBack" hidden>虫とりにもどる</button>
+    <button type="button" class="rsParent" id="rsParent">おうちの人へ：休けいを終わらせる</button>
+  </div>
+</div>
+<div id="ptToast" hidden></div>
 <div id="endScr" class="full" hidden><div class="in" id="endIn"></div></div>
 
 <script>document.write('<script src="img/sprites/list.js?t=' + Date.now() + '"><\/script>');   // 絵の一覧はいつも最新を読む</script>
@@ -671,9 +693,10 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.4.0';
-const BUILD = '20261025-1256';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261025-1702';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.4.0', date:'2026-10-25', items:[
+    'オプションに「あそぶ時間」を入れた。おうちの人が時間（15〜60分）と休けい（5〜30分、または「その日はおしまい」）を決められる。5分前に夕方の町のチャイム、1分前にヒグラシが鳴って、時間になると休けいになる',
     'タイトル画面に「虫とりカメラ（外で）」を入れた。外ではスマホで虫の写真だけをとって「虫とりカード」にして、家のタブレット・パソコンのゲームで開けられる（メニューの「写真をとる」→「届いた虫とりカードを開ける」）。ごほうびもスタンプも、家のゲームでもらえる',
     'スマホ・iPadの十字キーが、左下のあたりのさわったところに出るようにした。十字キーの上をさわったときは、そのままその向きに動く（オプションの「ボタン」で、前のきまった場所にもどせる）',
   ]},
@@ -2308,12 +2331,13 @@ async function optionMenu(){
   optIdx = 0;
   while(true){
     const touch = document.body.classList.contains('touch');   // 「ボタンの高さ」は、画面にボタンが出ているときだけ
-    const keys = ['rule','furi','bgm','se','auto', ...(touch ? ['pad'] : []), 'priv','title','back'];
-    const lbl = {rule:'ルール', furi:`ふりがな：${furiMode ? 'たくさん' : 'ふつう'}`, bgm:`BGM：${sndPref.bgm ? 'ON' : 'OFF'}`, se:`効果音：${sndPref.se ? 'ON' : 'OFF'}`, auto:`じどうセーブ：${autoSave ? 'ON' : 'OFF'}`, pad:'ボタン（高さ・十字キー）', priv:'プライバシーについて', title:'タイトルにもどる', back:'もどる'};
+    const keys = ['rule','furi','bgm','se','auto','time', ...(touch ? ['pad'] : []), 'priv','title','back'];
+    const lbl = {rule:'ルール', furi:`ふりがな：${furiMode ? 'たくさん' : 'ふつう'}`, bgm:`BGM：${sndPref.bgm ? 'ON' : 'OFF'}`, se:`効果音：${sndPref.se ? 'ON' : 'OFF'}`, auto:`じどうセーブ：${autoSave ? 'ON' : 'OFF'}`, time:`あそぶ時間：${ptSet.limit ? ptSet.limit + '分' : 'なし'}`, pad:'ボタン（高さ・十字キー）', priv:'プライバシーについて', title:'タイトルにもどる', back:'もどる'};
     const ci = await choose(keys.map(k=>lbl[k]), {title:'オプション', cls:'side', start:optIdx});
     optIdx = Math.max(0, ci);
-    const c = ci < 0 ? -1 : {rule:0, furi:1, bgm:2, se:3, priv:4, title:5, back:6, pad:7, auto:8}[keys[ci]];
+    const c = ci < 0 ? -1 : {rule:0, furi:1, bgm:2, se:3, priv:4, title:5, back:6, pad:7, auto:8, time:9}[keys[ci]];
     if(c===7){ await padMenu(); continue; }
+    if(c===9){ await playTimeMenu(); continue; }
     if(c===8){ setAutoSave(!autoSave); await say(autoSave ? 'じどうセーブを「ON」にしました。\nほかのアプリに切りかえたとき、歩いているところならセーブします。\n（バトル中はセーブしません）' : 'じどうセーブを「OFF」にしました。\nセーブは、メニューの「セーブ」で自分でしてね。'); continue; }
     if(c<0 || c===6) return;
     if(c===2){ setSnd('bgm', !sndPref.bgm); continue; }
@@ -3084,6 +3108,104 @@ function giveReward(cat, thumb, h, date){
   return {first, gifts};
 }
 ['camIn','libIn'].forEach(id=>$(id).addEventListener('change', e=>{ const f = e.target.files[0]; e.target.value = ''; handlePhoto(f); }));
+/* ---------- あそぶ時間（オプション）：決めた時間がくると、夕方のチャイム→ヒグラシ→休けい ----------
+   おうちの人が決める：時間（15〜60分）と、休けい（5〜30分、または「その日はおしまい」）。変えるときは、かけ算の確認をする */
+const PT_KEY = KEY_PRE + 'munakata-playtime-v1', PT_ST_KEY = KEY_PRE + 'munakata-playtime-state-v1';
+const PT_MIN = QS.has('ptfast') ? 1000 : 60000;   // 画面確認用：?ptfast で「1分」を1秒にする
+let ptSet = (()=>{ try{ return Object.assign({limit:0, rest:10}, JSON.parse(localStorage.getItem(PT_KEY)) || {}); }catch(e){ return {limit:0, rest:10}; } })();
+let ptSt = (()=>{ try{ return Object.assign({used:0, last:0}, JSON.parse(localStorage.getItem(PT_ST_KEY)) || {}); }catch(e){ return {used:0, last:0}; } })();
+const ptSaveSet = ()=>{ try{ localStorage.setItem(PT_KEY, JSON.stringify(ptSet)); }catch(e){} };
+const ptSaveSt = ()=>{ try{ localStorage.setItem(PT_ST_KEY, JSON.stringify(ptSt)); }catch(e){} };
+const ptLocked = ()=> ptSt.pending || (ptSt.restUntil && Date.now() < ptSt.restUntil) || (ptSt.endDay && ptSt.endDay === todayKey());
+function parentCheck(){   // おうちの人の確認：小学生には少しむずかしい、かけ算
+  const a = 7 + Math.floor(Math.random()*3), b = 6 + Math.floor(Math.random()*4);
+  const r = prompt(`おうちの人へ\n${a} × ${b} は？（数字で入れてください）`);
+  if(r === null) return false;
+  const n = parseInt(String(r).replace(/[０-９]/g, ch=>String.fromCharCode(ch.charCodeAt(0) - 0xFEE0)), 10);
+  if(n === a*b) return true;
+  alert('ちがうみたいです。'); return false;
+}
+async function playTimeMenu(){
+  await say(`【あそぶ時間】いま：${ptSet.limit ? `${ptSet.limit}分あそんだら、${ptSet.rest === 'end' ? 'その日はおしまい' : `${ptSet.rest}分 休けい`}` : 'なし'}\nおうちの人が決める設定です。決めた時間の5分前に町のチャイム、1分前にヒグラシが鳴って、時間になると休けいになります。`);
+  if(ptSet.limit && !parentCheck()) return;
+  const L = [0, 15, 30, 45, 60];
+  const c = await choose(L.map(m=>m ? `${m}分` : 'なし（時間をきめない）'), {title:'あそぶ時間', cls:'side', start:Math.max(0, L.indexOf(ptSet.limit))});
+  if(c < 0) return;
+  let rest = ptSet.rest;
+  if(L[c]){
+    const R = [5, 10, 15, 30, 'end'];
+    const r = await choose(R.map(m=>m === 'end' ? 'おしまい（その日はもう遊ばない）' : `${m}分 休けい`), {title:'時間になったら', cls:'side', start:Math.max(0, R.indexOf(ptSet.rest))});
+    if(r < 0) return;
+    rest = R[r];
+  }
+  ptSet = {limit:L[c], rest}; ptSaveSet();
+  ptSt = {used:0, last:Date.now()}; ptSaveSt();
+  await say(L[c] ? `あそぶ時間を「${L[c]}分」にしました。\n時間になったら、${rest === 'end' ? 'その日の虫とりはおしまいです。' : `${rest}分 休けいします。`}\n（歩いているところなら、休けいの前にじどうセーブします）` : 'あそぶ時間を「なし」にしました。');
+}
+function seChime(){   // 夕方の町のチャイム「遠き山に日は落ちて」（ドヴォルザーク「新世界より」第2楽章）
+  if(!seReady()) return;
+  const b = .42; let at = actx.currentTime + .1;
+  const mel = [[76,1],[79,.5],[79,1.5],[76,1],[74,.5],[72,1.5],[74,1],[76,1],[79,1],[76,1],[74,3],
+               [76,1],[79,.5],[79,1.5],[76,1],[74,.5],[72,1.5],[74,1],[76,1],[74,1],[72,1],[72,3]];
+  try{ for(const [n, d] of mel){ aTone(aSe, .125, mhz(n), at, d*b*.98, .11, null, [.01, .45, .5]); aTone(aSe, 'tri', mhz(n - 12), at, d*b*.98, .07, null, [.01, .5, .5]); at += d*b; } }catch(e){}
+}
+function seKanakana(){   // ヒグラシ（カナカナカナ…）を3回
+  if(!seReady()) return;
+  try{ for(let k=0;k<3;k++){ const t = actx.currentTime + .1 + k*2.2, n = 16, f0 = 4300 + Math.random()*300;
+    for(let i=0;i<n;i++){ const r = i / n; aTone(aSe, .5, f0 * (1 - r*.12), t + i*.11, .07, .16 * (1 - r*.7), null, [.004, .6, .03]); } } }catch(e){}
+}
+let ptToastT = null;
+function ptToast(msg){ const el = $('ptToast'); el.textContent = msg; el.hidden = false; el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
+  clearTimeout(ptToastT); ptToastT = setTimeout(()=>{ el.hidden = true; }, 7000); }
+let ptPrevUi = null, ptPrevBusy = false;
+function restShow(){
+  if(!$('restScr').hidden) return;
+  autoSaveNow();
+  if(ptSt.pending){ ptSt.pending = false; if(ptSet.rest !== 'end') ptSt.restUntil = Date.now() + ptSet.rest * PT_MIN; ptSaveSt(); }   // 休けいの時間は、休けいの画面が出てから数える
+  ptPrevUi = uiHandler; ptPrevBusy = busy; uiHandler = ()=>{}; busy = true;   // 休けいのあいだは、キーやボタンで動かないように
+  $('restScr').hidden = false; $('ptToast').hidden = true; restUpdate();
+}
+function restHide(){
+  if($('restScr').hidden) return;
+  $('restScr').hidden = true; uiHandler = ptPrevUi; busy = ptPrevBusy; ptPrevUi = null;
+  ptSt.restUntil = 0; ptSt.endDay = null; ptSt.pending = false; ptSt.used = 0; ptSt.warned5 = ptSt.warned1 = false; ptSt.last = Date.now(); ptSaveSt();
+}
+function restUpdate(){
+  const end = ptSt.endDay && ptSt.endDay === todayKey();
+  $('rsTitle').textContent = end ? '今日の虫とりは、ここまで！' : 'ひと休みの時間だよ';
+  $('rsMsg').textContent = end ? 'たくさん虫とりしたね。\n目を休めて、また明日あそぼう。' : '今日の虫とりは、ここでひと休み。\n目を休めて、お水をのもう。';
+  const left = end ? 0 : Math.max(0, Math.ceil(((ptSt.restUntil || 0) - Date.now()) / 1000));
+  if(end) $('rsTime').textContent = '';
+  else if(left > 0) $('rsTime').textContent = `あと ${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}`;
+  else $('rsTime').textContent = '休けい おしまい！';
+  $('rsBack').hidden = end || left > 0;
+  $('rsParent').hidden = !end && left <= 0;
+}
+$('rsBack').onclick = restHide;
+$('rsParent').onclick = ()=>{ if(parentCheck()) restHide(); };
+function ptTick(){
+  if(document.hidden) return;
+  const now = Date.now(), gap = ptSt.last ? now - ptSt.last : 0; ptSt.last = now;
+  if(!$('restScr').hidden){ restUpdate(); ptSaveSt(); return; }
+  if(ptLocked()){   // 休けい中・おしまいの日：歩いていないとき（バトル・メニュー・会話が終わったあと）か、タイトル画面で休けいにする
+    if(scene === 'title' || (scene === 'field' && !busy && !mv && !uiHandler && $('battle').hidden)) restShow();
+    ptSaveSt(); return;
+  }
+  if(ptSt.restUntil || ptSt.endDay){ ptSt.restUntil = 0; ptSt.endDay = null; }
+  if(!ptSet.limit){ ptSaveSt(); return; }
+  if(gap > 60000 && gap >= (ptSet.rest === 'end' ? 6*3600000 : ptSet.rest * PT_MIN)){ ptSt.used = 0; ptSt.warned5 = ptSt.warned1 = false; }   // しばらく閉じていたら、休けいしたことにする
+  ptSt.used += Math.min(gap || 1000, 5000) / 1000;
+  const rem = ptSet.limit * PT_MIN / 1000 - ptSt.used;
+  if(rem <= 300 * PT_MIN / 60000 && !ptSt.warned5){ ptSt.warned5 = true; seChime(); ptToast('🔔 町のチャイムが鳴った…\nあと5分で 休けいの時間だ。'); }
+  if(rem <= 60 * PT_MIN / 60000 && !ptSt.warned1){ ptSt.warned1 = true; seKanakana(); ptToast('カナカナカナ…　ヒグラシが鳴きはじめた。\nお母さん「そろそろ休けいよ。あと1分ね。」'); }
+  if(rem <= 0){
+    if(ptSet.rest === 'end') ptSt.endDay = todayKey(); else ptSt.pending = true;
+    ptSt.used = 0; ptSt.warned5 = ptSt.warned1 = false;
+  }
+  ptSaveSt();
+}
+setInterval(ptTick, 1000);
+
 /* ---------- 虫とりカメラ（外ではスマホで写真だけ → 家のタブレット・パソコンのゲームで受けとる） ---------- */
 const OMI_KEY = KEY_PRE + 'munakata-omiyage-v1', OMI_MAX = 30;
 const OMI_SALT = 'munakata-mushitori-omiyage-2026';   // 手で書きかえたファイルを受けとらないための「確認の印」
