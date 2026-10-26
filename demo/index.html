@@ -295,6 +295,11 @@ body.touch #titleScr .credit{left:auto;right:max(12px,env(safe-area-inset-right,
 /* 縦長で背の低いスマホ：ロゴを少し小さくして、ボタンとメニューが重ならないようにする */
 @media (max-height:700px){ body.touch:not(.land) #titleScr .logo{width:min(68%,440px)} }
 @media (max-height:600px){ body.touch:not(.land) #titleScr .logo{width:min(58%,400px);margin:0 0 .2em} body.touch:not(.land) #titleScr .t4{margin-top:.5em} body.touch:not(.land) #titleScr .tbtns{margin-top:.5em} }
+/* スマホだけ：お子さまにはタブレットがおすすめ（タブレット・パソコンには出さない） */
+#titleScr .tpad{display:none}
+body.phone #titleScr .tpad{display:block;margin:.6em 12px 0;padding:.3em .8em;font-size:clamp(11px,3.3vw,16px);white-space:nowrap;font-weight:700;color:#14284a;background:#fff4c8e8;border:2px solid #14284a;border-radius:999px;box-shadow:0 2px 0 #0006}
+body.phone #titleScr .tpad b{color:#a8442e}
+body.phone.land #titleScr .tpad{margin-top:.4em;font-size:clamp(11px,3.2vh,14px)}
 /* 虫とりカメラ（外で）：ほかのボタンより少し目立たせる（白地に黒い字） */
 #titleScr .tbtn.cam{background:#ffffffd0;color:#1a1a1a;font-weight:700;border-color:#14284a}
 /* スマホたて画面：「プライバシーについて」は左上のすみ（右上のクレジットと向かい合わせ） */
@@ -404,7 +409,7 @@ body.touch #titleScr .tbtn{font-size:clamp(13px,3.6vmin,19px)}
   #restScr .rsParent{margin-top:6px}
 }
 #restScr .rsParent{margin-top:18px;font:inherit;font-size:14px;color:#fff;background:#0004;border:1px solid #fff8;border-radius:999px;padding:.35em 1.2em;cursor:pointer}
-#titleScr.quiet .tside,#titleScr.quiet .t4,#titleScr.quiet #btnPriv{visibility:hidden}
+#titleScr.quiet .tside,#titleScr.quiet .t4,#titleScr.quiet .tpad,#titleScr.quiet #btnPriv{visibility:hidden}
 #ptToast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 12px);transform:translateX(-50%);z-index:140;max-width:min(92vw,520px);background:#2b2d52ee;color:#fff;border:2px solid #ffcf6b;border-radius:12px;padding:10px 16px;font-size:16px;line-height:1.6;white-space:pre-line;text-align:center;box-shadow:0 4px 0 #0005;animation:ptIn .4s ease-out}
 @keyframes ptIn{from{opacity:0;transform:translate(-50%,-12px)}to{opacity:1;transform:translateX(-50%)}}
 #endScr{background:linear-gradient(#1b3f7a,#3d2f6a 60%,#17261d);color:var(--ink);display:flex;flex-direction:column}
@@ -604,6 +609,7 @@ body.touch.land #menu.title{top:auto;bottom:10px;left:50%;right:auto;transform:t
       <div class="t2">むなかた<br>虫とり日記</div>
       <img class="logo" alt="むなかた 虫とり日記" hidden>
       <div class="t3">宗像じゅうの虫をつかまえて、ずかんを完成させよう</div>
+      <div class="tpad">📱 お子さまには、大きな画面の<b>タブレット</b>がおすすめです</div>
       <div class="t4">※このゲームに出てくる場所と虫の組み合わせはゲーム用のもので、実際にその場所にいる虫とはかぎりません。</div>
       <div class="credit">Game Director: Ryohei Taniguchi</div>
       <div class="tside"><div class="tbtns"><button type="button" class="tbtn" id="btnInstall">アプリにする方法</button><button type="button" class="tbtn" id="btnShare">友だちに教える</button><button type="button" class="tbtn cam" id="btnOut">📷 虫とりカメラ（外で）</button></div>
@@ -710,7 +716,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.4.0';
-const BUILD = '20261025-2051';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261026-1315';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.4.0', date:'2026-10-25', items:[
     'オプションに「あそぶ時間」を入れた。はじめは「30分あそぶと10分休けい」。おうちの人が時間（15〜60分）と休けい（5〜30分、または「その日はおしまい」）を決められる。5分前に夕方の町のチャイム（ファミコン風の「夕焼け小焼け」）、1分前にヒグラシが鳴って、時間になると休けいになる',
@@ -2105,6 +2111,7 @@ cv.addEventListener('contextrestored', ()=>{ ctx.imageSmoothingEnabled = false; 
 const QS = new URLSearchParams(location.search);   // ?touch でスマホ表示、?demo=field|battle|menu で画面確認用
 const TOUCH = matchMedia('(hover:none),(pointer:coarse)').matches || QS.has('touch');
 if(TOUCH) document.body.classList.add('touch');
+if(TOUCH && !isTablet()) document.body.classList.add('phone');   // スマホだけ：タイトルに「タブレットがおすすめ」を出す
 let hudI = 0, padI = 0;   // HUDの高さ・下のボタンのところの高さ（マップ座標）
 function layout(){
   if(!TOUCH){ if(cv.width!==320*HD_K){ cv.width = 320*HD_K; cv.height = 240*HD_K; ctx.imageSmoothingEnabled = false; } return; }
