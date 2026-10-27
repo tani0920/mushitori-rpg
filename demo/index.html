@@ -509,7 +509,8 @@ body.touch .ab [data-k=M]{font-size:14px!important;padding:8px 10px}
 body.touch #screen .ov{font-size:clamp(15px,4.4vmin,30px)}
 body.touch .win{border-width:3px;padding:.5em .8em;line-height:1.55}
 body.touch #msg{left:calc(var(--sideL) + 8px);right:calc(var(--sideR) + 8px);bottom:calc(var(--padH) + 8px);min-height:6em;max-height:45%;overflow-y:auto}
-body.touch #menu{top:calc(var(--hudH) + 6px);right:calc(var(--sideR) + 8px);max-width:calc(100% - var(--sideL) - var(--sideR) - 16px);
+/* タイトル画面などHUDが出ていないときも、iPhoneの時計のあたり（暗いぼかし）より下に出す */
+body.touch #menu{top:max(calc(var(--hudH) + 6px),calc(env(safe-area-inset-top,0px) * 1.5 + 8px));right:calc(var(--sideR) + 8px);max-width:calc(100% - var(--sideL) - var(--sideR) - 16px);
   max-height:calc(100% - var(--hudH) - var(--padH) - 6em - 30px)}
 body.touch #menu.map{left:calc(var(--sideL) + 8px);right:auto}
 body.touch #menu.cmditem{top:auto;bottom:calc(var(--padH) + 6em + 16px)}
@@ -716,7 +717,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.4.0';
-const BUILD = '20261028-0004';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261028-0012';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.4.0', date:'2026-10-28', items:[
     'オプションに「あそぶ時間」を入れた。はじめは「30分あそぶと10分休けい」。おうちの人が時間（15〜60分）と休けい（5〜30分、または「その日はおしまい」）を決められる。5分前に夕方の町のチャイム（ファミコン風の「夕焼け小焼け」）、1分前にヒグラシが鳴って、時間になると休けいになる',
