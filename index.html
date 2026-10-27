@@ -285,10 +285,23 @@ body:not(.touch) #titleScr .tbtns{margin-top:.4em}
 #titleScr .credit{position:absolute;right:.8em;top:.6em;font-family:var(--f-pixel);font-size:clamp(9px,1.9cqw,13px);letter-spacing:.06em;color:#fff;opacity:.92;text-shadow:1px 1px 0 #000,0 0 3px #000;pointer-events:none}
 body.touch #titleScr .credit{left:auto;right:max(12px,env(safe-area-inset-right,0px));bottom:auto;top:calc(env(safe-area-inset-top,0px) + 8px);font-size:clamp(10px,2.8vmin,14px)}
 /* タイトルのバージョン（ボタンの下）：押すとこうしん情報 */
-/* スマホよこ画面：まんなかはメニューが重なるので、タイトルのボタンは左上にたてにならべる */
-body.touch.land #titleScr .tside{position:absolute;left:max(12px,env(safe-area-inset-left,0px));top:calc(env(safe-area-inset-top,0px) + 8px);display:flex;flex-direction:column;align-items:flex-start;gap:.4em}
-body.touch.land #titleScr .tbtns,body.touch.land #titleScr .vrow{flex-direction:column;align-items:flex-start;margin:0;gap:.4em}
-body.touch.land #titleScr .tbtn{font-size:clamp(11px,3.2vmin,15px);padding:.25em .9em}
+/* スマホよこ画面：まんなかはメニューが重なるので、タイトルのボタンは左上にたてにならべる
+   タブレットよこ画面（高さがある）は、たて画面と同じく、まんなかにならべる */
+@media (max-height:599px){
+  body.touch.land #titleScr .tside{position:absolute;left:max(12px,env(safe-area-inset-left,0px));top:calc(env(safe-area-inset-top,0px) + 8px);display:flex;flex-direction:column;align-items:flex-start;gap:.4em}
+  body.touch.land #titleScr .tbtns,body.touch.land #titleScr .vrow{flex-direction:column;align-items:flex-start;margin:0;gap:.4em}
+  body.touch.land #titleScr .tbtn{font-size:clamp(11px,3.2vmin,15px);padding:.25em .9em}
+}
+/* 縦長で背の低いスマホ：ロゴを少し小さくして、ボタンとメニューが重ならないようにする */
+@media (max-height:700px){ body.touch:not(.land) #titleScr .logo{width:min(68%,440px)} }
+@media (max-height:600px){ body.touch:not(.land) #titleScr .logo{width:min(58%,400px);margin:0 0 .2em} body.touch:not(.land) #titleScr .t4{margin-top:.5em} body.touch:not(.land) #titleScr .tbtns{margin-top:.5em} }
+/* スマホだけ：お子さまにはタブレットがおすすめ（タブレット・パソコンには出さない） */
+#titleScr .tpad{display:none}
+body.phone #titleScr .tpad{display:block;margin:.6em 12px 0;padding:.3em .8em;font-size:clamp(11px,3.3vw,16px);white-space:nowrap;font-weight:700;color:#14284a;background:#fff4c8e8;border:2px solid #14284a;border-radius:999px;box-shadow:0 2px 0 #0006}
+body.phone #titleScr .tpad b{color:#a8442e}
+body.phone.land #titleScr .tpad{margin-top:.4em;font-size:clamp(11px,3.2vh,14px)}
+/* 虫とりカメラ（外で）：ほかのボタンより少し目立たせる（白地に黒い字） */
+#titleScr .tbtn.cam{background:#ffffffd0;color:#1a1a1a;font-weight:700;border-color:#14284a}
 /* スマホたて画面：「プライバシーについて」は左上のすみ（右上のクレジットと向かい合わせ） */
 body.touch:not(.land) #titleScr #btnPriv{position:absolute;left:max(10px,env(safe-area-inset-left,0px));top:calc(env(safe-area-inset-top,0px) + 30px);font-size:clamp(10px,2.6vmin,13px);padding:.15em .7em;background:#14284ad9}
 /* iPhone は画面のいちばん上（時計のあたり）に自動で暗いぼかしをかけるので、たて画面ではクレジットもその下まで下げる */
@@ -357,10 +370,48 @@ body.touch #titleScr .tbtn{font-size:clamp(13px,3.6vmin,19px)}
 #stamps .st b{font-size:14px;font-weight:400}
 #camResult .stampbox{flex-basis:100%;border-top:1px dashed var(--paper-line);padding-top:8px;line-height:1.7}
 #camResult .stampbox .btn{margin:.3em .4em 0 0}
+#cam.out .inGame,#cam:not(.out) .outOnly{display:none}
+#cam .outOnly,#cam .inGame{display:flex;flex-direction:column;gap:12px}
+#cam .camBtns button.btn{flex:1 1 160px;text-align:center;font-size:17px;padding:.55em 1em;line-height:1.5}
+#cam .camBtns .omiOpen{line-height:1.6;padding:.7em 1em}
+#cam .camBtns .omiOpen small{display:block;font-size:14px;color:#f4d68a}
+#omiList{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}
+#omiList:empty::before{content:'まだ 虫とりカードはないよ';color:#7a6a4a}
+#omiList .o{background:#fffaf0;border:2px solid var(--paper-line);border-radius:6px;padding:4px;font-size:12px;line-height:1.4;text-align:center}
+#omiList .o img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:4px;display:block;margin-bottom:2px}
+#omiList .o.sent{opacity:.5}
 #album{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}
 #album .a{border:2px solid var(--paper-line);border-radius:4px;background:#fffaf0;padding:4px;text-align:center;font-size:11px;line-height:1.3}
 #album .a img,#album .a .no{width:100%;aspect-ratio:1;object-fit:cover;border-radius:2px;display:block;margin-bottom:3px}
 #album .a .no{background:repeating-linear-gradient(45deg,#efe4c8 0 6px,#f6eedb 6px 12px);display:flex;align-items:center;justify-content:center;font-size:22px;color:#c8b890}
+#restScr{z-index:150;color:#fff;display:flex;align-items:flex-start;justify-content:center;text-align:center;
+  background:linear-gradient(#0006,#0000 50%) no-repeat,url(img/sprites/bg/rest_tate.jpg) center bottom/cover no-repeat #3a2a52}
+#restScr.end{background-image:linear-gradient(#0006,#0000 50%),url(img/sprites/bg/rest_end_tate.jpg)}
+@media (orientation:landscape){   /* よこ長の画面では、下の男の子が見切れないように下よりで切る（空は少し切れてもよい。島は切らない） */
+  #restScr{background-image:linear-gradient(#0008,#0000 55%),url(img/sprites/bg/rest_yoko.jpg);background-position:center 75%}
+  #restScr.end{background-image:linear-gradient(#0006,#0000 50%),url(img/sprites/bg/rest_end_yoko.jpg)}
+}
+#restScr .in{max-width:560px;padding:calc(env(safe-area-inset-top,0px) + 6vh) 20px 20px;display:flex;flex-direction:column;align-items:center;gap:12px}
+#restScr .rsSun{display:none}   /* 夕日は絵の中にある */
+#restScr h2{margin:0;font-size:clamp(20px,6.4vw,28px);font-weight:400;letter-spacing:.04em;white-space:nowrap;-webkit-text-stroke:.8px #fff;text-shadow:2px 2px 0 #0006}
+#restScr p{margin:0;font-size:18px;line-height:1.8;white-space:pre-line;text-shadow:1px 1px 0 #000a,0 0 6px #0008}
+#rsTime{font-size:clamp(28px,9vw,44px);letter-spacing:.04em;white-space:nowrap;-webkit-text-stroke:1.2px #fff;text-shadow:3px 3px 0 #0006}
+#rsTime:empty{display:none}
+#rsBack{font-size:20px;padding:.5em 1.6em}
+@media (orientation:landscape) and (max-height:600px){   /* スマホよこ：スクロールしないで1画面に入れる */
+  #restScr .in{gap:6px;padding:10px 16px}
+  #restScr{align-items:flex-start}
+  #restScr .rsSun{width:52px;height:52px}
+  #restScr h2{font-size:clamp(18px,5.4vh,24px)}
+  #restScr p{font-size:clamp(13px,3.8vh,16px);line-height:1.6}
+  #rsTime{font-size:clamp(24px,8vh,36px)}
+  #rsBack{font-size:17px;padding:.35em 1.4em}
+  #restScr .rsParent{margin-top:6px}
+}
+#restScr .rsParent{margin-top:18px;font:inherit;font-size:14px;color:#fff;background:#0004;border:1px solid #fff8;border-radius:999px;padding:.35em 1.2em;cursor:pointer}
+#titleScr.quiet .tside,#titleScr.quiet .t4,#titleScr.quiet .tpad,#titleScr.quiet #btnPriv{visibility:hidden}
+#ptToast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 12px);transform:translateX(-50%);z-index:140;max-width:min(92vw,520px);background:#2b2d52ee;color:#fff;border:2px solid #ffcf6b;border-radius:12px;padding:10px 16px;font-size:16px;line-height:1.6;white-space:pre-line;text-align:center;box-shadow:0 4px 0 #0005;animation:ptIn .4s ease-out}
+@keyframes ptIn{from{opacity:0;transform:translate(-50%,-12px)}to{opacity:1;transform:translateX(-50%)}}
 #endScr{background:linear-gradient(#1b3f7a,#3d2f6a 60%,#17261d);color:var(--ink);display:flex;flex-direction:column}
 #endScr>.in{margin:auto}   /* 中身が画面より長いときも上が切れない中央よせ（向きを変えたときも上にスクロールできる） */
 #endScr .in{max-width:520px;width:100%;text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center}
@@ -508,6 +559,12 @@ body.touch.land .ab{--b:clamp(68px,17.5vh,88px);gap:10px}
 body.touch.land #pad{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 8px)}
 /* ボタンの高さ：オプションの「ボタンの高さ」で、十字キーとA・Bを別々に上げられる（タブレットは最初から少し上） */
 body.touch #pad .dpad{margin-bottom:var(--dpY,0px)}
+/* ついてくる十字キー：左下のこのはんいをさわると、さわったところに十字キーが出る（見えないわく） */
+#pad .dzone{display:none}
+body.touch.dfloat #pad .dzone{display:block;position:absolute;left:0;bottom:0;width:55%;height:var(--padH,200px);pointer-events:auto;touch-action:none}
+body.touch.dfloat.land #pad .dzone{width:var(--sideL,30vw);height:72vh}   /* 会話やメニューのわくにはかからないように */
+body.touch #pad .dpad{position:relative;z-index:1}
+body.touch #pad .dpad.float{opacity:1}
 body.touch #pad .ab{margin-bottom:var(--abY,0px)}
 body.touch.land #msg{min-height:4.4em;max-height:38%;bottom:8px}
 body.touch.land #menu{max-height:calc(100% - var(--hudH) - 4.4em - 26px)}
@@ -552,9 +609,10 @@ body.touch.land #menu.title{top:auto;bottom:10px;left:50%;right:auto;transform:t
       <div class="t2">むなかた<br>虫とり日記</div>
       <img class="logo" alt="むなかた 虫とり日記" hidden>
       <div class="t3">宗像じゅうの虫をつかまえて、ずかんを完成させよう</div>
+      <div class="tpad">📱 お子さまには、大きな画面の<b>タブレット</b>がおすすめです</div>
       <div class="t4">※このゲームに出てくる場所と虫の組み合わせはゲーム用のもので、実際にその場所にいる虫とはかぎりません。</div>
       <div class="credit">Game Director: Ryohei Taniguchi</div>
-      <div class="tside"><div class="tbtns"><button type="button" class="tbtn" id="btnInstall">アプリにする方法</button><button type="button" class="tbtn" id="btnShare">友だちに教える</button></div>
+      <div class="tside"><div class="tbtns"><button type="button" class="tbtn" id="btnInstall">アプリにする方法</button><button type="button" class="tbtn" id="btnShare">友だちに教える</button><button type="button" class="tbtn cam" id="btnOut">📷 虫とりカメラ（外で）</button></div>
       <div class="vrow"><button type="button" class="verbtn" id="btnVer"><span class="gver"></span>　こうしん情報 ▸</button><button type="button" class="verbtn" id="btnFuri">ふりがな：ふつう</button><button type="button" class="verbtn" id="btnPriv">プライバシーについて</button></div></div>
     </div>
     <div id="battle" class="ov" hidden>
@@ -569,6 +627,7 @@ body.touch.land #menu.title{top:auto;bottom:10px;left:50%;right:auto;transform:t
     <div id="fade"></div>
   </div>
   <div id="pad">
+    <div class="dzone"></div>
     <div class="dpad"><button data-k="U" aria-label="上">▲</button><button data-k="L" aria-label="左">◀</button><button data-k="R" aria-label="右">▶</button><button data-k="D" aria-label="下">▼</button></div>
     <div class="ab"><button data-k="B">B</button><button data-k="A">A</button></div>
   </div>
@@ -583,8 +642,11 @@ body.touch.land #menu.title{top:auto;bottom:10px;left:50%;right:auto;transform:t
 </div>
 <div id="cam" class="full" hidden>
   <div class="in">
-    <div class="top"><h2>本物の虫の写真をとる</h2><span class="cnt" id="camCnt"></span><button class="btn" id="camClose">とじる</button></div>
-    <p class="lead">外で見つけた本物の虫の写真をとると、ゲームでごほうびがもらえるよ！（1日5まいまで）<br>
+    <div class="top"><h2 id="camTitle">本物の虫の写真をとる</h2><span class="cnt" id="camCnt"></span><button class="btn" id="camClose">とじる</button></div>
+    <p class="lead inGame">外で見つけた本物の虫の写真をとると、ゲームでごほうびがもらえるよ！（1日5まいまで）<br>
+      <small>写真はこのたんまつの中だけでAIが判定します。どこにも送られません。</small></p>
+    <p class="lead outOnly">外で本物の虫の写真をとって、「虫とりカード」にしよう！（1日5まいまで）<br>
+      家のタブレット・パソコンのゲームで「届いた虫とりカードを開ける」と、ごほうびやスタンプがもらえるよ。<br>
       <small>写真はこのたんまつの中だけでAIが判定します。どこにも送られません。</small></p>
     <div class="camBtns">
       <label class="btn">カメラで<br>写真をとる<input id="camIn" class="vh" type="file" accept="image/*" capture="environment"></label>
@@ -593,11 +655,24 @@ body.touch.land #menu.title{top:auto;bottom:10px;left:50%;right:auto;transform:t
     <div id="camResult"></div>
     <label class="geo"><input type="checkbox" id="geoOn"><span>いまいる場所で「スタンプ」ももらう（位置情報をつかう）</span></label>
     <p class="lead"><small>位置情報は、このたんまつの中で「スタンプの場所の近くにいるか」を調べるだけです。いる場所の記録は、保存も送信もしません。</small></p>
+    <div class="outOnly">
+      <h3>虫とりカード <span id="omiCnt"></span></h3>
+      <div id="omiList"></div>
+      <div class="camBtns"><button type="button" class="btn" id="omiSend">虫とりカードを<br>家に送る</button><button type="button" class="btn" id="omiClear">送ったものを<br>けす</button></div>
+      <p class="lead"><small>「家に送る」をおすと、虫とりカードのファイルができます。AirDrop・LINEの自分あて・メールなどで、家のタブレットやパソコンに送ってね。<br>
+        ファイルに入るのは、小さくした写真・虫の名前・日付・スタンプの場所の名前だけです。いる場所の記録（緯度・経度）は入りません。</small></p>
+    </div>
+    <div class="inGame">
+    <h3>届いた虫とりカードを開ける</h3>
+    <p class="lead"><small>スマホのタイトル画面の「虫とりカメラ」でとった虫は、「虫とりカード」のファイルになって届くよ。<br>
+      ボタンをおして、「虫とり日記の虫とりカード」という名前のファイルをえらんでね。</small></p>
+    <div class="camBtns"><label class="btn omiOpen">届いた虫とりカードを開ける<small>（ダウンロードやファイルのところに入っているよ）</small><input id="omiIn" class="vh" type="file" accept=".html,.htm,.json,text/html,application/json"></label></div>
     <h3>宗像 虫とりスタンプラリー <span id="stampCnt"></span></h3>
     <p class="lead"><small>宗像大社・さつき松原・城山・大島などで本物の虫の写真をとると、スタンプと特典がもらえるよ。<b>出かけるときは、かならずおうちの人といっしょに！</b></small></p>
     <div id="stamps"></div>
     <h3>本物の虫アルバム <span id="albumCnt"></span></h3>
     <div id="album"></div>
+    </div>
   </div>
 </div>
 <div id="infoPanel" class="full" hidden>
@@ -606,6 +681,17 @@ body.touch.land #menu.title{top:auto;bottom:10px;left:50%;right:auto;transform:t
     <div id="ipBody"></div>
   </div>
 </div>
+<div id="restScr" class="full" hidden>
+  <div class="in">
+    <div class="rsSun"></div>
+    <h2 id="rsTitle"></h2>
+    <p id="rsMsg"></p>
+    <div id="rsTime"></div>
+    <button type="button" class="btn" id="rsBack" hidden>虫とりにもどる</button>
+    <button type="button" class="rsParent" id="rsParent">おうちの人へ：休けいを終わらせる</button>
+  </div>
+</div>
+<div id="ptToast" hidden></div>
 <div id="endScr" class="full" hidden><div class="in" id="endIn"></div></div>
 
 <script>document.write('<script src="img/sprites/list.js?t=' + Date.now() + '"><\/script>');   // 絵の一覧はいつも最新を読む</script>
@@ -629,9 +715,14 @@ const KEY_PRE = window.DEMO ? 'demo-' : '';   // デモ版は本番のセーブ�
 const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
-const GAME_VER = '0.3.0';
-const BUILD = '20261024-0441';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const GAME_VER = '0.4.0';
+const BUILD = '20261028-0004';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
+  {v:'0.4.0', date:'2026-10-28', items:[
+    'オプションに「あそぶ時間」を入れた。はじめは「30分あそぶと10分休けい」。おうちの人が時間（15〜60分）と休けい（5〜30分、または「その日はおしまい」）を決められる。5分前に夕方の町のチャイム（ファミコン風の「夕焼け小焼け」）、1分前にヒグラシが鳴って、時間になると休けいになる',
+    'タイトル画面に「虫とりカメラ（外で）」を入れた。外ではスマホで虫の写真だけをとって「虫とりカード」にして、家のタブレット・パソコンのゲームで開けられる（メニューの「写真をとる」→「届いた虫とりカードを開ける」）。ごほうびもスタンプも、家のゲームでもらえる',
+    'スマホ・iPadの十字キーが、左下のあたりのさわったところに出るようにした。十字キーの上をさわったときは、そのままその向きに動く（オプションの「ボタン」で、前のきまった場所にもどせる）',
+  ]},
   {v:'0.3.0', date:'2026-10-24', items:[
     'お金を「どんぐり（D）」にかえた（どんぐり銀行がわたす、子どものための地域のお金）',
     '虫具店で虫を「売る」のをやめて、「とどける」とお礼にどんぐりがもらえるようにした',
@@ -1059,20 +1150,22 @@ addEventListener('pageshow', e=>{ if(e.persisted && actx && TOUCH) aStale = true
 /* ボタンの高さ（スマホ・タブレットの持ち方は人それぞれなので、オプションで十字キーとA・Bを別々に上げられる） */
 const PAD_KEY = 'munakata-pad-v1', PAD_LV = [0, 3, 6, 9, 13], PAD_LV_NAME = ['いちばん下','ひくめ','ふつう','たかめ','もっとたかめ'];
 const isTablet = ()=> Math.min(screen.width, screen.height) >= 600;
-const padPref = (()=>{ const d = isTablet() ? {d:1, a:3} : {d:0, a:0};   // タブレットは、十字キーはひくめ・A・Bはたかめから
+const padPref = (()=>{ const d = isTablet() ? {d:1, a:3, f:1} : {d:0, a:0, f:1};   // f：十字キーが、さわったところについてくる（1）／きまった場所（0）
+     // タブレットは、十字キーはひくめ・A・Bはたかめから
   try{ return Object.assign(d, JSON.parse(localStorage.getItem(PAD_KEY)) || {}); }catch(e){ return d; } })();
-function applyPad(){ const b = document.body.style; b.setProperty('--dpY', PAD_LV[padPref.d] + 'vh'); b.setProperty('--abY', PAD_LV[padPref.a] + 'vh'); if(typeof layout === 'function') layout(); }
+function applyPad(){ document.body.classList.toggle('dfloat', padPref.f !== 0); const b = document.body.style; b.setProperty('--dpY', PAD_LV[padPref.d] + 'vh'); b.setProperty('--abY', PAD_LV[padPref.a] + 'vh'); if(typeof layout === 'function') layout(); }
 function setPad(k, v, save=true){ padPref[k] = v; if(save){ try{ localStorage.setItem(PAD_KEY, JSON.stringify(padPref)); }catch(e){} } applyPad(); }
 async function padMenu(){
   let i = 0;
   while(true){
-    const c = await choose([`十字キー：${PAD_LV_NAME[padPref.d]}`, `A・Bボタン：${PAD_LV_NAME[padPref.a]}`, 'はじめの高さにもどす', 'もどる'],
-      {title:'ボタンの高さ', cls:'side', start:i, msg:'えらぶたびに、ボタンの高さがかわるよ。\n押しやすい高さにしてね。'});
+    const c = await choose([`十字キー：${PAD_LV_NAME[padPref.d]}`, `A・Bボタン：${PAD_LV_NAME[padPref.a]}`, 'はじめの高さにもどす', `十字キーの出かた：${padPref.f !== 0 ? 'さわったところ' : 'きまった場所'}`, 'もどる'],
+      {title:'ボタン', cls:'side', start:i, msg:'えらぶたびに、ボタンの高さや出かたがかわるよ。\n押しやすいようにしてね。'});
     i = Math.max(0, c);
-    if(c<0 || c===3) return;
+    if(c<0 || c===4) return;
+    if(c===3){ setPad('f', padPref.f !== 0 ? 0 : 1); await say(padPref.f !== 0 ? '十字キーを「さわったところ」にしました。\n左下のあたりをさわると、指の下に十字キーが出るよ。\nそのまま指をすべらせると、その向きに歩くよ。' : '十字キーを「きまった場所」にしました。\n左下の十字キーを押して歩くよ。'); continue; }
     if(c===0) setPad('d', (padPref.d + 1) % PAD_LV.length);
     if(c===1) setPad('a', (padPref.a + 1) % PAD_LV.length);
-    if(c===2){ try{ localStorage.removeItem(PAD_KEY); }catch(e){} const d = isTablet() ? {d:1, a:3} : {d:0, a:0}; setPad('d', d.d, false); setPad('a', d.a, false); }
+    if(c===2){ try{ localStorage.removeItem(PAD_KEY); }catch(e){} const d = isTablet() ? {d:1, a:3} : {d:0, a:0}; setPad('d', d.d, false); setPad('a', d.a, false); if(padPref.f !== 0) setPad('f', 1); }   // 十字キーの出かたは、えらんだままにする
   }
 }
 function setSnd(kind, on){ sndPref[kind] = on; saveSnd(); if(kind === 'bgm') bgmUpdate(); }
@@ -1962,9 +2055,10 @@ document.addEventListener('keydown', e=>{
 });
 document.addEventListener('keyup', e=>{ const k = KEYMAP[e.key]; const i = heldKeys.indexOf(k); if(i>=0) heldKeys.splice(i,1); held = heldKeys[heldKeys.length-1] || null; });
 window.addEventListener('blur', ()=>{ heldKeys.length = 0; held = null; });
-/* 十字キー：押しっぱなしで歩き続ける。指をすべらせて向きを変えられる */
+/* 十字キー：押しっぱなしで歩き続ける。指をすべらせて向きを変えられる
+   「さわったところ」（ふつう）：左下のあたりをさわると、指の下に十字キーが出て、さわりはじめた所からの向きで歩く */
 (()=>{
-  const pad = document.querySelector('.dpad'); let pid = null, cur = null, repT = null;
+  const pad = document.querySelector('.dpad'), zone = document.querySelector('#pad .dzone'); let pid = null, cur = null, repT = null, ox = 0, oy = 0, fl = false;
   const light = k=> pad.querySelectorAll('button').forEach(b=>b.classList.toggle('on', b.dataset.k===k));
   const setDir = k=>{
     if(k===cur) return; cur = k; held = k; light(k); clearTimeout(repT);
@@ -1973,13 +2067,27 @@ window.addEventListener('blur', ()=>{ heldKeys.length = 0; held = null; });
     const rep = ()=>{ if(cur===k){ if(uiHandler) uiHandler(k); repT = setTimeout(rep, 130); } };
     repT = setTimeout(rep, 380);   // メニューの中では長押しでカーソルが連続で動く
   };
-  const dirAt = e=>{ const r = pad.getBoundingClientRect(), dx = e.clientX - (r.left + r.width/2), dy = e.clientY - (r.top + r.height/2);
-    if(Math.hypot(dx,dy) < r.width*0.12) return cur; return Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'R' : 'L') : (dy > 0 ? 'D' : 'U'); };
-  pad.addEventListener('pointerdown', e=>{ e.preventDefault(); pid = e.pointerId; try{ pad.setPointerCapture(pid); }catch(_){} setDir(dirAt(e)); });
-  pad.addEventListener('pointermove', e=>{ if(e.pointerId===pid) setDir(dirAt(e)); });
-  const end = e=>{ if(e.pointerId!==pid) return; pid = null; setDir(null); };
-  pad.addEventListener('pointerup', end); pad.addEventListener('pointercancel', end); pad.addEventListener('lostpointercapture', end);
-  pad.addEventListener('contextmenu', e=>e.preventDefault());
+  const dirOf = (dx, dy)=>{ if(Math.hypot(dx,dy) < pad.offsetWidth*0.12) return cur; return Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'R' : 'L') : (dy > 0 ? 'D' : 'U'); };
+  const floating = ()=> document.body.classList.contains('dfloat');
+  const place = (x, y)=>{ pad.style.transform = ''; const r = pad.getBoundingClientRect(); pad.style.transform = `translate(${x - (r.left + r.width/2)}px,${y - (r.top + r.height/2)}px)`; };
+  const down = e=>{ e.preventDefault(); if(pid !== null) return; pid = e.pointerId; try{ e.currentTarget.setPointerCapture(pid); }catch(_){}
+    const r = pad.getBoundingClientRect(), m = r.width*0.08;
+    // 十字キーの上（まわりも少し）をさわったときは、ふつうの十字キーとしてすぐその向きに動く。それより外をさわったときだけ、指の下に十字キーを出す
+    const onPad = e.clientX >= r.left - m && e.clientX <= r.right + m && e.clientY >= r.top - m && e.clientY <= r.bottom + m;
+    fl = floating() && !onPad;
+    if(fl){ ox = e.clientX; oy = e.clientY; place(ox, oy); pad.classList.add('float'); }
+    else setDir(dirOf(e.clientX - (r.left + r.width/2), e.clientY - (r.top + r.height/2))); };
+  const move = e=>{ if(e.pointerId!==pid) return;
+    if(!fl){ const r = pad.getBoundingClientRect(); setDir(dirOf(e.clientX - (r.left + r.width/2), e.clientY - (r.top + r.height/2))); return; }
+    let dx = e.clientX - ox, dy = e.clientY - oy; const m = Math.hypot(dx, dy), lim = pad.offsetWidth*0.5;
+    if(m > lim){ ox = e.clientX - dx/m*lim; oy = e.clientY - dy/m*lim; dx = e.clientX - ox; dy = e.clientY - oy; place(ox, oy); }   // 指が遠くへ行ったら、十字キーもついていく
+    setDir(dirOf(dx, dy)); };
+  const end = e=>{ if(e.pointerId!==pid) return; pid = null; setDir(null); pad.style.transform = ''; pad.classList.remove('float'); };
+  for(const el of [pad, zone]){
+    el.addEventListener('pointerdown', down); el.addEventListener('pointermove', move);
+    el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end); el.addEventListener('lostpointercapture', end);
+    el.addEventListener('contextmenu', e=>e.preventDefault());
+  }
 })();
 /* 戦闘画面が出ているあいだ、body に inbattle をつける（ボタンを少しこくする） */
 (()=>{ const bt = $('battle'); new MutationObserver(()=>document.body.classList.toggle('inbattle', !bt.hidden)).observe(bt, {attributes:true, attributeFilter:['hidden']}); })();
@@ -2003,6 +2111,7 @@ cv.addEventListener('contextrestored', ()=>{ ctx.imageSmoothingEnabled = false; 
 const QS = new URLSearchParams(location.search);   // ?touch でスマホ表示、?demo=field|battle|menu で画面確認用
 const TOUCH = matchMedia('(hover:none),(pointer:coarse)').matches || QS.has('touch');
 if(TOUCH) document.body.classList.add('touch');
+if(TOUCH && !isTablet()) document.body.classList.add('phone');   // スマホだけ：タイトルに「タブレットがおすすめ」を出す
 let hudI = 0, padI = 0;   // HUDの高さ・下のボタンのところの高さ（マップ座標）
 function layout(){
   if(!TOUCH){ if(cv.width!==320*HD_K){ cv.width = 320*HD_K; cv.height = 240*HD_K; ctx.imageSmoothingEnabled = false; } return; }
@@ -2024,7 +2133,8 @@ function layout(){
   st.setProperty('--padH', padH + 'px');
   st.setProperty('--sideL', land ? (dp.right - r.left + 6) + 'px' : '0px');
   st.setProperty('--sideR', land ? (r.right - ab.left + 6) + 'px' : '0px');
-  st.setProperty('--abH', (r.bottom - ab.top) + 'px');   // 画面の下から、A・Bボタンの上のはしまで（横向きのメニューを、ここより上で止める）
+  st.setProperty('--abH', (r.bottom - ab.top) + 'px');
+  padEl.style.setProperty('--padH', padH + 'px'); padEl.style.setProperty('--sideL', land ? (dp.right - r.left + 6) + 'px' : '0px');   // 十字キーのはんい（#pad は #screen の外なので、こちらにも入れる）   // 画面の下から、A・Bボタンの上のはしまで（横向きのメニューを、ここより上で止める）
 }
 addEventListener('resize', layout);
 applyPad();   // ボタンの高さ（オプション）を反映してから、画面をはかりなおす
@@ -2245,12 +2355,13 @@ async function optionMenu(){
   optIdx = 0;
   while(true){
     const touch = document.body.classList.contains('touch');   // 「ボタンの高さ」は、画面にボタンが出ているときだけ
-    const keys = ['rule','furi','bgm','se','auto', ...(touch ? ['pad'] : []), 'priv','title','back'];
-    const lbl = {rule:'ルール', furi:`ふりがな：${furiMode ? 'たくさん' : 'ふつう'}`, bgm:`BGM：${sndPref.bgm ? 'ON' : 'OFF'}`, se:`効果音：${sndPref.se ? 'ON' : 'OFF'}`, auto:`じどうセーブ：${autoSave ? 'ON' : 'OFF'}`, pad:'ボタンの高さ', priv:'プライバシーについて', title:'タイトルにもどる', back:'もどる'};
+    const keys = ['rule','furi','bgm','se','auto','time', ...(touch ? ['pad'] : []), 'priv','title','back'];
+    const lbl = {rule:'ルール', furi:`ふりがな：${furiMode ? 'たくさん' : 'ふつう'}`, bgm:`BGM：${sndPref.bgm ? 'ON' : 'OFF'}`, se:`効果音：${sndPref.se ? 'ON' : 'OFF'}`, auto:`じどうセーブ：${autoSave ? 'ON' : 'OFF'}`, time:`あそぶ時間：${ptSet.limit ? ptSet.limit + '分' : 'なし'}`, pad:'ボタン（高さ・十字キー）', priv:'プライバシーについて', title:'タイトルにもどる', back:'もどる'};
     const ci = await choose(keys.map(k=>lbl[k]), {title:'オプション', cls:'side', start:optIdx});
     optIdx = Math.max(0, ci);
-    const c = ci < 0 ? -1 : {rule:0, furi:1, bgm:2, se:3, priv:4, title:5, back:6, pad:7, auto:8}[keys[ci]];
+    const c = ci < 0 ? -1 : {rule:0, furi:1, bgm:2, se:3, priv:4, title:5, back:6, pad:7, auto:8, time:9}[keys[ci]];
     if(c===7){ await padMenu(); continue; }
+    if(c===9){ await playTimeMenu(); continue; }
     if(c===8){ setAutoSave(!autoSave); await say(autoSave ? 'じどうセーブを「ON」にしました。\nほかのアプリに切りかえたとき、歩いているところならセーブします。\n（バトル中はセーブしません）' : 'じどうセーブを「OFF」にしました。\nセーブは、メニューの「セーブ」で自分でしてね。'); continue; }
     if(c<0 || c===6) return;
     if(c===2){ setSnd('bgm', !sndPref.bgm); continue; }
@@ -2864,7 +2975,12 @@ function loadPhotos(){ let p; try{ p = JSON.parse(localStorage.getItem(PHOTO_KEY
 let photos = loadPhotos();
 function savePhotos(){ try{ localStorage.setItem(PHOTO_KEY, JSON.stringify(photos)); return true; }catch(e){ return false; } }
 const todayKey = ()=> new Date().toLocaleDateString('ja-JP');
-const photoLeft = ()=> photos.daily.date===todayKey() ? Math.max(0, PHOTO_DAILY - photos.daily.n) : PHOTO_DAILY;
+const photoLeft = (date=todayKey())=> Math.max(0, PHOTO_DAILY - (photos.daily.date===date ? photos.daily.n : (photos.past||{})[date] || 0));
+function countPhoto(date){   // 1日5まいをかぞえる（虫とりカードは、写真をとった日でかぞえる）
+  if(date===todayKey()){ photos.daily = {date, n:(photos.daily.date===date ? photos.daily.n : 0) + 1}; return; }
+  photos.past = photos.past || {}; photos.past[date] = (photos.past[date]||0) + 1;
+  const ks = Object.keys(photos.past); if(ks.length > 60) delete photos.past[ks[0]];
+}
 const realPhotoFor = shape=> Object.keys(PHOTO_CATS).map(k=>photos.cats[k] && PHOTO_CATS[k].shapes.includes(shape) ? [k,photos.cats[k]] : null).find(Boolean);
 
 function loadScript(src){ return new Promise((res,rej)=>{ const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = ()=>rej(new Error(src)); document.head.appendChild(s); }); }
@@ -2935,7 +3051,7 @@ function renderStamps(){
     return `<div class="st ${g ? 'got' : ''}"><div class="ink">${g ? esc(sp.name) : '？'}</div><div><b>${esc(sp.name)}</b><br>${g ? `${esc(g.date)} ゲット` : esc(spInfo(sp, false))}</div></div>`; }).join('');
 }
 function addResult(html){ const d = document.createElement('div'); d.className = 'stampbox'; d.innerHTML = html; $('camResult').appendChild(d); return d; }
-async function stampCheck(){
+async function stampCheck(omi){   // omi：虫とりカメラの虫とりカード（このときはスタンプをカードに入れるだけ）
   const box = addResult('いる場所をしらべています…');
   let pos;
   try{ pos = await getPos(); }
@@ -2943,7 +3059,8 @@ async function stampCheck(){
   const sp = nearSpot(pos.lat, pos.lon); pos = null;   // 位置そのものはすぐに捨てる
   if(!sp){ box.innerHTML = '近くに、スタンプのある場所はなかったよ。<br><small>宗像大社・さつき松原・城山・大島・釣川・赤間で写真をとると、スタンプがもらえるよ。</small>'; return; }
   photos.stamps = photos.stamps || {};
-  if(photos.stamps[sp.key]){ box.innerHTML = `ここは「${esc(sp.name)}」！ スタンプはもう持っているよ（${esc(photos.stamps[sp.key].date)}）。`; return; }
+  if(omi && omiyage.list.some(o=>o.stamp===sp.key)){ box.innerHTML = `ここは「${esc(sp.name)}」！ ${esc(sp.name)}のスタンプは、もう虫とりカードに入っているよ。`; return; }
+  if(!omi && photos.stamps[sp.key]){ box.innerHTML = `ここは「${esc(sp.name)}」！ スタンプはもう持っているよ（${esc(photos.stamps[sp.key].date)}）。`; return; }
   // 安全の確認
   const ok = await new Promise(res=>{
     box.innerHTML = `ここは「<b>${esc(sp.name)}</b>」！ スタンプをおす前に…<br><b>おうちの人といっしょに来た？</b><br>
@@ -2951,6 +3068,8 @@ async function stampCheck(){
     $('stYes').onclick = ()=>res(true); $('stNo').onclick = ()=>res(false);
   });
   if(!ok){ box.innerHTML = `${esc(sp.name)}のスタンプは、<b>つぎにおうちの人といっしょに来たとき</b>におそう！<br><small>${esc(sp.warn)}</small>`; return; }
+  if(omi){ omi.stamp = sp.key; saveOmi(); renderOmi();
+    box.innerHTML = `<b class="ok">「${esc(sp.name)}」のスタンプを、虫とりカードに入れたよ！</b><br>家のゲームでカードを開けると、スタンプがおせるよ。<br><small>${esc(sp.warn)}</small>`; return; }
   photos.stamps[sp.key] = {date:todayKey()};
   if(!savePhotos()){ box.innerHTML = 'スタンプを保存できませんでした。'; return; }
   let extra = '';
@@ -2983,28 +3102,316 @@ async function handlePhoto(file){
     camResult(head + '<div class="txt"><div class="ng big">ハチかも！ 気をつけて！</div>ハチ（とくにスズメバチ）は、さされるととても危険です。<br>写真をとるために近づいたりしないでね。<br><small>ハチの写真では、ごほうびはもらえません。</small></div>');
     return;
   }
-  // ごほうび
+  if(camOut){   // 虫とりカメラ：ごほうびは家のゲームで受けとる
+    if(omiyage.list.length >= OMI_MAX){ camResult(head + '<div class="txt ng">虫とりカードがいっぱい！<br>家に送ってから、「送ったものをけす」をおしてね。</div>'); return; }
+    const o = {id:Date.now().toString(36) + Math.random().toString(36).slice(2,6), cat, p:Math.round(score[cat]*100), date:todayKey(), img:thumb, h};
+    omiyage.list.push(o); countPhoto(todayKey()); photos.hashes.push(h); if(photos.hashes.length > 300) photos.hashes.shift();
+    if(!saveOmi()){ omiyage.list.pop(); camResult(head + '<div class="txt ng">カードを保存できませんでした。家に送ってから、「送ったものをけす」をおしてね。</div>'); return; }
+    savePhotos(); renderOmi(); track('omiyage_photo', {category:cat});
+    camResult(head + `<div class="txt"><div class="ok big">${esc(PHOTO_CATS[cat].name)}だ！</div><small>AIのはんてい ${o.p}%</small><div>虫とりカードになったよ！</div><small>家のゲームでカードを開けると、ごほうびがもらえるよ。</small></div>`);
+    if($('geoOn').checked) await stampCheck(o);
+    return;
+  }
+  const {first, gifts} = giveReward(cat, thumb, h, todayKey());
+  save(); hud(); renderAlbum();
+  camResult(head + `<div class="txt"><div class="ok big">${esc(PHOTO_CATS[cat].name)}だ！</div><small>AIのはんてい ${Math.round(score[cat]*100)}%</small>${first ? '<div>アルバムに登録された！</div>' : ''}<ul>${gifts.map(g=>`<li>${esc(g)}</li>`).join('')}</ul></div>`);
+  if($('geoOn').checked) await stampCheck();
+}
+/* ごほうび（写真をとったとき・虫とりカードを開けたとき） */
+function giveReward(cat, thumb, h, date){
   const C = PHOTO_CATS[cat], first = !photos.cats[cat], gifts = [];
   track('photo_reward', {category:cat});
   const money = C.money * (first ? 2 : 1); S.money += money; gifts.push(`どんぐり ${dg(money)}${first ? '（はじめてボーナス2倍！）' : ''}`);
   if(C.item && (first || Math.random() < .35)){ const it = PHOTO_ITEMS.find(t=>t.key===C.item); S.items[C.item] = (S.items[C.item]||0) + 1; gifts.push(`${it.name}（${it.desc}）`); }
   if(cat==='kabuto' && !S.goldwing){ S.goldwing = true; gifts.push('金色のはね！ 大島の伝説の虫「ミアレカブト」が出やすくなった…！'); }
   if(C.shapes.length){ C.shapes.forEach(s=>S.link[s] = S.day + 1); gifts.push(`ゲームの中で${C.name}が出やすくなった（明日まで）`); }
-  photos.cats[cat] = {img:thumb, n:(photos.cats[cat]?.n||0) + 1, date:todayKey()};
+  photos.cats[cat] = {img:thumb, n:(photos.cats[cat]?.n||0) + 1, date};
   photos.hashes.push(h); if(photos.hashes.length > 300) photos.hashes.shift();
-  photos.daily = {date:todayKey(), n:(photos.daily.date===todayKey() ? photos.daily.n : 0) + 1};
+  countPhoto(date);
   if(!savePhotos()){ photos.cats[cat].img = ''; savePhotos(); }
-  save(); hud(); renderAlbum();
-  camResult(head + `<div class="txt"><div class="ok big">${esc(C.name)}だ！</div><small>AIのはんてい ${Math.round(score[cat]*100)}%</small>${first ? '<div>アルバムに登録された！</div>' : ''}<ul>${gifts.map(g=>`<li>${esc(g)}</li>`).join('')}</ul></div>`);
-  if($('geoOn').checked) await stampCheck();
+  return {first, gifts};
 }
 ['camIn','libIn'].forEach(id=>$(id).addEventListener('change', e=>{ const f = e.target.files[0]; e.target.value = ''; handlePhoto(f); }));
-function openCam(){
+/* ---------- あそぶ時間（オプション）：決めた時間がくると、夕方のチャイム→ヒグラシ→休けい ----------
+   おうちの人が決める：時間（15〜60分）と、休けい（5〜30分、または「その日はおしまい」）。変えるときは、かけ算の確認をする */
+const PT_KEY = KEY_PRE + 'munakata-playtime-v1', PT_ST_KEY = KEY_PRE + 'munakata-playtime-state-v1';
+const PT_MIN = QS.has('ptfast') ? 1000 : 60000;   // 画面確認用：?ptfast で「1分」を1秒にする
+let ptSet = (()=>{ try{ return Object.assign({limit:30, rest:10}, JSON.parse(localStorage.getItem(PT_KEY)) || {}); }catch(e){ return {limit:30, rest:10}; } })();   // はじめは「30分あそんだら10分休けい」
+let ptSt = (()=>{ try{ return Object.assign({used:0, last:0}, JSON.parse(localStorage.getItem(PT_ST_KEY)) || {}); }catch(e){ return {used:0, last:0}; } })();
+const ptSaveSet = ()=>{ try{ localStorage.setItem(PT_KEY, JSON.stringify(ptSet)); }catch(e){} };
+const ptSaveSt = ()=>{ try{ localStorage.setItem(PT_ST_KEY, JSON.stringify(ptSt)); }catch(e){} };
+const ptLocked = ()=> ptSt.pending || (ptSt.restUntil && Date.now() < ptSt.restUntil) || (ptSt.endDay && ptSt.endDay === todayKey());
+function parentCheck(){   // おうちの人の確認：小学生には少しむずかしい、かけ算
+  const a = 7 + Math.floor(Math.random()*3), b = 6 + Math.floor(Math.random()*4);
+  const r = prompt(`おうちの人へ\n${a} × ${b} は？（数字で入れてください）`);
+  if(r === null) return false;
+  const n = parseInt(String(r).replace(/[０-９]/g, ch=>String.fromCharCode(ch.charCodeAt(0) - 0xFEE0)), 10);
+  if(n === a*b) return true;
+  alert('ちがうみたいです。'); return false;
+}
+async function playTimeMenu(skipCheck){
+  await say(`【あそぶ時間】いま：${ptSet.limit ? `${ptSet.limit}分あそんだら、${ptSet.rest === 'end' ? 'その日はおしまい' : `${ptSet.rest}分 休けい`}` : 'なし'}\nおうちの人が決める設定です。決めた時間の5分前に町のチャイム、1分前にヒグラシが鳴って、時間になると休けいになります。`);
+  if(ptSet.limit && !skipCheck && !parentCheck()) return;
+  const L = [0, 15, 30, 45, 60];
+  const c = await choose(L.map(m=>m ? `${m}分` : 'なし（時間をきめない）'), {title:'あそぶ時間', cls:'side', start:Math.max(0, L.indexOf(ptSet.limit))});
+  if(c < 0) return;
+  let rest = ptSet.rest;
+  if(L[c]){
+    const R = [5, 10, 15, 30, 'end'];
+    const r = await choose(R.map(m=>m === 'end' ? 'おしまい（その日はもう遊ばない）' : `${m}分 休けい`), {title:'時間になったら', cls:'side', start:Math.max(0, R.indexOf(ptSet.rest))});
+    if(r < 0) return;
+    rest = R[r];
+  }
+  ptSet = {limit:L[c], rest}; ptSaveSet();
+  ptSt = {used:0, last:Date.now()}; ptSaveSt();
+  await say(L[c] ? `あそぶ時間を「${L[c]}分」にしました。\n時間になったら、${rest === 'end' ? 'その日の虫とりはおしまいです。' : `${rest}分 休けいします。`}\n（歩いているところなら、休けいの前にじどうセーブします）` : 'あそぶ時間を「なし」にしました。');
+}
+/* はじめて開いたときに1回だけ：おうちの方へのお知らせ */
+const PT_NOTICE_KEY = KEY_PRE + 'munakata-playtime-notice-v1';
+function ptRuleText(){ return ptSet.limit ? `${ptSet.limit}分あそぶと、${ptSet.rest === 'end' ? 'その日はおしまい' : `${ptSet.rest}分の休けい`}になります` : '時間の決まりはありません（いまは「なし」）'; }
+async function ptNotice(){
+  try{ if(localStorage.getItem(PT_NOTICE_KEY)) return; localStorage.setItem(PT_NOTICE_KEY, '1'); }catch(e){ return; }
+  const ts = $('titleScr'); ts.classList.add('quiet');   // タイトルのボタンを一時的にかくして、メッセージを読みやすく
+  await say(`【おうちの方へ】このゲームは、${ptRuleText()}。\n決めた時間の5分前に町のチャイム、1分前にヒグラシが鳴ってお知らせします。`);
+  const cp = choose(['わかりました', 'いま設定する'], {msg:'時間や休けい（「その日はおしまい」もえらべます）は、オプションの「あそぶ時間」で変えられます。', cls:'side'});
+  requestAnimationFrame(()=>{   // えらぶところは、メッセージのすぐ上に出す（スマホたてで画面の上に切れないように。タイトルのロゴにかぶってもよい）
+    const m = $('menu'), g = $('msg'); if(m.hidden || g.hidden) return;
+    m.style.top = Math.max(8, g.getBoundingClientRect().top - screenEl.getBoundingClientRect().top - m.offsetHeight - 10) + 'px'; m.style.bottom = 'auto';
+  });
+  const c = await cp; $('menu').style.top = ''; $('menu').style.bottom = '';
+  if(c === 1) await playTimeMenu(true);   // おうちの方が読んでいるので、かけ算の確認はしない
+  ts.classList.remove('quiet');
+}
+/* 「夕焼け小焼け」（草川信 作曲・ハ長調・4/4・♩=110）。[音の高さ（MIDI）, 拍]、0 は休み。メロディは楽譜より1オクターブ上で鳴らす */
+const CHIME_MEL = [[67,2],[67,1],[69,1], [67,1],[67,1],[67,1],[64,1], [60,1],[60,1],[62,1],[64,1], [62,3],[0,1],
+                   [64,2],[64,1],[67,1], [69,1],[72,1],[72,1],[69,1], [67,1],[67,1],[69,1],[67,1], [72,3],[0,1],
+                   [72,1.5],[74,.5],[72,1],[69,1], [72,1],[72,1],[67,1],[67,1], [69,1],[67,1],[69,1],[67,1], [64,3],[0,1],
+                   [67,1],[64,1],[62,1],[60,1], [62,1],[62,1],[60,1],[62,1], [64,1],[67,1],[69,1],[67,1], [60,4]];
+const CHIME_BASS = [48,48, 48,48, 57,50, 55,55,  48,48, 53,53, 55,55, 48,48,  53,53, 48,48, 50,55, 48,48,  48,48, 53,53, 50,55, 48];   // 2分音符ごと（さいごは全音符）
+function seChime(){   // 夕方の町のチャイム：ファミコンのオルゴール風（細い矩形波のメロディが、すっと消える）＋和音をポロロンと分散
+  if(!seReady()) return;
+  const b = 60 / 110, t0 = actx.currentTime + .1; let at = t0;
+  // チャイムのあいだは、BGM（曲と虫の声）を消して、チャイムだけを聞かせる。鳴り終わったら、ゆっくりもどす
+  const len = CHIME_MEL.reduce((t, [, d])=>t + d, 0) * b + .6;
+  try{ aBgm.gain.cancelScheduledValues(t0 - .1); aBgm.gain.setTargetAtTime(0, t0 - .1, .25); aBgm.gain.setTargetAtTime(.32, t0 + len, .8); }catch(e){}
+  const CH = {48:[48,52,55], 50:[50,53,57], 53:[53,57,60], 55:[55,59,62], 57:[57,60,64]};   // 伴奏の音から和音をつくる
+  try{
+    for(const [n, d] of CHIME_MEL){ if(n){ const len = Math.min(d * b, 1.2); aTone(aSe, .125, mhz(n + 12), at, len, .14, null, [.004, 0, len * .9]); } at += d * b; }
+    CHIME_BASS.forEach((n, k)=>{ const d = k === CHIME_BASS.length - 1 ? 4 : 2, c = CH[n];
+      for(let i=0;i<d*2;i++) aTone(aSe, .5, mhz([c[0], c[1], c[2], c[1]][i % 4] + 12), t0 + (k * 4 + i) * b / 2, b * .45, .035, null, [.004, 0, b * .4]);
+      aTone(aSe, 'tri', mhz(n), t0 + k * 2 * b, d * b * .95, .14, null, [.01, .9, .3]); });
+  }catch(e){}
+}
+function seKanakana(){   // ヒグラシ（カナカナカナ…）を3回
+  if(!seReady()) return;
+  try{ for(let k=0;k<3;k++){ const t = actx.currentTime + .1 + k*2.2, n = 16, f0 = 4300 + Math.random()*300;
+    for(let i=0;i<n;i++){ const r = i / n; aTone(aSe, .5, f0 * (1 - r*.12), t + i*.11, .07, .16 * (1 - r*.7), null, [.004, .6, .03]); } } }catch(e){}
+}
+let ptToastT = null;
+function ptToast(msg){ const el = $('ptToast'); el.textContent = msg; el.hidden = false; el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
+  clearTimeout(ptToastT); ptToastT = setTimeout(()=>{ el.hidden = true; }, 7000); }
+let ptPrevUi = null, ptPrevBusy = false;
+function restShow(){
+  if(!$('restScr').hidden) return;
+  autoSaveNow();
+  if(ptSt.pending){ ptSt.pending = false; if(ptSet.rest !== 'end') ptSt.restUntil = Date.now() + ptSet.rest * PT_MIN; ptSaveSt(); }   // 休けいの時間は、休けいの画面が出てから数える
+  ptPrevUi = uiHandler; ptPrevBusy = busy; uiHandler = ()=>{}; busy = true;   // 休けいのあいだは、キーやボタンで動かないように
+  $('restScr').hidden = false; $('ptToast').hidden = true; restUpdate();
+}
+function restHide(){
+  if($('restScr').hidden) return;
+  $('restScr').hidden = true; uiHandler = ptPrevUi; busy = ptPrevBusy; ptPrevUi = null;
+  ptSt.restUntil = 0; ptSt.endDay = null; ptSt.pending = false; ptSt.used = 0; ptSt.warned5 = ptSt.warned1 = false; ptSt.last = Date.now(); ptSaveSt();
+}
+function restUpdate(){
+  const end = ptSt.endDay && ptSt.endDay === todayKey();
+  $('restScr').classList.toggle('end', !!end);
+  $('rsTitle').textContent = end ? '今日の虫とりは、ここまで！' : 'ひと休みの時間だよ';
+  $('rsMsg').textContent = end ? 'たくさん虫とりしたね。\n目を休めて、また明日あそぼう。' : '今日の虫とりは、ここでひと休み。\n目を休めて、お水をのもう。';
+  const left = end ? 0 : Math.max(0, Math.ceil(((ptSt.restUntil || 0) - Date.now()) / 1000));
+  if(end) $('rsTime').textContent = '';
+  else if(left > 0) $('rsTime').textContent = `あと ${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}`;
+  else $('rsTime').textContent = '休けい おしまい！';
+  $('rsBack').hidden = end || left > 0;
+  $('rsParent').hidden = !end && left <= 0;
+}
+$('rsBack').onclick = restHide;
+$('rsParent').onclick = ()=>{ if(parentCheck()) restHide(); };
+function ptTick(){
+  if(document.hidden) return;
+  const now = Date.now(), gap = ptSt.last ? now - ptSt.last : 0; ptSt.last = now;
+  if(!$('restScr').hidden){ restUpdate(); ptSaveSt(); return; }
+  if(ptLocked()){   // 休けい中・おしまいの日：歩いていないとき（バトル・メニュー・会話が終わったあと）か、タイトル画面で休けいにする
+    if(scene === 'title' || (scene === 'field' && !busy && !mv && !uiHandler && $('battle').hidden)) restShow();
+    ptSaveSt(); return;
+  }
+  if(ptSt.restUntil || ptSt.endDay){ ptSt.restUntil = 0; ptSt.endDay = null; }
+  if(!ptSet.limit){ ptSaveSt(); return; }
+  if(gap > 60000 && gap >= (ptSet.rest === 'end' ? 6*3600000 : ptSet.rest * PT_MIN)){ ptSt.used = 0; ptSt.warned5 = ptSt.warned1 = false; }   // しばらく閉じていたら、休けいしたことにする
+  ptSt.used += Math.min(gap || 1000, 5000) / 1000;
+  const rem = ptSet.limit * PT_MIN / 1000 - ptSt.used;
+  if(rem <= 300 * PT_MIN / 60000 && !ptSt.warned5){ ptSt.warned5 = true; seChime(); ptToast('🔔 町のチャイムが鳴った…\nあと5分で 休けいの時間だ。'); }
+  if(rem <= 60 * PT_MIN / 60000 && !ptSt.warned1){ ptSt.warned1 = true; seKanakana(); ptToast('カナカナカナ…　ヒグラシが鳴きはじめた。\nお母さん「そろそろ休けいよ。あと1分ね。」'); }
+  if(rem <= 0){
+    if(ptSet.rest === 'end') ptSt.endDay = todayKey(); else ptSt.pending = true;
+    ptSt.used = 0; ptSt.warned5 = ptSt.warned1 = false;
+  }
+  ptSaveSt();
+}
+setInterval(ptTick, 1000);
+
+/* ---------- 虫とりカメラ（外ではスマホで写真だけ → 家のタブレット・パソコンのゲームで受けとる） ---------- */
+const OMI_KEY = KEY_PRE + 'munakata-omiyage-v1', OMI_MAX = 30;
+const OMI_SALT = 'munakata-mushitori-omiyage-2026';   // 手で書きかえたファイルを受けとらないための「確認の印」
+let camOut = false;
+let omiyage = (()=>{ try{ return JSON.parse(localStorage.getItem(OMI_KEY)) || {list:[]}; }catch(e){ return {list:[]}; } })();
+function saveOmi(){ try{ localStorage.setItem(OMI_KEY, JSON.stringify(omiyage)); return true; }catch(e){ return false; } }
+function renderOmi(){
+  const n = omiyage.list.filter(o=>!o.sent).length;
+  $('omiCnt').textContent = !omiyage.list.length ? '' : n ? `まだ送っていない ${n}こ` : 'ぜんぶ送ったよ';
+  $('camCnt').textContent = `今日のこり ${photoLeft()}まい`;
+  $('omiList').innerHTML = omiyage.list.map(o=>{ const sp = SPOTS.find(x=>x.key===o.stamp);
+    return `<div class="o ${o.sent ? 'sent' : ''}"><img alt="" src="${o.img}">${esc(PHOTO_CATS[o.cat].name)}<br>${esc(o.date)}${sp ? `<br>スタンプ：${esc(sp.name)}` : ''}${o.sent ? '<br>送った' : ''}</div>`; }).join('');
+  $('omiClear').disabled = !omiyage.list.some(o=>o.sent);
+}
+async function omiSig(items){
+  const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(OMI_SALT + JSON.stringify(items)));
+  return [...new Uint8Array(b)].slice(0, 12).map(x=>x.toString(16).padStart(2, '0')).join('');
+}
+async function sendOmi(){
+  const items = omiyage.list.map(({id, cat, p, date, img, h, stamp})=>({id, cat, p, date, img, h, stamp:stamp || null}));
+  if(!items.length){ camResult('<div class="txt">まだ 虫とりカードはないよ。外で本物の虫の写真をとってみよう！</div>'); return; }
+  const data = {app:'munakata-mushitori', kind:'omiyage', v:1, items, sig:await omiSig(items)};
+  const d = new Date(), name = `虫とり日記の虫とりカード_${d.getMonth()+1}月${d.getDate()}日${d.getHours()}時${String(d.getMinutes()).padStart(2,'0')}分.html`;
+  const file = new File([omiCard(data)], name, {type:'text/html'});
+  // 「送った」は、共有の画面を出す前に記録する。iPhoneでは、AirDropやLINEで送れても「やめた」と返ってきたり、
+  // 送っているあいだにページが読みこみなおされたりして、あとで記録できないことがあるため（カードは毎回ぜんぶ入るので、送りなおしてもだいじょうぶ）
+  omiyage.list.forEach(o=>o.sent = true); saveOmi(); renderOmi(); track('omiyage_send', {n:items.length});
+  let ok = false, maybeCancel = false;
+  if(navigator.canShare && navigator.canShare({files:[file]})){
+    try{ await navigator.share({files:[file], title:'虫とり日記の虫とりカード'}); ok = true; }
+    catch(e){ if(e.name==='AbortError'){ ok = true; maybeCancel = true; } }
+  }
+  if(!ok){   // 共有できないときは、ファイルを保存する
+    const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+  }
+  if(maybeCancel){ camResult('<div class="txt">送れたかな？<br><small>送るのをやめたときや、届いていないときは、もう一度「虫とりカードを家に送る」をおしてね。前に送ったカードも、いっしょに入るよ。</small></div>'); return; }
+  camResult(`<div class="txt"><div class="ok big">虫とりカードのファイルができたよ！</div>家のタブレット・パソコンのゲームで、メニューの「写真をとる」→「届いた虫とりカードを開ける」をおして、このファイルをえらんでね。<br><small>${esc(name)}</small></div>`);
+}
+/* 虫とりカードのファイル：開くと「虫とりカード」のページになる。ゲームが読むデータは、ページの見えないところ（script）に入れる */
+function omiCard(data){
+  const n = Math.min(data.items.length, 8);   // 動きのおくれは8まい目まで（たくさんあっても待たせない）
+  const cards = data.items.map((o, i)=>{ const sp = SPOTS.find(x=>x.key===o.stamp), nm = sp ? sp.name : '';
+    const st = sp ? `<div class="stamp" style="--n:${n}">${esc(nm.length >= 4 ? nm.slice(0, Math.ceil(nm.length/2)) : nm)}${nm.length >= 4 ? '<br>' + esc(nm.slice(Math.ceil(nm.length/2))) : ''}</div>` : '';
+    return `<div class="c" style="--i:${Math.min(i, 8)}"><img alt="" src="${o.img}"><b>${esc(PHOTO_CATS[o.cat].name)}</b><span>${esc(o.date)}</span>${sp ? `<span class="st">スタンプ：${esc(sp.name)}</span>` : ''}${st}</div>`; }).join('');
+  const json = JSON.stringify(data).replace(/</g, '\\u003c');
+  return `<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>むなかた虫とり日記の虫とりカード</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%83%8F%3C/text%3E%3C/svg%3E">
+<style>
+body{margin:0;background:#f4ead2;color:#3a2e1a;font-family:system-ui,sans-serif;line-height:1.7;overflow-x:hidden}
+main{max-width:720px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:22px;margin:0 0 4px;color:#14284a;text-align:center}
+.sub{margin:0 0 6px;color:#7a6a4a;font-size:14px;text-align:center}
+
+/* カードの箱 */
+.gift{position:relative;width:120px;height:120px;margin:34px auto 6px;animation:drop .6s cubic-bezier(.3,1.6,.5,1) both}
+.gift .body{position:absolute;left:10px;bottom:0;width:100px;height:70px;background:#14284a;border-radius:6px;box-shadow:0 4px 0 #0b1830}
+.gift .body::before{content:'';position:absolute;left:42px;top:0;width:16px;height:100%;background:#f4b63c}
+.gift .lid{position:absolute;left:4px;top:30px;width:112px;height:24px;background:#1d3a66;border-radius:5px;transform-origin:10% 100%;animation:lid .7s .7s cubic-bezier(.4,1.8,.6,1) both;box-shadow:0 3px 0 #0b1830}
+.gift .lid::before{content:'';position:absolute;left:48px;top:0;width:16px;height:100%;background:#f4b63c}
+.gift .lid::after{content:'';position:absolute;left:38px;top:-22px;width:36px;height:24px;border:6px solid #f4b63c;border-bottom:0;border-radius:18px 18px 0 0;box-sizing:border-box}
+.gift .spark{position:absolute;left:52px;top:40px;font-size:20px;opacity:0;animation:spark .9s 1s ease-out both}
+.gift .s2{animation-name:spark2}.gift .s3{animation-name:spark3}.gift .s4{animation-name:spark4}
+@keyframes drop{0%{transform:translateY(-60px) scale(.6);opacity:0}100%{transform:none;opacity:1}}
+@keyframes lid{0%{transform:none}30%{transform:translateY(-8px)}100%{transform:translate(-16px,-26px) rotate(-20deg)}}
+@keyframes spark{0%{opacity:0;transform:none}30%{opacity:1}100%{opacity:0;transform:translate(-60px,-50px) scale(1.4)}}
+@keyframes spark2{0%{opacity:0;transform:none}30%{opacity:1}100%{opacity:0;transform:translate(60px,-55px) scale(1.4)}}
+@keyframes spark3{0%{opacity:0;transform:none}30%{opacity:1}100%{opacity:0;transform:translate(-20px,-80px) scale(1.2)}}
+@keyframes spark4{0%{opacity:0;transform:none}30%{opacity:1}100%{opacity:0;transform:translate(30px,-85px) scale(1.2)}}
+.came{text-align:center;font-weight:700;color:#a8442e;font-size:18px;margin:0 0 14px;animation:fade .4s 1.1s both}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+
+/* 虫のカード：順番に飛び出す */
+.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:18px}
+.c{position:relative;background:#fffaf0;border:2px solid #d8c8a0;border-radius:8px;padding:6px;display:flex;flex-direction:column;font-size:14px;text-align:center;
+  animation:pop .55s cubic-bezier(.3,1.6,.5,1) both;animation-delay:calc(1.2s + var(--i) * .25s)}
+.c img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px;margin-bottom:4px}
+.c span{color:#7a6a4a;font-size:12px}
+@keyframes pop{0%{opacity:0;transform:translateY(-70px) scale(.4)}100%{opacity:1;transform:none}}
+/* スタンプ：最後にポン */
+.stamp{position:absolute;right:4px;top:4px;width:62px;height:62px;border:3px solid #c8402e;border-radius:50%;color:#c8402e;background:#fffaf0cc;
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;line-height:1.2;transform:rotate(-12deg);
+  animation:stamp .35s ease-in both;animation-delay:calc(1.9s + var(--n) * .25s)}
+@keyframes stamp{0%{opacity:0;transform:rotate(-12deg) scale(2.6)}70%{opacity:1;transform:rotate(-12deg) scale(.9)}100%{opacity:1;transform:rotate(-12deg) scale(1)}}
+
+.how{background:#fffaf0;border:3px solid #14284a;border-radius:10px;padding:12px 14px;margin:0 0 18px;font-size:17px;animation:fade .5s calc(1.6s + var(--n) * .25s) both}
+.how b{color:#a8442e}
+.how .big{font-size:19px;font-weight:700;margin:0 0 6px;color:#14284a}.how ol{margin:0 0 6px;padding-left:1.4em}.how li{margin:4px 0}
+.how .where{display:inline-block;margin-top:4px;background:#14284a;color:#fff;border-radius:6px;padding:4px 10px;font-size:17px;font-weight:700}
+.how .trash{margin:10px 0 0;padding-top:8px;border-top:1px dashed #d8c8a0;font-size:15px;color:#5a4a2a}
+.f{margin-top:20px;font-size:13px;color:#7a6a4a}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+.c .st{color:#a8442e}
+</style></head><body><main style="--n:${n}">
+<h1>🪲 むなかた虫とり日記の虫とりカード</h1><p class="sub">スマホの「虫とりカメラ」でとった虫（${data.items.length}ひき）</p>
+<div class="gift"><div class="body"></div><div class="lid"></div><span class="spark">✨</span><span class="spark s2">✨</span><span class="spark s3">⭐</span><span class="spark s4">✨</span></div>
+<p class="came">虫とりカードが届いたよ！</p>
+<div class="g">${cards}</div>
+<div class="how"><p class="big">このページを見ただけでは、まだゲームに入っていないよ。</p>
+<ol><li>家のタブレット・パソコンで、ゲームを開く</li><li>メニューの<b>「写真をとる」</b>→<b>「届いた虫とりカードを開ける」</b>をおす</li><li><b>「虫とり日記の虫とりカード」</b>という名前のファイルをえらぶ<br><span class="where">📁 ダウンロードやファイルのところに入っているよ</span></li></ol>
+ごほうびやスタンプがもらえるよ！
+<p class="trash">🗑️ 届いた虫とりカードを開けたら、中身の虫はゲームに移動するので、このファイルはゴミ箱にすててだいじょうぶです。</p></div>
+<p class="f">むなかた虫とり日記　${esc(GAME_URL)}<br>このファイルに入っているのは、小さくした写真・虫の名前・日付・スタンプの場所の名前だけです。</p>
+</main><script type="application/json" id="omiyage-data">${json}<\/script></body></html>`;
+}
+async function clearOmi(){
+  if(!omiyage.list.some(o=>o.sent)) return;
+  if(!confirm('送ったカードを、このスマホからけしますか？\n（家のゲームでカードを開けたあとなら、けしてだいじょうぶです）')) return;
+  omiyage.list = omiyage.list.filter(o=>!o.sent); saveOmi(); renderOmi(); camResult('');
+}
+async function receiveOmi(file){
+  if(!file) return;
+  let data;
+  try{ const t = await file.text(), m = t.match(/<script type="application\/json" id="omiyage-data">([\s\S]*?)<\/script>/);
+    data = JSON.parse(m ? m[1] : t); }catch(e){ data = null; }
+  const okFmt = data && data.app==='munakata-mushitori' && data.kind==='omiyage' && Array.isArray(data.items);
+  if(!okFmt){ camResult('<div class="txt ng">虫とりカードのファイルではないみたい…。<br><small>「虫とり日記の虫とりカード」という名前のファイルをえらんでね。</small></div>'); return; }
+  if(data.sig !== await omiSig(data.items)){ camResult('<div class="txt ng">このカードは、開けられなかった…。<br><small>ファイルの中身がかわっているみたいです。スマホの虫とりカメラで、もう一度「家に送る」をしてみてね。</small></div>'); return; }
+  photos.gotOmi = photos.gotOmi || [];
+  const lines = [], before = stampCount(); let got = 0, money0 = S.money;
+  for(const o of data.items){
+    if(!PHOTO_CATS[o.cat] || photos.gotOmi.includes(o.id)) continue;
+    photos.gotOmi.push(o.id); if(photos.gotOmi.length > 500) photos.gotOmi.shift();
+    const name = PHOTO_CATS[o.cat].name;
+    if(o.cat==='hachi') continue;
+    if(photos.hashes.some(x=>hamming(x, o.h) <= 4)){ lines.push(`${esc(name)}（${esc(o.date)}）：この写真はもう見せてもらったよ`); }
+    else if(photoLeft(o.date) <= 0){ lines.push(`${esc(name)}（${esc(o.date)}）：この日のごほうびは、もう5まいもらったよ`); }
+    else { const r = giveReward(o.cat, o.img, o.h, o.date); got++;
+      lines.push(`<b>${esc(name)}</b>（${esc(o.date)}）${r.first ? '　アルバムに登録された！' : ''}<br><small>${r.gifts.map(esc).join('／')}</small>`); }
+    const sp = SPOTS.find(x=>x.key===o.stamp);
+    if(sp){ photos.stamps = photos.stamps || {};
+      if(photos.stamps[sp.key]) lines.push(`${esc(sp.name)}のスタンプは、もう持っているよ`);
+      else { photos.stamps[sp.key] = {date:o.date}; got++; let extra = '';
+        if(sp.gift){ const it = PHOTO_ITEMS.find(t=>t.key===sp.gift); S.items[sp.gift] = (S.items[sp.gift]||0) + 1; extra = `・${esc(it.name)}をもらった！`; }
+        lines.push(`<b class="ok">「${esc(sp.name)}」のスタンプをゲット！</b><br><small>特典：${esc(spInfo(sp, true))}${extra}・自由研究のフィールドワークに +3点</small>`); }
+    }
+  }
+  savePhotos(); save(); hud(); renderAlbum(); renderStamps(); track('omiyage_receive', {n:got});
+  if(!lines.length){ camResult('<div class="txt">このカードは、もう開けているよ。</div>'); return; }
+  const all = before < SPOTS.length && stampCount() >= SPOTS.length;
+  camResult(`<div class="txt">${got ? '<div class="ok big">虫とりカードを開けた！</div>' : '<div class="big">カードを開けたよ。こんどは、ごほうびはなかったよ</div>'}${S.money > money0 ? `<div>どんぐり ぜんぶで ${dg(S.money - money0)}</div>` : ''}<ul>${lines.map(l=>`<li>${l}</li>`).join('')}</ul>${all ? '<b class="ok">スタンプぜんぶ集めた！ 自由研究に さらに +5点！</b>' : ''}<small>カードの虫は、ゲームに移動したよ。届いたファイルは、ゴミ箱にすててだいじょうぶ。</small></div>`);
+}
+$('omiSend').onclick = sendOmi; $('omiClear').onclick = clearOmi;
+$('omiIn').addEventListener('change', e=>{ const f = e.target.files[0]; e.target.value = ''; receiveOmi(f); });
+function openCam(out=false){
   return new Promise(res=>{
-    camResult(''); renderAlbum(); renderStamps(); $('cam').hidden = false;
+    camOut = out; $('cam').classList.toggle('out', out);
+    $('camTitle').textContent = out ? '虫とりカメラ（外で）' : '本物の虫の写真をとる';
+    camResult(''); renderAlbum(); renderStamps(); if(out) renderOmi(); $('cam').hidden = false;
     $('geoOn').checked = !!photos.geoOn; $('geoOn').onchange = ()=>{ photos.geoOn = $('geoOn').checked; savePhotos(); };
     // AIは、写真をえらんだときにはじめて読みこむ（開いたときに読みこむと、iPadなどで画面がしばらく固まって「とじる」や回転がきかなくなる）
-    const close = ()=>{ uiHandler = null; $('cam').hidden = true; res(); };
+    const prev = uiHandler;
+    const close = ()=>{ uiHandler = prev; $('cam').hidden = true; camOut = false; res(); };
     uiHandler = k=>{ if(k==='B'||k==='M') close(); };
     $('camClose').onclick = close;
   });
@@ -3078,6 +3485,7 @@ async function showShare(){
 }
 $('btnInstall').onclick = e=>{ e.stopPropagation(); showInstall(); };
 $('btnShare').onclick = e=>{ e.stopPropagation(); showShare(); };
+$('btnOut').onclick = e=>{ e.stopPropagation(); openCam(true); };
 $('btnVer').onclick = e=>{ e.stopPropagation(); showChangelog(); };
 $('btnFuri').onclick = e=>{ e.stopPropagation(); setFuri(!furiMode); };
 $('btnPriv').onclick = e=>{ e.stopPropagation(); showPrivacy(); };
@@ -3102,7 +3510,9 @@ function showPrivacy(){
     <label class="gaoff"><input type="checkbox" id="gaOffChk" ${gaOff() ? 'checked' : ''}><span>この端末では計測しない</span></label>
     <p class="note">${window.DEMO ? '※デモ版では、もともと計測していません。' : 'チェックを入れると、この端末からは何も送らなくなります。'}</p>
     <p><b>4. セーブデータ</b><br>ゲームの記録は、お使いの端末のブラウザの中（localStorage）にだけ保存されます。</p>
-    <p><b>5. お問い合わせ</b><br>Game Director: Ryohei Taniguchi<br>${CONTACT_URL ? `<a href="${CONTACT_URL}" target="_blank" rel="noopener">お問い合わせフォーム</a>` : 'お問い合わせフォーム（じゅんび中）'}</p>`);
+    <p><b>5. 虫とりカメラの「虫とりカード」</b><br>タイトル画面の「虫とりカメラ」でとった虫は、「家に送る」をおすと1つのファイル（開くと「虫とりカード」のページ）になります。ファイルに入るのは、小さくした写真・虫のしゅるい・日付・スタンプの場所の名前だけで、緯度・経度は入りません。このゲームがファイルをどこかへ送ることはありません。家のタブレット・パソコンへは、AirDrop・メールなど、おうちの方がえらんだ方法で送ってください。</p>
+    <p><b>6. あそぶ時間</b><br>はじめは「30分あそぶと10分の休けい」になっています。時間や休けい（「その日はおしまい」もえらべます）は、オプションの「あそぶ時間」で変えられます。変えるときは、かんたんなかけ算で、おうちの方かどうかを確かめます。</p>
+    <p><b>7. お問い合わせ</b><br>Game Director: Ryohei Taniguchi<br>${CONTACT_URL ? `<a href="${CONTACT_URL}" target="_blank" rel="noopener">お問い合わせフォーム</a>` : 'お問い合わせフォーム（じゅんび中）'}</p>`);
   const c = $('gaOffChk'); if(c) c.onchange = ()=> setGaOff(c.checked);
   return p;
 }
@@ -3117,15 +3527,25 @@ if(isStandalone()) $('btnInstall').textContent = 'アプリで遊んでいます
 function titleArt(){
   const el = $('titleScr'), n = bgName('title'), logo = el.querySelector('.logo'), hasLogo = (window.BG_IMAGES||[]).includes('title_logo');
   el.classList.toggle('art', !!n); el.classList.toggle('fine', !!n && (window.BG_EXT||{})[n]==='jpg'); el.style.backgroundImage = n ? `url(${bgURL(n)})` : '';
-  if(hasLogo){ logo.src = av(BG_DIR + 'title_logo.png'); logo.hidden = false; el.querySelector('.t2').hidden = true; }
+  if(hasLogo){ logo.onload = titleMenuFit; logo.src = av(BG_DIR + 'title_logo.png'); logo.hidden = false; el.querySelector('.t2').hidden = true; }
+  titleMenuFit();
+}
+/* 縦長で背の低いスマホでは、「はじめから」のメニューがタイトルのボタンに重なるので、ボタンの下へずらす */
+function titleMenuFit(){
+  const m = $('menu'); m.style.top = '';
+  if(scene!=='title' || m.hidden || !m.classList.contains('title') || document.body.classList.contains('land')) return;
+  const tb = $('titleScr').querySelector('.tside').getBoundingClientRect().bottom, mr = m.getBoundingClientRect(), sr = screenEl.getBoundingClientRect();
+  if(mr.top < tb + 8) m.style.top = (tb + 8 - sr.top) + 'px';
 }
 window.titleArt = titleArt; titleArt(); addEventListener('resize', titleArt);
 async function titleScreen(){
   scene = 'title'; hud(); $('titleScr').hidden = false;
+  await ptNotice();
   const has = !!loadRaw(), carry = loadCarry();
   const opts = [{label:'はじめから'}, {label:'つづきから', disabled:!has}];
   if(carry) opts.push({label:`引きつぎではじめる（小学${grade(carry.round)}年生の夏）`});
-  const c = await choose(opts, {cls:'title', cancel:false, start: has ? 1 : carry ? 2 : 0});
+  const cp = choose(opts, {cls:'title', cancel:false, start: has ? 1 : carry ? 2 : 0}); titleMenuFit(); [200, 600, 1500].forEach(ms=>setTimeout(titleMenuFit, ms));   // ロゴの絵や文字が読みこまれると高さがかわる
+  const c = await cp; $('menu').style.top = '';
   $('titleScr').hidden = true;
   track('game_start', {mode: c===1 ? 'continue' : c===2 ? 'carry' : 'new'});
   if(c===1){ try{ S = loadState(loadRaw()); }catch(e){ S = newState(); } scene = 'field'; hud(); await say(`${dateStr()} ${hhmm()}\nつづきから はじめます。`); }
@@ -3149,6 +3569,7 @@ async function intro(){
     [`${dateStr()}。いよいよ虫とりの日がやってきた！`, 'boku'],
     ['7月21日に夏休みがはじまってから、がんばって宿題をほとんど終わらせた。\nのこりの夏休みは、虫とりに全力だ！', 'boku'],
     'お母さん「宿題がんばったわね。でも夜9時までには帰ってくるのよ。\nそれから、「どんぐり銀行」から、あなたのどんぐりがとどいてたわよ。」',
+    ...(ptSet.limit ? [`お母さん「あと、虫とりは${ptSet.limit}分したら、${ptSet.rest === 'end' ? 'その日はおしまいにする' : 'ひと休みする'}のよ。\n町のチャイムが鳴ったら、もうすぐ${ptSet.rest === 'end' ? 'おしまい' : '休けい'}の合図よ。」`] : []),
     `どんぐりを ${dg(300)} もらった！\n「どんぐり銀行」は、宗像で自然をしらべた子どもに、どんぐり（D）をわたしてくれるところだ。`,
     `${dateStr(DAYS+1)}からは二学期がはじまる。\n${dateStr(DAYS)}までの${DAYS}日間で、宗像じゅうの虫をつかまえてこん虫ずかんを完成させよう！`,
     '自由研究は「こん虫ずかんづくり」！\nたくさんの虫、めずらしい虫をのせるほど、二学期の発表で注目されるぞ。',
@@ -3295,7 +3716,7 @@ requestAnimationFrame(loop);
 window.claude?.hot?.snapshot?.(()=>({save:JSON.stringify(S), scene}));
 function start(data){
   if(data && data.save && data.scene==='field'){ try{ S = loadState(data.save); scene = 'field'; $('titleScr').hidden = true; hud(); return; }catch(e){} }
-  if(QS.get('panel')) setTimeout(()=> QS.get('panel')==='share' ? showShare() : QS.get('panel')==='cam' ? (photos.stamps = {oshima:{date:'2026/8/15'}, taisha:{date:'2026/8/18'}, akama:{date:'2026/8/13'}}, openCam()) : showInstall(), 700);   // 画面確認用
+  if(QS.get('panel')) setTimeout(()=> QS.get('panel')==='share' ? showShare() : QS.get('panel')==='cam' ? (photos.stamps = {oshima:{date:'2026/8/15'}, taisha:{date:'2026/8/18'}, akama:{date:'2026/8/13'}}, openCam()) : QS.get('panel')==='out' ? openCam(true) : showInstall(), 700);   // 画面確認用
   const demo = QS.get('demo');
   if(demo){ S = newState(); scene = 'field'; $('titleScr').hidden = true; S.area = 'taisha'; S.x = 9; S.y = 9; if(QS.get('min')) S.min = +QS.get('min'); if(QS.get('area')) S.area = QS.get('area'); if(QS.get('dir')) S.dir = QS.get('dir'); hud(); layout();
     if(demo==='battle'){ if(QS.get('net')) S.net = clamp(+QS.get('net'), 0, NETS.length - 1);   // net：あみの種類（0＝こども用〜4＝名人）
