@@ -7,6 +7,18 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="むなかた虫とり日記">
 <meta name="theme-color" content="#17261d">
+<!-- SNSやLINEでURLを送ったときに出る絵と文（画像は tools/make_ogp.py で作る） -->
+<meta name="description" content="宗像が舞台の夏休み虫とりRPG。宗像じゅうで虫をつかまえて、自由研究の昆虫図鑑を完成させよう。無料・ダウンロードなし。お子さまには、大きな画面のタブレットがおすすめです。">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="むなかた虫とり日記">
+<meta property="og:title" content="むなかた虫とり日記">
+<meta property="og:description" content="宗像が舞台の夏休み虫とりRPG。宗像じゅうで虫をつかまえて、自由研究の昆虫図鑑を完成させよう。無料・ダウンロードなし。お子さまには、大きな画面のタブレットがおすすめです。">
+<meta property="og:url" content="https://tani0920.github.io/mushitori-rpg/">
+<meta property="og:image" content="https://tani0920.github.io/mushitori-rpg/img/sprites/ogp.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="ja_JP">
+<meta name="twitter:card" content="summary_large_image">
 <script>
 // /demo/ から開いたときはデモ版：セーブを本番と分け、検索サイトに出さない
 window.DEMO = /\/demo\//.test(location.pathname);
@@ -716,9 +728,12 @@ const KEY_PRE = window.DEMO ? 'demo-' : '';   // デモ版は本番のセーブ�
 const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
-const GAME_VER = '0.4.1';
-const BUILD = '20261028-0013';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const GAME_VER = '0.4.2';
+const BUILD = '20261102-2208';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
+  {v:'0.4.2', date:'2026-11-02', items:[
+    'LINEやSNSでゲームのURLを送ったときに、ゲームの絵と紹介文が出るようにした',
+  ]},
   {v:'0.4.1', date:'2026-10-28', items:[
     'iPhoneのタイトル画面で、「あそぶ時間」などのメニューが画面の上（時計のところ）にもぐって見えにくかったのを直した',
   ]},
