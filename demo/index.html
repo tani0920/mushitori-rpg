@@ -729,7 +729,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.4.2';
-const BUILD = '20261102-2208';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261108-1337';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.4.2', date:'2026-11-02', items:[
     'LINEやSNSでゲームのURLを送ったときに、ゲームの絵と紹介文が出るようにした',
@@ -3188,15 +3188,18 @@ async function playTimeMenu(skipCheck){
 /* はじめて開いたときに1回だけ：おうちの方へのお知らせ */
 const PT_NOTICE_KEY = KEY_PRE + 'munakata-playtime-notice-v1';
 function ptRuleText(){ return ptSet.limit ? `${ptSet.limit}分あそぶと、${ptSet.rest === 'end' ? 'その日はおしまい' : `${ptSet.rest}分の休けい`}になります` : '時間の決まりはありません（いまは「なし」）'; }
+function msgMenuAbove(){   // えらぶところは、メッセージのすぐ上に出す（スマホたてで画面の上に切れないように。タイトルのロゴにかぶってもよい）
+  requestAnimationFrame(()=>{
+    const m = $('menu'), g = $('msg'); if(m.hidden || g.hidden) return;
+    m.style.top = Math.max(8, g.getBoundingClientRect().top - screenEl.getBoundingClientRect().top - m.offsetHeight - 10) + 'px'; m.style.bottom = 'auto';
+  });
+}
 async function ptNotice(){
   try{ if(localStorage.getItem(PT_NOTICE_KEY)) return; localStorage.setItem(PT_NOTICE_KEY, '1'); }catch(e){ return; }
   const ts = $('titleScr'); ts.classList.add('quiet');   // タイトルのボタンを一時的にかくして、メッセージを読みやすく
   await say(`【おうちの方へ】このゲームは、${ptRuleText()}。\n決めた時間の5分前に町のチャイム、1分前にヒグラシが鳴ってお知らせします。`);
   const cp = choose(['わかりました', 'いま設定する'], {msg:'時間や休けい（「その日はおしまい」もえらべます）は、オプションの「あそぶ時間」で変えられます。', cls:'side'});
-  requestAnimationFrame(()=>{   // えらぶところは、メッセージのすぐ上に出す（スマホたてで画面の上に切れないように。タイトルのロゴにかぶってもよい）
-    const m = $('menu'), g = $('msg'); if(m.hidden || g.hidden) return;
-    m.style.top = Math.max(8, g.getBoundingClientRect().top - screenEl.getBoundingClientRect().top - m.offsetHeight - 10) + 'px'; m.style.bottom = 'auto';
-  });
+  msgMenuAbove();
   const c = await cp; $('menu').style.top = ''; $('menu').style.bottom = '';
   if(c === 1) await playTimeMenu(true);   // おうちの方が読んでいるので、かけ算の確認はしない
   ts.classList.remove('quiet');
@@ -3563,8 +3566,17 @@ async function titleScreen(){
   const has = !!loadRaw(), carry = loadCarry();
   const opts = [{label:'はじめから'}, {label:'つづきから', disabled:!has}];
   if(carry) opts.push({label:`引きつぎではじめる（小学${grade(carry.round)}年生の夏）`});
-  const cp = choose(opts, {cls:'title', cancel:false, start: has ? 1 : carry ? 2 : 0}); titleMenuFit(); [200, 600, 1500].forEach(ms=>setTimeout(titleMenuFit, ms));   // ロゴの絵や文字が読みこまれると高さがかわる
-  const c = await cp; $('menu').style.top = '';
+  let c;
+  for(;;){
+    const cp = choose(opts, {cls:'title', cancel:false, start: has ? 1 : carry ? 2 : 0}); titleMenuFit(); [200, 600, 1500].forEach(ms=>setTimeout(titleMenuFit, ms));   // ロゴの絵や文字が読みこまれると高さがかわる
+    c = await cp; $('menu').style.top = '';
+    if(c !== 0 || !has) break;
+    // 「つづきから」があるのに「はじめから」：まちがえて押したときのために、一度たしかめる
+    const kp = choose(['やめる', 'はじめからにする'], {msg:'いままで あそんだ データ（つづきから）は きえてしまうよ。\nほんとうに「はじめから」に する？', cls:'side', cancel:false, start:0});
+    msgMenuAbove();
+    const k = await kp; $('menu').style.top = ''; $('menu').style.bottom = '';
+    if(k === 1) break;
+  }
   $('titleScr').hidden = true;
   track('game_start', {mode: c===1 ? 'continue' : c===2 ? 'carry' : 'new'});
   if(c===1){ try{ S = loadState(loadRaw()); }catch(e){ S = newState(); } scene = 'field'; hud(); await say(`${dateStr()} ${hhmm()}\nつづきから はじめます。`); }
