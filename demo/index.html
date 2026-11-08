@@ -728,9 +728,12 @@ const KEY_PRE = window.DEMO ? 'demo-' : '';   // デモ版は本番のセーブ�
 const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
-const GAME_VER = '0.4.2';
-const BUILD = '20261108-1337';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const GAME_VER = '0.4.3';
+const BUILD = '20261108-1344';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
+  {v:'0.4.3', date:'2026-11-08', items:[
+    '「つづきから」のデータがあるのに「はじめから」をえらんだときは、データが消えてもいいか、一度たしかめるようにした（まちがえて押したときのために）',
+  ]},
   {v:'0.4.2', date:'2026-11-02', items:[
     'LINEやSNSでゲームのURLを送ったときに、ゲームの絵と紹介文が出るようにした',
   ]},
