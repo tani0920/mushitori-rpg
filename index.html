@@ -380,6 +380,7 @@ body.touch #titleScr .tbtn{font-size:clamp(13px,3.6vmin,19px)}
 #stamps .st .ink{width:54px;height:54px;flex:none;border-radius:50%;border:3px dashed #c8b890;display:flex;align-items:center;justify-content:center;font-size:12px;color:#b8a880;text-align:center;line-height:1.1;font-weight:700}
 #stamps .st.got .ink{border:3px double #c8402e;color:#c8402e;background:#fff0e8;transform:rotate(-8deg)}
 #stamps .st b{font-size:14px;font-weight:400}
+#camResult .stampbox .spotList{margin:.4em 0 0;padding-left:1.2em;text-align:left;line-height:1.6}.stampbox .spotList a{margin-left:.3em}
 #camResult .stampbox{flex-basis:100%;border-top:1px dashed var(--paper-line);padding-top:8px;line-height:1.7}
 #camResult .stampbox .btn{margin:.3em .4em 0 0}
 #cam.out .inGame,#cam:not(.out) .outOnly{display:none}
@@ -728,9 +729,13 @@ const KEY_PRE = window.DEMO ? 'demo-' : '';   // デモ版は本番のセーブ�
 const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
-const GAME_VER = '0.4.4';
-const BUILD = '20261115-0955';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const GAME_VER = '0.4.5';
+const BUILD = '20261115-1405';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
+  {v:'0.4.5', date:'2026-11-15', items:[
+    'スタンプの場所の近くでないとき、「宗像の とくべつなスポット（スタンプのある6か所）の近くでは ないみたい」と出して、6か所の一覧と地図をのせた（位置情報は ちゃんと つかえているよ）',
+    'スポットでないときも、近くの公園・神社・お寺・山・川・海べの名前を出すようにした（「ここは「◯◯公園」の近く」）。場所の一覧はアプリの中にあって、いる場所は外に送らない',
+  ]},
   {v:'0.4.4', date:'2026-11-15', items:[
     '「プライバシーについて」のお問い合わせフォームをひらくと、ゲームの名前とバージョンが はじめから入っているようにした（「むなかた虫そだて日記」と同じフォームになったため）',
   ]},
@@ -3056,6 +3061,16 @@ const stampCount = ()=> SPOTS.filter(sp=>(photos.stamps||{})[sp.key]).length;
 function stampBoost(id){ let m = 1; for(const sp of SPOTS) if((photos.stamps||{})[sp.key] && sp.boost[id]) m *= sp.boost[id]; return m; }
 const ticketPrice = ()=> (photos.stamps||{}).oshima ? Math.round(TICKET.price/2) : TICKET.price;
 function distM(a, b, c, d){ const R = 6371000, r = Math.PI/180, x = (d-b)*r*Math.cos((a+c)/2*r), y = (c-a)*r; return Math.hypot(x, y) * R; }
+/* 近くの 公園・神社・お寺・山・川・池・海べ（2026-11-15 ユーザー：虫そだて日記と同じ）。とくべつなスポットでないとき、名前だけ出す（スタンプはなし）。
+   一覧は lib/munakata_places.json（虫そだて日記と同じファイル。OpenStreetMap のデータ、宗像市とそのまわり）。端末の中で調べて、位置は外に送らない */
+const LOCAL_NM = {jinja:['神社', '近くの神社'], tera:['お寺', '近くのお寺'], yama:['山', '近くの山'], kawa:['川・池', '近くの川'], umi:['海べ', '近くの海べ'], koen:['公園', '近くの公園']};
+let LOCAL_PL = null;
+async function nearLocal(lat, lon){
+  try{ if(!LOCAL_PL) LOCAL_PL = await (await fetch('lib/munakata_places.json')).json(); }catch(e){ return null; }
+  let best = null;
+  for(const [cat, nm, a, b, rad] of LOCAL_PL){ const k = distM(lat, lon, a, b) / rad; if(k <= 1 && (!best || k < best.k)) best = {cat, nm, k}; }
+  return best ? {name:best.nm || LOCAL_NM[best.cat][1], kind:LOCAL_NM[best.cat][0]} : null;
+}
 function nearSpot(lat, lon){
   let best = null;
   for(const sp of SPOTS) for(const [a, b, rad] of sp.pts){ const k = distM(lat, lon, a, b) / rad; if(k <= 1 && (!best || k < best.k)) best = {sp, k}; }
@@ -3083,8 +3098,10 @@ async function stampCheck(omi){   // omi：虫とりカメラの虫とりカー�
   let pos;
   try{ pos = await getPos(); }
   catch(e){ box.innerHTML = '位置情報がつかえませんでした。<br><small>スマホの設定で、このページ（Safari／Chrome）の位置情報が「許可」になっているか確かめてね。</small>'; return; }
-  const sp = nearSpot(pos.lat, pos.lon); pos = null;   // 位置そのものはすぐに捨てる
-  if(!sp){ box.innerHTML = '近くに、スタンプのある場所はなかったよ。<br><small>宗像大社・さつき松原・城山・大島・釣川・赤間で写真をとると、スタンプがもらえるよ。</small>'; return; }
+  const sp = nearSpot(pos.lat, pos.lon), lp = sp ? null : await nearLocal(pos.lat, pos.lon); pos = null;   // 位置そのものはすぐに捨てる
+  // 2026-11-15 ユーザー：「位置情報がうまく動いていない」と思われないように、「宗像の とくべつなスポットではない」と言い、スポットの一覧も見せる
+  if(!sp){ box.innerHTML = `${lp ? `ここは「<b>${esc(lp.name)}</b>」の近く（${esc(lp.kind)}）。<br>` : 'ここは、'}宗像の <b>とくべつなスポット</b>（スタンプのある${SPOTS.length}か所）の近くでは ないみたい。<br><small>（位置情報は ちゃんと つかえているよ）　つぎの場所の近くで写真をとると、スタンプがもらえるよ。</small>
+      <ul class="spotList">${SPOTS.map(x=> `<li><b>${esc(x.name)}</b>　<small>${esc(spInfo(x, false))}</small>　<a href="https://www.google.com/maps/search/?api=1&query=${x.pts[0][0]},${x.pts[0][1]}" target="_blank" rel="noopener">地図</a></li>`).join('')}</ul>`; return; }
   photos.stamps = photos.stamps || {};
   if(omi && omiyage.list.some(o=>o.stamp===sp.key)){ box.innerHTML = `ここは「${esc(sp.name)}」！ ${esc(sp.name)}のスタンプは、もう虫とりカードに入っているよ。`; return; }
   if(!omi && photos.stamps[sp.key]){ box.innerHTML = `ここは「${esc(sp.name)}」！ スタンプはもう持っているよ（${esc(photos.stamps[sp.key].date)}）。`; return; }
@@ -3534,7 +3551,7 @@ function showPrivacy(){
     <p><b>2. 送らない情報</b></p>
     <ul><li>名前、メールアドレスなどの個人情報</li>
       <li>カメラでとった写真（端末の中でだけ判定し、外部へ送りません）</li>
-      <li>位置情報（スタンプラリーの判定は端末の中でだけ行い、緯度・経度やスタンプの場所は保存も送信もしません）</li></ul>
+      <li>位置情報（スタンプラリーの判定は端末の中でだけ行い、緯度・経度やスタンプの場所は保存も送信もしません。近くの公園・神社などの名前を出すための一覧（© OpenStreetMap contributors、ODbL）もアプリの中にあり、地図のサービスには送りません）</li></ul>
     <p><b>3. Cookie について</b><br>Google アナリティクスは Cookie などを使って情報を集めます。集めたデータは Google のポリシーに沿って管理されます。広告のための情報（Google シグナル）は使っていません。<br>
       <a href="https://policies.google.com/technologies/partner-sites?hl=ja" target="_blank" rel="noopener">Google のサービスを使うサイトやアプリでの Google によるデータ使用</a></p>
     <label class="gaoff"><input type="checkbox" id="gaOffChk" ${gaOff() ? 'checked' : ''}><span>この端末では計測しない</span></label>
