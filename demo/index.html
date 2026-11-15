@@ -422,7 +422,7 @@ body.touch #titleScr .tbtn{font-size:clamp(13px,3.6vmin,19px)}
   #restScr .rsParent{margin-top:6px}
 }
 #restScr .rsParent{margin-top:18px;font:inherit;font-size:14px;color:#fff;background:#0004;border:1px solid #fff8;border-radius:999px;padding:.35em 1.2em;cursor:pointer}
-#titleScr .bugRow{margin-top:.3em;text-align:center}body.touch.land #titleScr .bugRow{margin:0;align-self:stretch;text-align:center}#titleScr .bugBtn{display:inline-block;font-size:clamp(10px,2.4vmin,13px);font-weight:700;color:#fff;background:#14284acc;border-radius:999px;padding:.2em .9em;text-decoration:none;line-height:1.5}
+#titleScr .bugRow{margin-top:.3em;text-align:center}body.touch.land #titleScr .bugRow{margin:0;align-self:stretch;text-align:center}body.phone.land #titleScr .bugRow{align-self:auto;text-align:left}body.phone.land #titleScr .bgL{display:none}#titleScr .bugBtn{display:inline-block;font-size:clamp(10px,2.4vmin,13px);font-weight:700;color:#fff;background:#14284acc;border-radius:999px;padding:.2em .9em;text-decoration:none;line-height:1.5}
 #titleScr.quiet .tside,#titleScr.quiet .t4,#titleScr.quiet .tpad,#titleScr.quiet #btnPriv{visibility:hidden}
 #ptToast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 12px);transform:translateX(-50%);z-index:140;max-width:min(92vw,520px);background:#2b2d52ee;color:#fff;border:2px solid #ffcf6b;border-radius:12px;padding:10px 16px;font-size:16px;line-height:1.6;white-space:pre-line;text-align:center;box-shadow:0 4px 0 #0005;animation:ptIn .4s ease-out}
 @keyframes ptIn{from{opacity:0;transform:translate(-50%,-12px)}to{opacity:1;transform:translateX(-50%)}}
@@ -732,7 +732,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.4.6';
-const BUILD = '20261116-0028';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261116-0029';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.4.6', date:'2026-11-16', items:[
     'タイトル画面に「バグ（おかしいところ）を見つけたら、こちらへ」の小さいボタンをつけた。おかしいところを見つけたら、ここから おしらせしてね',
