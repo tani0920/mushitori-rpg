@@ -380,6 +380,7 @@ body.touch #titleScr .tbtn{font-size:clamp(13px,3.6vmin,19px)}
 #stamps .st .ink{width:54px;height:54px;flex:none;border-radius:50%;border:3px dashed #c8b890;display:flex;align-items:center;justify-content:center;font-size:12px;color:#b8a880;text-align:center;line-height:1.1;font-weight:700}
 #stamps .st.got .ink{border:3px double #c8402e;color:#c8402e;background:#fff0e8;transform:rotate(-8deg)}
 #stamps .st b{font-size:14px;font-weight:400}
+#camResult .stampbox .spotList{margin:.4em 0 0;padding-left:1.2em;text-align:left;line-height:1.6}.stampbox .spotList a{margin-left:.3em}
 #camResult .stampbox{flex-basis:100%;border-top:1px dashed var(--paper-line);padding-top:8px;line-height:1.7}
 #camResult .stampbox .btn{margin:.3em .4em 0 0}
 #cam.out .inGame,#cam:not(.out) .outOnly{display:none}
@@ -729,7 +730,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.4.4';
-const BUILD = '20261115-0955';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261115-1120';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.4.4', date:'2026-11-15', items:[
     '「プライバシーについて」のお問い合わせフォームをひらくと、ゲームの名前とバージョンが はじめから入っているようにした（「むなかた虫そだて日記」と同じフォームになったため）',
@@ -3084,7 +3085,9 @@ async function stampCheck(omi){   // omi：虫とりカメラの虫とりカー�
   try{ pos = await getPos(); }
   catch(e){ box.innerHTML = '位置情報がつかえませんでした。<br><small>スマホの設定で、このページ（Safari／Chrome）の位置情報が「許可」になっているか確かめてね。</small>'; return; }
   const sp = nearSpot(pos.lat, pos.lon); pos = null;   // 位置そのものはすぐに捨てる
-  if(!sp){ box.innerHTML = '近くに、スタンプのある場所はなかったよ。<br><small>宗像大社・さつき松原・城山・大島・釣川・赤間で写真をとると、スタンプがもらえるよ。</small>'; return; }
+  // 2026-11-15 ユーザー：「位置情報がうまく動いていない」と思われないように、「宗像の とくべつなスポットではない」と言い、スポットの一覧も見せる
+  if(!sp){ box.innerHTML = `ここは、宗像の <b>とくべつなスポット</b>（スタンプのある${SPOTS.length}か所）の近くでは ないみたい。<br><small>（位置情報は ちゃんと つかえているよ）　つぎの場所の近くで写真をとると、スタンプがもらえるよ。</small>
+      <ul class="spotList">${SPOTS.map(x=> `<li><b>${esc(x.name)}</b>　<small>${esc(spInfo(x, false))}</small>　<a href="https://www.google.com/maps/search/?api=1&query=${x.pts[0][0]},${x.pts[0][1]}" target="_blank" rel="noopener">地図</a></li>`).join('')}</ul>`; return; }
   photos.stamps = photos.stamps || {};
   if(omi && omiyage.list.some(o=>o.stamp===sp.key)){ box.innerHTML = `ここは「${esc(sp.name)}」！ ${esc(sp.name)}のスタンプは、もう虫とりカードに入っているよ。`; return; }
   if(!omi && photos.stamps[sp.key]){ box.innerHTML = `ここは「${esc(sp.name)}」！ スタンプはもう持っているよ（${esc(photos.stamps[sp.key].date)}）。`; return; }
