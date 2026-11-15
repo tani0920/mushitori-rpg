@@ -728,9 +728,12 @@ const KEY_PRE = window.DEMO ? 'demo-' : '';   // デモ版は本番のセーブ�
 const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
-const GAME_VER = '0.4.3';
-const BUILD = '20261108-1344';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const GAME_VER = '0.4.4';
+const BUILD = '20261115-0955';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
+  {v:'0.4.4', date:'2026-11-15', items:[
+    '「プライバシーについて」のお問い合わせフォームをひらくと、ゲームの名前とバージョンが はじめから入っているようにした（「むなかた虫そだて日記」と同じフォームになったため）',
+  ]},
   {v:'0.4.3', date:'2026-11-08', items:[
     '「つづきから」のデータがあるのに「はじめから」をえらんだときは、データが消えてもいいか、一度たしかめるようにした（まちがえて押したときのために）',
   ]},
@@ -805,6 +808,8 @@ document.querySelectorAll('.gver').forEach(e=> e.textContent = 'ver ' + GAME_VER
    送るのは「ゲームのどこまで進んだか」などだけ。名前・写真・位置情報・スタンプの場所は送らない */
 const GA_ID = 'G-35Q20P88F6';
 const CONTACT_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSe_zcg7xhwYmuiL0ZI5Jf-wYDQlA8dgGuMUL83l-c8jO5b14g/viewform';   // お問い合わせ用の Google フォーム
+// フォームは虫そだて日記と共通（2026-11-15）。「どのゲームのこと？」（entry.1905087587）と「ゲームのバージョン」（entry.72780852）を、はじめから入れてひらく
+const contactURL = ()=> CONTACT_URL + '?usp=pp_url&entry.1905087587=' + encodeURIComponent('むなかた虫とり日記') + '&entry.72780852=' + encodeURIComponent('ver ' + GAME_VER);
 const GA_OFF_KEY = 'munakata-analytics-off';
 const gaOff = ()=>{ try{ return localStorage.getItem(GA_OFF_KEY) === '1'; }catch(e){ return false; } };
 const GA_ON = !window.DEMO && location.hostname === 'tani0920.github.io' && !gaOff();
@@ -3537,7 +3542,7 @@ function showPrivacy(){
     <p><b>4. セーブデータ</b><br>ゲームの記録は、お使いの端末のブラウザの中（localStorage）にだけ保存されます。</p>
     <p><b>5. 虫とりカメラの「虫とりカード」</b><br>タイトル画面の「虫とりカメラ」でとった虫は、「家に送る」をおすと1つのファイル（開くと「虫とりカード」のページ）になります。ファイルに入るのは、小さくした写真・虫のしゅるい・日付・スタンプの場所の名前だけで、緯度・経度は入りません。このゲームがファイルをどこかへ送ることはありません。家のタブレット・パソコンへは、AirDrop・メールなど、おうちの方がえらんだ方法で送ってください。</p>
     <p><b>6. あそぶ時間</b><br>はじめは「30分あそぶと10分の休けい」になっています。時間や休けい（「その日はおしまい」もえらべます）は、オプションの「あそぶ時間」で変えられます。変えるときは、かんたんなかけ算で、おうちの方かどうかを確かめます。</p>
-    <p><b>7. お問い合わせ</b><br>Game Director: Ryohei Taniguchi<br>${CONTACT_URL ? `<a href="${CONTACT_URL}" target="_blank" rel="noopener">お問い合わせフォーム</a>` : 'お問い合わせフォーム（じゅんび中）'}</p>`);
+    <p><b>7. お問い合わせ</b><br>Game Director: Ryohei Taniguchi<br>${CONTACT_URL ? `<a href="${contactURL()}" target="_blank" rel="noopener">お問い合わせフォーム</a>` : 'お問い合わせフォーム（じゅんび中）'}</p>`);
   const c = $('gaOffChk'); if(c) c.onchange = ()=> setGaOff(c.checked);
   return p;
 }
