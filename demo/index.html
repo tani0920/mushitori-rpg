@@ -422,6 +422,7 @@ body.touch #titleScr .tbtn{font-size:clamp(13px,3.6vmin,19px)}
   #restScr .rsParent{margin-top:6px}
 }
 #restScr .rsParent{margin-top:18px;font:inherit;font-size:14px;color:#fff;background:#0004;border:1px solid #fff8;border-radius:999px;padding:.35em 1.2em;cursor:pointer}
+#titleScr .bugRow{margin-top:.3em;text-align:center}body.touch.land #titleScr .bugRow{margin:0;text-align:left}body.touch.land #titleScr .bgL{display:none}#titleScr .bugBtn{display:inline-block;font-size:clamp(10px,2.4vmin,13px);font-weight:700;color:#fff;background:#14284acc;border-radius:999px;padding:.2em .9em;text-decoration:none;line-height:1.5}
 #titleScr.quiet .tside,#titleScr.quiet .t4,#titleScr.quiet .tpad,#titleScr.quiet #btnPriv{visibility:hidden}
 #ptToast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 12px);transform:translateX(-50%);z-index:140;max-width:min(92vw,520px);background:#2b2d52ee;color:#fff;border:2px solid #ffcf6b;border-radius:12px;padding:10px 16px;font-size:16px;line-height:1.6;white-space:pre-line;text-align:center;box-shadow:0 4px 0 #0005;animation:ptIn .4s ease-out}
 @keyframes ptIn{from{opacity:0;transform:translate(-50%,-12px)}to{opacity:1;transform:translateX(-50%)}}
@@ -627,7 +628,8 @@ body.touch.land #menu.title{top:auto;bottom:10px;left:50%;right:auto;transform:t
       <div class="t4">※このゲームに出てくる場所と虫の組み合わせはゲーム用のもので、実際にその場所にいる虫とはかぎりません。</div>
       <div class="credit">Game Director: Ryohei Taniguchi</div>
       <div class="tside"><div class="tbtns"><button type="button" class="tbtn" id="btnInstall">アプリにする方法</button><button type="button" class="tbtn" id="btnShare">友だちに教える</button><button type="button" class="tbtn cam" id="btnOut">📷 虫とりカメラ（外で）</button></div>
-      <div class="vrow"><button type="button" class="verbtn" id="btnVer"><span class="gver"></span>　こうしん情報 ▸</button><button type="button" class="verbtn" id="btnFuri">ふりがな：ふつう</button><button type="button" class="verbtn" id="btnPriv">プライバシーについて</button></div></div>
+      <div class="vrow"><button type="button" class="verbtn" id="btnVer"><span class="gver"></span>　こうしん情報 ▸</button><button type="button" class="verbtn" id="btnFuri">ふりがな：ふつう</button><button type="button" class="verbtn" id="btnPriv">プライバシーについて</button></div>
+      <div class="bugRow"><a class="bugBtn" id="btnBug" href="#" target="_blank" rel="noopener">🐞 バグ<span class="bgL">（おかしいところ）</span>を<span class="bgL">見つけたら、こちらへ</span> おしらせ<span class="bgL">ください</span></a></div></div>
     </div>
     <div id="battle" class="ov" hidden>
       <div id="bInfo" class="binfo win"></div>
@@ -730,7 +732,7 @@ const SAVE_KEY = KEY_PRE + 'munakata-mushitori-v1';
 
 /* バージョンとこうしん情報：本番に出すたびに番号を上げる（ふだんは +0.0.1、大きなこうしんは +0.1）。デモ版は次に出す番号で表示する */
 const GAME_VER = '0.4.5';
-const BUILD = '20261115-1405';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
+const BUILD = '20261115-1413';   // 公開するたびに tools/deploy.sh が日時を書きこむ（version.json と同じ値）
 const CHANGELOG = [
   {v:'0.4.5', date:'2026-11-15', items:[
     'スタンプの場所の近くでないとき、「宗像の とくべつなスポット（スタンプのある6か所）の近くでは ないみたい」と出して、6か所の一覧と地図をのせた（位置情報は ちゃんと つかえているよ）',
@@ -815,6 +817,13 @@ const GA_ID = 'G-35Q20P88F6';
 const CONTACT_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSe_zcg7xhwYmuiL0ZI5Jf-wYDQlA8dgGuMUL83l-c8jO5b14g/viewform';   // お問い合わせ用の Google フォーム
 // フォームは虫そだて日記と共通（2026-11-15）。「どのゲームのこと？」（entry.1905087587）と「ゲームのバージョン」（entry.72780852）を、はじめから入れてひらく
 const contactURL = ()=> CONTACT_URL + '?usp=pp_url&entry.1905087587=' + encodeURIComponent('むなかた虫とり日記') + '&entry.72780852=' + encodeURIComponent('ver ' + GAME_VER);
+
+/* バグの報告（2026-11-15 ユーザー）：タイトルの小さいボタンから、お問い合わせフォームを「バグ・不具合の報告」と端末の種類を入れた状態でひらく。
+   端末の種類は ブラウザの情報から この端末の中で決めるだけ（送るのは、フォームで「送信」をおしたときだけ）。
+   BUG_KIND はフォームの「お問い合わせの種類」（entry.475186555）の選択肢と同じ文字にする。フォームの文字をかえたら、ここも */
+const BUG_KIND = 'バグ・不具合の報告（うまく動かない・おかしい）';
+const devName = ()=>{ const u = navigator.userAgent; if(/iPhone|iPod/.test(u)) return 'iPhone'; if(/iPad/.test(u) || (/Macintosh/.test(u) && navigator.maxTouchPoints > 1)) return 'iPad'; if(/Android/.test(u)) return /Mobile/.test(u) ? 'Androidのスマホ' : 'Androidのタブレット'; return 'パソコン'; };
+const bugURL = ()=> contactURL() + '&entry.475186555=' + encodeURIComponent(BUG_KIND) + '&entry.963120720=' + encodeURIComponent(devName());
 const GA_OFF_KEY = 'munakata-analytics-off';
 const gaOff = ()=>{ try{ return localStorage.getItem(GA_OFF_KEY) === '1'; }catch(e){ return false; } };
 const GA_ON = !window.DEMO && location.hostname === 'tani0920.github.io' && !gaOff();
@@ -3536,6 +3545,7 @@ $('btnOut').onclick = e=>{ e.stopPropagation(); openCam(true); };
 $('btnVer').onclick = e=>{ e.stopPropagation(); showChangelog(); };
 $('btnFuri').onclick = e=>{ e.stopPropagation(); setFuri(!furiMode); };
 $('btnPriv').onclick = e=>{ e.stopPropagation(); showPrivacy(); };
+$('btnBug').href = bugURL(); $('btnBug').onclick = e=>{ e.stopPropagation(); $('btnBug').href = bugURL(); };   // タイトルの小さいボタン：バグの報告（2026-11-15 ユーザー）
 furiLabel();
 function showPrivacy(){
   const p = openPanel('プライバシーについて', `
